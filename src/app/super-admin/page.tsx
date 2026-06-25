@@ -4,6 +4,7 @@ import {
   CalendarRange,
   LayoutDashboard,
   ShieldCheck,
+  UserRound,
   UserCog,
   UsersRound,
 } from "lucide-react";
@@ -304,6 +305,20 @@ export default async function SuperAdminDashboardPage() {
             >
               <LayoutDashboard aria-hidden="true" />
               Dashboard Umum
+            </Link>
+            <Link
+              href="/admin"
+              className={buttonVariants({ variant: "outline" })}
+            >
+              <UserCog aria-hidden="true" />
+              Dashboard Admin
+            </Link>
+            <Link
+              href="/member"
+              className={buttonVariants({ variant: "outline" })}
+            >
+              <UserRound aria-hidden="true" />
+              Dashboard Member
             </Link>
             <Link href="/roles" className={buttonVariants()}>
               <ShieldCheck aria-hidden="true" />

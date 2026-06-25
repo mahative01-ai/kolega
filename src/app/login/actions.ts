@@ -27,7 +27,16 @@ export async function loginAction(formData: FormData) {
   }
 
   await setSession(user.id);
-  redirect(user.role === "SUPER_ADMIN" ? "/super-admin" : "/");
+
+  if (user.role === "SUPER_ADMIN") {
+    redirect("/super-admin");
+  }
+
+  if (user.role === "ADMIN") {
+    redirect("/admin");
+  }
+
+  redirect("/member");
 }
 
 export async function logoutAction() {
