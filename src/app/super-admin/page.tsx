@@ -3,20 +3,17 @@ import {
   Archive,
   Building2,
   CalendarRange,
-  LayoutDashboard,
   RotateCcw,
   Save,
   ShieldCheck,
   UserPlus,
-  UserRound,
   UserCog,
   UsersRound,
 } from "lucide-react";
-import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -33,10 +30,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { DashboardShell } from "@/components/dashboard-shell";
 import { hashPassword, requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ROLE_LABEL } from "@/lib/roles";
-import { logoutAction } from "../login/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -535,53 +532,13 @@ export default async function SuperAdminDashboardPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-zinc-50 text-zinc-950">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-6 py-6 lg:px-8">
-        <header className="flex flex-col gap-4 border-b border-zinc-200 pb-5 md:flex-row md:items-center md:justify-between">
-          <div>
-            <Badge variant="outline" className="mb-3 bg-white">
-              Welcome, Super Admin
-            </Badge>
-            <h1 className="text-2xl font-semibold">Super Admin Dashboard</h1>
-            <p className="mt-2 max-w-2xl text-sm text-zinc-600">
-              Halo {currentUser.name}. Halaman ini khusus Owner untuk melihat
-              ringkasan Mahative dan Kipa dalam satu tempat.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href="/"
-              className={buttonVariants({ variant: "outline" })}
-            >
-              <LayoutDashboard aria-hidden="true" />
-              Dashboard Umum
-            </Link>
-            <Link
-              href="/admin"
-              className={buttonVariants({ variant: "outline" })}
-            >
-              <UserCog aria-hidden="true" />
-              Dashboard Admin
-            </Link>
-            <Link
-              href="/member"
-              className={buttonVariants({ variant: "outline" })}
-            >
-              <UserRound aria-hidden="true" />
-              Dashboard Member
-            </Link>
-            <Link href="/roles" className={buttonVariants()}>
-              <ShieldCheck aria-hidden="true" />
-              Kelola Role
-            </Link>
-            <form action={logoutAction}>
-              <Button type="submit" variant="ghost">
-                Logout
-              </Button>
-            </form>
-          </div>
-        </header>
-
+    <DashboardShell
+      user={currentUser}
+      currentPath="/super-admin"
+      badge="Welcome, Super Admin"
+      title="Super Admin Dashboard"
+      description={`Halo ${currentUser.name}. Halaman ini khusus Owner untuk melihat ringkasan Mahative dan Kipa dalam satu tempat.`}
+    >
         <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           {metrics.map((metric) => {
             const Icon = metric.icon;
@@ -1065,7 +1022,6 @@ export default async function SuperAdminDashboardPage() {
             </Table>
           </CardContent>
         </Card>
-      </div>
-    </main>
+    </DashboardShell>
   );
 }

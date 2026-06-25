@@ -1,5 +1,4 @@
 import {
-  ArrowLeft,
   CalendarDays,
   CheckCircle2,
   Clock3,
@@ -9,7 +8,7 @@ import {
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -25,9 +24,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { DashboardShell } from "@/components/dashboard-shell";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { logoutAction } from "../login/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -166,40 +165,13 @@ export default async function MemberDashboardPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-zinc-50 text-zinc-950">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-6 py-6 lg:px-8">
-        <header className="flex flex-col gap-4 border-b border-zinc-200 pb-5 md:flex-row md:items-center md:justify-between">
-          <div>
-            <Badge variant="outline" className="mb-3 bg-white">
-              {isPreview ? "Preview Super Admin" : "Welcome, Member"}
-            </Badge>
-            <h1 className="text-2xl font-semibold">Dashboard Member</h1>
-            <p className="mt-2 max-w-2xl text-sm text-zinc-600">
-              Halo {currentUser.name}. Dashboard ini fokus ke presensi pribadi,
-              jadwal, QR card, dan request izin.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {isPreview ? (
-              <Link
-                href="/super-admin"
-                className={buttonVariants({ variant: "outline" })}
-              >
-                <ArrowLeft aria-hidden="true" />
-                Super Admin
-              </Link>
-            ) : null}
-            <Link href="/" className={buttonVariants({ variant: "outline" })}>
-              Dashboard Umum
-            </Link>
-            <form action={logoutAction}>
-              <Button type="submit" variant="ghost">
-                Logout
-              </Button>
-            </form>
-          </div>
-        </header>
-
+    <DashboardShell
+      user={currentUser}
+      currentPath="/member"
+      badge={isPreview ? "Preview Super Admin" : "Welcome, Member"}
+      title="Dashboard Member"
+      description={`Halo ${currentUser.name}. Dashboard ini fokus ke presensi pribadi, jadwal, QR card, dan request izin.`}
+    >
         <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {metrics.map((metric) => {
             const Icon = metric.icon;
@@ -297,7 +269,6 @@ export default async function MemberDashboardPage() {
             </CardContent>
           </Card>
         </section>
-      </div>
-    </main>
+    </DashboardShell>
   );
 }

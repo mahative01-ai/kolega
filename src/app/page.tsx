@@ -1,15 +1,13 @@
 import {
-  CalendarDays,
   CheckCircle2,
   Clock3,
   MapPin,
-  QrCode,
   ShieldCheck,
   UserRoundCheck,
 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardAction,
@@ -26,10 +24,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { DashboardShell } from "@/components/dashboard-shell";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ROLE_LABEL } from "@/lib/roles";
-import { logoutAction } from "./login/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -231,36 +229,13 @@ export default async function Home() {
   ]);
 
   return (
-    <main className="min-h-screen bg-zinc-50 text-zinc-950">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-6 py-6 lg:px-8">
-        <header className="flex flex-col gap-4 border-b border-zinc-200 pb-5 md:flex-row md:items-center md:justify-between">
-          <div>
-            <Badge variant="outline" className="mb-3 bg-white">
-              Welcome, {ROLE_LABEL[currentUser.role]}
-            </Badge>
-            <h1 className="text-2xl font-semibold">MahaTeams New Gen</h1>
-            <p className="mt-2 max-w-2xl text-sm text-zinc-600">
-              Halo {currentUser.name}. Dashboard ini sudah membaca data dari
-              PostgreSQL lokal dan sesi login aktif.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button>
-              <QrCode aria-hidden="true" />
-              Mulai Presensi
-            </Button>
-            <Button variant="outline">
-              <CalendarDays aria-hidden="true" />
-              Kalender
-            </Button>
-            <form action={logoutAction}>
-              <Button type="submit" variant="ghost">
-                Logout
-              </Button>
-            </form>
-          </div>
-        </header>
-
+    <DashboardShell
+      user={currentUser}
+      currentPath="/"
+      badge={`Welcome, ${ROLE_LABEL[currentUser.role]}`}
+      title="MahaTeams New Gen"
+      description={`Halo ${currentUser.name}. Dashboard ini sudah membaca data dari PostgreSQL dan sesi login aktif.`}
+    >
         <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
           {metricConfig.map((metric) => (
             <Card key={metric.key}>
@@ -429,9 +404,8 @@ export default async function Home() {
 
         <footer className="flex items-center gap-2 border-t border-zinc-200 py-4 text-xs text-zinc-500">
           <CheckCircle2 className="size-4 text-emerald-700" />
-          Dashboard pertama sudah dinamis dari PostgreSQL lokal.
+          Dashboard pertama sudah dinamis dari PostgreSQL.
         </footer>
-      </div>
-    </main>
+    </DashboardShell>
   );
 }

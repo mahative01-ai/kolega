@@ -1,8 +1,7 @@
 import { revalidatePath } from "next/cache";
-import Link from "next/link";
-import { ArrowLeft, ShieldCheck, UserCog } from "lucide-react";
+import { ShieldCheck, UserCog } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -18,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { DashboardShell } from "@/components/dashboard-shell";
 import { prisma } from "@/lib/prisma";
 import {
   canAssignRole,
@@ -26,7 +26,6 @@ import {
   ROLE_LABEL,
 } from "@/lib/roles";
 import { requireUser } from "@/lib/auth";
-import { logoutAction } from "../login/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -122,60 +121,33 @@ export default async function RolesPage() {
     currentUser.role === "ADMIN" || currentUser.role === "SUPER_ADMIN";
 
   return (
-    <main className="min-h-screen bg-zinc-50 text-zinc-950">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-6 lg:px-8">
-        <header className="flex flex-col gap-4 border-b border-zinc-200 pb-5 md:flex-row md:items-center md:justify-between">
-          <div>
-            <div className="mb-3">
-              <Link
-                href="/"
-                className={buttonVariants({
-                  variant: "ghost",
-                  className: "px-0",
-                })}
-              >
-                <ArrowLeft aria-hidden="true" />
-                Dashboard
-              </Link>
-            </div>
-            <Badge variant="outline" className="mb-3 bg-white">
-              Role MVP
-            </Badge>
-            <h1 className="text-2xl font-semibold">Role dan Akses</h1>
-            <p className="mt-2 max-w-2xl text-sm text-zinc-600">
-              Super Admin dibuat manual lewat seed/sistem. Registrasi publik
-              nanti hanya membuat role {ROLE_LABEL[REGISTRATION_DEFAULT_ROLE]}.
-              Role Admin dapat diberikan kepada Member dari halaman ini.
-            </p>
-          </div>
-          <div className="flex flex-col gap-3">
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <Card>
-                <CardHeader className="p-3">
-                  <CardDescription>Super Admin</CardDescription>
-                  <CardTitle>{data.roleCounts.SUPER_ADMIN ?? 0}</CardTitle>
-                </CardHeader>
-              </Card>
-              <Card>
-                <CardHeader className="p-3">
-                  <CardDescription>Admin</CardDescription>
-                  <CardTitle>{data.roleCounts.ADMIN ?? 0}</CardTitle>
-                </CardHeader>
-              </Card>
-              <Card>
-                <CardHeader className="p-3">
-                  <CardDescription>Member</CardDescription>
-                  <CardTitle>{data.roleCounts.MEMBER ?? 0}</CardTitle>
-                </CardHeader>
-              </Card>
-            </div>
-            <form action={logoutAction} className="self-end">
-              <Button type="submit" variant="ghost">
-                Logout
-              </Button>
-            </form>
-          </div>
-        </header>
+    <DashboardShell
+      user={currentUser}
+      currentPath="/roles"
+      badge="Role MVP"
+      title="Role dan Akses"
+      description={`Super Admin dibuat manual lewat seed/sistem. Registrasi publik nanti hanya membuat role ${ROLE_LABEL[REGISTRATION_DEFAULT_ROLE]}. Role Admin dapat diberikan kepada Member dari halaman ini.`}
+    >
+        <section className="grid gap-3 text-center sm:grid-cols-3">
+          <Card>
+            <CardHeader className="p-3">
+              <CardDescription>Super Admin</CardDescription>
+              <CardTitle>{data.roleCounts.SUPER_ADMIN ?? 0}</CardTitle>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader className="p-3">
+              <CardDescription>Admin</CardDescription>
+              <CardTitle>{data.roleCounts.ADMIN ?? 0}</CardTitle>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader className="p-3">
+              <CardDescription>Member</CardDescription>
+              <CardTitle>{data.roleCounts.MEMBER ?? 0}</CardTitle>
+            </CardHeader>
+          </Card>
+        </section>
 
         <Card>
           <CardHeader>
@@ -265,7 +237,6 @@ export default async function RolesPage() {
             </Table>
           </CardContent>
         </Card>
-      </div>
-    </main>
+    </DashboardShell>
   );
 }
