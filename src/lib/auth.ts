@@ -90,7 +90,13 @@ export async function setSession(userId: string) {
 export async function clearSession() {
   const cookieStore = await cookies();
 
-  cookieStore.delete(SESSION_COOKIE);
+  cookieStore.set(SESSION_COOKIE, "", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 0,
+    path: "/",
+  });
 }
 
 export async function getCurrentUser() {

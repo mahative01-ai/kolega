@@ -170,7 +170,9 @@ export default async function RolesPage() {
               </Card>
             </div>
             <form action={logoutAction} className="self-end">
-              <Button variant="ghost">Logout</Button>
+              <Button type="submit" variant="ghost">
+                Logout
+              </Button>
             </form>
           </div>
         </header>

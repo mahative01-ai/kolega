@@ -235,7 +235,9 @@ export default async function AdminDashboardPage() {
               Dashboard Umum
             </Link>
             <form action={logoutAction}>
-              <Button variant="ghost">Logout</Button>
+              <Button type="submit" variant="ghost">
+                Logout
+              </Button>
             </form>
           </div>
         </header>
