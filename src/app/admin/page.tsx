@@ -8,7 +8,7 @@ import {
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/table";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { logoutAction } from "../login/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -233,6 +234,9 @@ export default async function AdminDashboardPage() {
             <Link href="/" className={buttonVariants({ variant: "outline" })}>
               Dashboard Umum
             </Link>
+            <form action={logoutAction}>
+              <Button variant="ghost">Logout</Button>
+            </form>
           </div>
         </header>
 

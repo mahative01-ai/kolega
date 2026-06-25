@@ -26,6 +26,7 @@ import {
   ROLE_LABEL,
 } from "@/lib/roles";
 import { requireUser } from "@/lib/auth";
+import { logoutAction } from "../login/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -147,25 +148,30 @@ export default async function RolesPage() {
               Role Admin dapat diberikan kepada Member dari halaman ini.
             </p>
           </div>
-          <div className="grid grid-cols-3 gap-2 text-center">
-            <Card>
-              <CardHeader className="p-3">
-                <CardDescription>Super Admin</CardDescription>
-                <CardTitle>{data.roleCounts.SUPER_ADMIN ?? 0}</CardTitle>
-              </CardHeader>
-            </Card>
-            <Card>
-              <CardHeader className="p-3">
-                <CardDescription>Admin</CardDescription>
-                <CardTitle>{data.roleCounts.ADMIN ?? 0}</CardTitle>
-              </CardHeader>
-            </Card>
-            <Card>
-              <CardHeader className="p-3">
-                <CardDescription>Member</CardDescription>
-                <CardTitle>{data.roleCounts.MEMBER ?? 0}</CardTitle>
-              </CardHeader>
-            </Card>
+          <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <Card>
+                <CardHeader className="p-3">
+                  <CardDescription>Super Admin</CardDescription>
+                  <CardTitle>{data.roleCounts.SUPER_ADMIN ?? 0}</CardTitle>
+                </CardHeader>
+              </Card>
+              <Card>
+                <CardHeader className="p-3">
+                  <CardDescription>Admin</CardDescription>
+                  <CardTitle>{data.roleCounts.ADMIN ?? 0}</CardTitle>
+                </CardHeader>
+              </Card>
+              <Card>
+                <CardHeader className="p-3">
+                  <CardDescription>Member</CardDescription>
+                  <CardTitle>{data.roleCounts.MEMBER ?? 0}</CardTitle>
+                </CardHeader>
+              </Card>
+            </div>
+            <form action={logoutAction} className="self-end">
+              <Button variant="ghost">Logout</Button>
+            </form>
           </div>
         </header>
 
