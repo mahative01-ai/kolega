@@ -1,14 +1,13 @@
 import {
-  BadgeCheck,
+  Download,
   CalendarClock,
   Clock3,
-  LogIn,
-  LogOut,
   QrCode,
   ShieldCheck,
 } from "lucide-react";
+import QRCode from "qrcode";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -16,14 +15,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import {
-  createMemberQrCredentialAction,
-  submitWfoAttendanceAction,
-} from "./actions";
+import { cn } from "@/lib/utils";
+import { createMemberQrCredentialAction } from "./actions";
+import { QrScannerForm } from "./qr-scanner-form";
 
 export const dynamic = "force-dynamic";
 
@@ -106,16 +103,6 @@ function formatTime(date: Date | null) {
   }).format(date);
 }
 
-function getQrCells(value: string) {
-  const source = value || "MAHATEAMS";
-
-  return Array.from({ length: 81 }, (_, index) => {
-    const code = source.charCodeAt(index % source.length);
-
-    return (code + index * 7) % 3 !== 0;
-  });
-}
-
 async function getPresensiData(userId: string) {
   const todayKey = getJakartaDateKey();
   const attendanceDate = dateOnlyFromKey(todayKey);
@@ -180,12 +167,18 @@ export default async function MemberPresensiPage({
     searchParams,
   ]);
   const data = await getPresensiData(currentUser.id);
-  const qrCells = getQrCells(data.qrCredential?.qrUid ?? "");
+  const qrSvg = data.qrCredential
+    ? await QRCode.toString(data.qrCredential.qrUid, {
+        type: "svg",
+        margin: 1,
+        width: 220,
+        errorCorrectionLevel: "M",
+      })
+    : null;
   const hasQr = Boolean(data.qrCredential);
   const hasCheckedIn = Boolean(data.attendanceRecord?.checkInAt);
   const hasCheckedOut = Boolean(data.attendanceRecord?.checkOutAt);
   const submitLabel = hasCheckedIn ? "Check-out WFO" : "Check-in WFO";
-  const SubmitIcon = hasCheckedIn ? LogOut : LogIn;
 
   return (
     <DashboardShell
@@ -193,7 +186,7 @@ export default async function MemberPresensiPage({
       currentPath="/member/presensi"
       badge="Presensi WFO"
       title="Scan QR Presensi"
-      description={`Halo ${currentUser.name}. Presensi WFO untuk hari ini.`}
+      description={`Halo ${currentUser.name}. Download QR Card sekali, simpan, lalu scan QR untuk presensi WFO.`}
     >
       {params.success && successMessage[params.success] ? (
         <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
@@ -222,16 +215,10 @@ export default async function MemberPresensiPage({
             {hasQr ? (
               <>
                 <div className="rounded-lg border border-zinc-200 bg-white p-4">
-                  <div className="mx-auto grid size-48 grid-cols-9 gap-1 rounded-md bg-zinc-50 p-3">
-                    {qrCells.map((active, index) => (
-                      <div
-                        key={index}
-                        className={`rounded-sm ${
-                          active ? "bg-zinc-950" : "bg-zinc-200"
-                        }`}
-                      />
-                    ))}
-                  </div>
+                  <div
+                    className="mx-auto flex size-56 items-center justify-center [&_svg]:size-52"
+                    dangerouslySetInnerHTML={{ __html: qrSvg ?? "" }}
+                  />
                 </div>
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-zinc-500">QR UID</p>
@@ -242,6 +229,16 @@ export default async function MemberPresensiPage({
                     Aktif sejak {formatDate(data.qrCredential?.issuedAt ?? new Date())}.
                   </p>
                 </div>
+                <a
+                  href="/member/presensi/qr-card"
+                  className={cn(
+                    buttonVariants({ variant: "outline" }),
+                    "w-full"
+                  )}
+                >
+                  <Download aria-hidden="true" />
+                  Download QR Card
+                </a>
               </>
             ) : (
               <form action={createMemberQrCredentialAction}>
@@ -300,33 +297,19 @@ export default async function MemberPresensiPage({
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <BadgeCheck className="size-5 text-emerald-700" />
+                <QrCode className="size-5 text-emerald-700" />
                 Scan QR
               </CardTitle>
               <CardDescription>
-                Validasi QR dilakukan terhadap QR Card aktif milik akun ini.
+                Kamera membaca QR Card yang sudah disimpan. Setelah QR terbaca,
+                tombol presensi akan aktif.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form action={submitWfoAttendanceAction} className="grid gap-3">
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="qrUid" className="text-sm font-medium">
-                    QR UID
-                  </label>
-                  <Input
-                    id="qrUid"
-                    name="qrUid"
-                    defaultValue={data.qrCredential?.qrUid ?? ""}
-                    placeholder="Aktifkan QR Card terlebih dahulu"
-                    disabled={!hasQr || hasCheckedOut}
-                    required
-                  />
-                </div>
-                <Button type="submit" disabled={!hasQr || hasCheckedOut}>
-                  <SubmitIcon aria-hidden="true" />
-                  {hasCheckedOut ? "Presensi Selesai" : submitLabel}
-                </Button>
-              </form>
+              <QrScannerForm
+                disabled={!hasQr || hasCheckedOut}
+                submitLabel={hasCheckedOut ? "Presensi Selesai" : submitLabel}
+              />
               {data.attendanceRecord?.lateMinutes ? (
                 <p className="mt-3 flex items-center gap-2 text-sm text-orange-700">
                   <Clock3 className="size-4" />
