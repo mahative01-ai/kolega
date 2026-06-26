@@ -1,26 +1,36 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import type { Html5Qrcode } from "html5-qrcode";
+import { useEffect, useId, useRef, useState } from "react";
 import { Camera, ScanLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { submitWfoAttendanceAction } from "./actions";
 
-type BarcodeResult = {
-  rawValue?: string;
-};
+function getCameraErrorMessage(error: unknown) {
+  if (error instanceof DOMException) {
+    if (error.name === "NotAllowedError") {
+      return "Izin kamera ditolak. Izinkan akses kamera dari browser, lalu coba lagi.";
+    }
 
-type BarcodeDetectorInstance = {
-  detect(image: HTMLVideoElement): Promise<BarcodeResult[]>;
-};
+    if (error.name === "NotFoundError") {
+      return "Kamera tidak ditemukan di perangkat ini.";
+    }
 
-type BarcodeDetectorConstructor = new (options: {
-  formats: string[];
-}) => BarcodeDetectorInstance;
+    if (error.name === "NotReadableError") {
+      return "Kamera sedang dipakai aplikasi lain. Tutup aplikasi kamera/meeting, lalu coba lagi.";
+    }
 
-function getBarcodeDetector() {
-  return (window as unknown as { BarcodeDetector?: BarcodeDetectorConstructor })
-    .BarcodeDetector;
+    if (error.name === "OverconstrainedError") {
+      return "Kamera belakang tidak tersedia. Coba gunakan perangkat lain atau kamera default.";
+    }
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return "Kamera belum bisa dibuka. Periksa izin kamera browser, lalu coba lagi.";
 }
 
 export function QrScannerForm({
@@ -30,9 +40,8 @@ export function QrScannerForm({
   disabled: boolean;
   submitLabel: string;
 }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const frameRef = useRef<number | null>(null);
+  const scannerId = `qr-scanner-${useId().replace(/:/g, "")}`;
+  const scannerRef = useRef<Html5Qrcode | null>(null);
   const [scanValue, setScanValue] = useState("");
   const [isScanning, setIsScanning] = useState(false);
   const [message, setMessage] = useState(
@@ -40,28 +49,29 @@ export function QrScannerForm({
   );
   const canSubmit = Boolean(scanValue.trim()) && !disabled;
 
-  function stopScanner() {
-    if (frameRef.current) {
-      cancelAnimationFrame(frameRef.current);
-      frameRef.current = null;
-    }
+  async function stopScanner() {
+    const scanner = scannerRef.current;
 
-    streamRef.current?.getTracks().forEach((track) => track.stop());
-    streamRef.current = null;
-    setIsScanning(false);
-  }
-
-  async function startScanner() {
-    if (disabled) {
+    if (!scanner) {
+      setIsScanning(false);
       return;
     }
 
-    const BarcodeDetector = getBarcodeDetector();
+    try {
+      if (scanner.isScanning) {
+        await scanner.stop();
+      }
+      scanner.clear();
+    } catch {
+      // Scanner cleanup can fail if the browser already closed the camera stream.
+    } finally {
+      scannerRef.current = null;
+      setIsScanning(false);
+    }
+  }
 
-    if (!BarcodeDetector) {
-      setMessage(
-        "Browser ini belum mendukung scanner QR kamera. Gunakan Chrome/Edge terbaru atau coba dari perangkat lain."
-      );
+  async function startScanner() {
+    if (disabled || isScanning) {
       return;
     }
 
@@ -72,70 +82,63 @@ export function QrScannerForm({
 
     setScanValue("");
     setMessage("Membuka kamera...");
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "environment" },
-      audio: false,
-    });
-    const video = videoRef.current;
 
-    if (!video) {
-      stream.getTracks().forEach((track) => track.stop());
-      return;
-    }
+    try {
+      await stopScanner();
 
-    streamRef.current = stream;
-    video.srcObject = stream;
-    await video.play();
-    setIsScanning(true);
-    setMessage("Arahkan kamera ke QR Card.");
+      const { Html5Qrcode: Html5QrcodeReader } = await import("html5-qrcode");
+      const scanner = new Html5QrcodeReader(scannerId, {
+        verbose: false,
+      });
 
-    const detector = new BarcodeDetector({ formats: ["qr_code"] });
+      scannerRef.current = scanner;
 
-    async function scanFrame() {
-      const currentVideo = videoRef.current;
+      await scanner.start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: { width: 240, height: 240 },
+          aspectRatio: 1.777778,
+        },
+        (decodedText) => {
+          const qrValue = decodedText.trim();
 
-      if (!currentVideo || currentVideo.readyState < 2) {
-        frameRef.current = requestAnimationFrame(scanFrame);
-        return;
-      }
+          if (!qrValue) {
+            return;
+          }
 
-      try {
-        const codes = await detector.detect(currentVideo);
-        const qrValue = codes.find((code) => code.rawValue)?.rawValue?.trim();
-
-        if (qrValue) {
           setScanValue(qrValue);
           setMessage("QR terbaca. Kamu bisa lanjut presensi.");
-          stopScanner();
-          return;
+          void stopScanner();
+        },
+        () => {
+          setMessage("Arahkan kamera ke QR Card sampai terbaca.");
         }
-      } catch {
-        setMessage("QR belum terbaca, coba arahkan ulang kamera.");
-      }
+      );
 
-      frameRef.current = requestAnimationFrame(scanFrame);
+      setIsScanning(true);
+      setMessage("Arahkan kamera ke QR Card.");
+    } catch (error) {
+      await stopScanner();
+      setMessage(getCameraErrorMessage(error));
     }
-
-    frameRef.current = requestAnimationFrame(scanFrame);
   }
 
   useEffect(() => {
-    return () => stopScanner();
+    return () => {
+      void stopScanner();
+    };
   }, []);
 
   return (
     <div className="grid gap-3">
       <div className="overflow-hidden rounded-md border border-zinc-200 bg-zinc-950">
-        <video
-          ref={videoRef}
-          className={`aspect-video w-full object-cover ${
-            isScanning ? "block" : "hidden"
-          }`}
-          muted
-          playsInline
+        <div
+          id={scannerId}
+          className="min-h-64 text-sm text-zinc-100 [&_button]:rounded-md [&_button]:border [&_button]:border-zinc-300 [&_button]:bg-white [&_button]:px-3 [&_button]:py-2 [&_button]:text-zinc-900 [&_img]:mx-auto [&_video]:w-full"
         />
         {!isScanning ? (
-          <div className="flex aspect-video items-center justify-center text-sm text-zinc-300">
+          <div className="flex min-h-64 items-center justify-center text-sm text-zinc-300">
             Kamera belum aktif
           </div>
         ) : null}
@@ -145,14 +148,18 @@ export function QrScannerForm({
         <Button
           type="button"
           variant="outline"
-          onClick={startScanner}
+          onClick={() => void startScanner()}
           disabled={disabled || isScanning}
         >
           <Camera aria-hidden="true" />
           Buka Kamera
         </Button>
         {isScanning ? (
-          <Button type="button" variant="ghost" onClick={stopScanner}>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => void stopScanner()}
+          >
             Stop
           </Button>
         ) : null}
