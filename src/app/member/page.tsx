@@ -5,8 +5,9 @@ import {
   Home,
   QrCode,
 } from "lucide-react";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -196,10 +197,10 @@ export default async function MemberDashboardPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-2">
-              <Button disabled>
+              <Link href="/member/presensi" className={buttonVariants()}>
                 <QrCode aria-hidden="true" />
                 Mulai Presensi
-              </Button>
+              </Link>
               <Button variant="outline" disabled>
                 <CalendarDays aria-hidden="true" />
                 Kalender Saya

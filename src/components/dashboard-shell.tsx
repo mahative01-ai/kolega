@@ -112,7 +112,7 @@ function getMenuGroups(role: DashboardUser["role"]) {
     {
       label: "Presensi",
       items: [
-        { label: "Scan QR", icon: QrCode, badge: "Next" },
+        { label: "Scan QR", href: "/member/presensi", icon: QrCode },
         { label: "Jadwal Saya", icon: CalendarDays, badge: "Next" },
         { label: "Riwayat Saya", icon: ClipboardCheck, badge: "Next" },
         { label: "Izin/Sakit/Cuti", icon: ClipboardList, badge: "Next" },
