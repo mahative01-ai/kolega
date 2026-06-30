@@ -322,6 +322,7 @@ model AttendanceCorrection {
   previousStatus     AttendanceStatus?
   newStatus          AttendanceStatus?
   reason             String
+  status             RequestStatus    @default(PENDING)
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
 

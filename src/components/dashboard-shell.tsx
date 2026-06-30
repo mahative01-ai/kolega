@@ -87,7 +87,8 @@ function getMenuGroups(role: DashboardUser["role"]) {
             href: "/laporan-presensi",
             icon: BarChart3,
           },
-          { label: "Approval", icon: ClipboardCheck, badge: "Next" },
+          { label: "Approval Izin", href: "/admin/requests", icon: ClipboardCheck },
+          { label: "Approval Koreksi", href: "/admin/corrections", icon: Archive },
           { label: "Arsip Akun", icon: Archive, badge: "Next" },
           { label: "Pengaturan", icon: Settings, badge: "Next" },
         ],
@@ -96,37 +97,37 @@ function getMenuGroups(role: DashboardUser["role"]) {
   }
 
   if (role === "ADMIN") {
-  return [
-    { label: "Utama", items: main },
-    {
-      label: "Presensi Saya",
-      items: [
-        { label: "Scan QR", href: "/member/presensi", icon: QrCode },
-        {
-          label: "Riwayat Saya",
-          href: "/member/presensi/riwayat",
-          icon: ClipboardCheck,
-        },
-      ],
-    },
-    {
-      label: "Operasional",
-      items: [
-        { label: "User Studio", href: "/roles", icon: UsersRound },
-        { label: "Presensi Tim", icon: ClipboardCheck, badge: "Next" },
-        { label: "Jadwal Tim", href: "/schedules", icon: CalendarDays },
-        {
-          label: "Laporan Presensi",
-          href: "/laporan-presensi",
-          icon: BarChart3,
-        },
-        { label: "Izin/Sakit/Cuti", icon: ClipboardList, badge: "Next" },
-        { label: "Koreksi Presensi", icon: Archive, badge: "Next" },
-        { label: "Piket & Pengingat", icon: CalendarDays, badge: "Next" },
-      ],
-    },
-  ];
-}
+    return [
+      { label: "Utama", items: main },
+      {
+        label: "Presensi Saya",
+        items: [
+          { label: "Scan QR", href: "/member/presensi", icon: QrCode },
+          {
+            label: "Riwayat Saya",
+            href: "/member/presensi/riwayat",
+            icon: ClipboardCheck,
+          },
+        ],
+      },
+      {
+        label: "Operasional",
+        items: [
+          { label: "User Studio", href: "/roles", icon: UsersRound },
+          { label: "Presensi Tim", icon: ClipboardCheck, badge: "Next" },
+          { label: "Jadwal Tim", href: "/schedules", icon: CalendarDays },
+          {
+            label: "Laporan Presensi",
+            href: "/laporan-presensi",
+            icon: BarChart3,
+          },
+          { label: "Izin/Sakit/Cuti", href: "/admin/requests", icon: ClipboardList },
+          { label: "Koreksi Presensi", href: "/admin/corrections", icon: Archive },
+          { label: "Piket & Pengingat", icon: CalendarDays, badge: "Next" },
+        ],
+      },
+    ];
+  }
 
   return [
     { label: "Utama", items: main },
@@ -140,7 +141,8 @@ function getMenuGroups(role: DashboardUser["role"]) {
           href: "/member/presensi/riwayat",
           icon: ClipboardCheck,
         },
-        { label: "Izin/Sakit/Cuti", icon: ClipboardList, badge: "Next" },
+        { label: "Izin/Sakit/Cuti", href: "/member/requests", icon: ClipboardList },
+        { label: "Koreksi Presensi", href: "/member/corrections", icon: Archive },
         { label: "Laporan WFH", icon: Home, badge: "Next" },
       ],
     },

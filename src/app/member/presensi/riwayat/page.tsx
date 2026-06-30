@@ -25,6 +25,7 @@ import {
 import { DashboardShell } from "@/components/dashboard-shell";
 import { requireAnyRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -226,13 +227,14 @@ export default async function PersonalAttendanceHistoryPage() {
                 <TableHead>Terlambat</TableHead>
                 <TableHead>Default Studio</TableHead>
                 <TableHead>Lokasi</TableHead>
+                <TableHead className="text-right">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {data.records.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={8}
+                    colSpan={9}
                     className="h-24 text-center text-sm text-zinc-500"
                   >
                     Belum ada data presensi.
@@ -263,6 +265,17 @@ export default async function PersonalAttendanceHistoryPage() {
                     <TableCell>{record.ownerStudio.name}</TableCell>
                     <TableCell>
                       {record.locationStudio?.name ?? "Tidak perlu lokasi"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Link
+                        href={`/member/corrections?recordId=${record.id}`}
+                        className={cn(
+                          buttonVariants({ variant: "outline", size: "sm" }),
+                          "h-7 px-2 text-xs"
+                        )}
+                      >
+                        Koreksi
+                      </Link>
                     </TableCell>
                   </TableRow>
                 ))

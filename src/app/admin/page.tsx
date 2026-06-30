@@ -1,6 +1,5 @@
 import {
   AlertTriangle,
-  CalendarDays,
   CheckCircle2,
   ClipboardCheck,
   Clock3,
