@@ -293,3 +293,104 @@ export async function submitWfoAttendanceAction(formData: FormData) {
   revalidatePersonalAttendance(currentUser.role);
   redirect("/member/presensi?success=checkin");
 }
+
+export async function submitWfhAttendanceAction(formData: FormData) {
+  const currentUser = await requireAnyRole(["ADMIN", "MEMBER"]);
+
+  if (!currentUser.defaultStudioId) {
+    redirect("/member/presensi?error=studio");
+  }
+
+  const now = new Date();
+  const todayKey = getJakartaDateKey(now);
+  const attendanceDate = dateOnlyFromKey(todayKey);
+
+  // 1. Ambil jadwal personal hari ini
+  const personalSchedule = await prisma.personalWorkSchedule.findUnique({
+    where: {
+      userId_workDate: {
+        userId: currentUser.id,
+        workDate: attendanceDate,
+      },
+    },
+    select: {
+      workMode: true,
+    },
+  });
+
+  if (personalSchedule?.workMode !== "WFH") {
+    redirect("/member/presensi?error=mode");
+  }
+
+  // 2. Cari record kehadiran hari ini
+  const existingRecord = await prisma.attendanceRecord.findUnique({
+    where: {
+      userId_attendanceDate: {
+        userId: currentUser.id,
+        attendanceDate,
+      },
+    },
+    select: {
+      id: true,
+      checkInAt: true,
+      checkOutAt: true,
+    },
+  });
+
+  // 3. Proses check-in atau check-out
+  if (!existingRecord) {
+    // Check-in WFH
+    const wfhPlan = String(formData.get("wfhPlan") ?? "").trim();
+    if (!wfhPlan) {
+      throw new Error("Rencana kerja WFH wajib diisi.");
+    }
+
+    try {
+      await prisma.attendanceRecord.create({
+        data: {
+          userId: currentUser.id,
+          attendanceDate,
+          ownerStudioId: currentUser.defaultStudioId,
+          workMode: "WFH",
+          status: "WFH",
+          checkInAt: now,
+          wfhPlan,
+          locationValidationStatus: "NOT_REQUIRED",
+          createdById: currentUser.id,
+        },
+      });
+    } catch (error) {
+      if (isUniqueConstraintError(error)) {
+        redirect("/member/presensi?success=checkin");
+      }
+      throw error;
+    }
+
+    revalidatePersonalAttendance(currentUser.role);
+    redirect("/member/presensi?success=checkin");
+  } else {
+    // Check-out WFH
+    if (existingRecord.checkInAt && existingRecord.checkOutAt) {
+      redirect("/member/presensi?success=done");
+    }
+
+    const wfhReport = String(formData.get("wfhReport") ?? "").trim();
+    if (!wfhReport) {
+      throw new Error("Laporan kerja WFH wajib diisi.");
+    }
+
+    await prisma.attendanceRecord.update({
+      where: {
+        id: existingRecord.id,
+      },
+      data: {
+        checkOutAt: now,
+        wfhReport,
+        updatedAt: now,
+      },
+    });
+
+    revalidatePersonalAttendance(currentUser.role);
+    redirect("/member/presensi?success=checkout");
+  }
+}

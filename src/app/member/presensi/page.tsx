@@ -5,6 +5,7 @@ import {
   History,
   QrCode,
   ShieldCheck,
+  FileText,
 } from "lucide-react";
 import Link from "next/link";
 import QRCode from "qrcode";
@@ -23,6 +24,7 @@ import { prisma } from "@/lib/prisma";
 import { cn } from "@/lib/utils";
 import { createPersonalQrCredentialAction } from "./actions";
 import { QrScannerForm } from "./qr-scanner-form";
+import { WfhForm } from "./wfh-form";
 
 export const dynamic = "force-dynamic";
 
@@ -54,15 +56,15 @@ const statusColor: Record<string, string> = {
 
 const successMessage: Record<string, string> = {
   "qr-created": "QR Card aktif dan siap dipakai.",
-  checkin: "Check-in WFO berhasil tersimpan.",
-  checkout: "Check-out WFO berhasil tersimpan.",
+  checkin: "Check-in berhasil tersimpan.",
+  checkout: "Check-out berhasil tersimpan.",
   done: "Presensi hari ini sudah selesai.",
 };
 
 const errorMessage: Record<string, string> = {
   qr: "QR tidak valid untuk akun ini.",
   studio: "Default Studio belum tersedia di akun ini.",
-  mode: "Presensi hari ini bukan mode WFO.",
+  mode: "Presensi hari ini tidak sesuai dengan jadwal Anda.",
   alpha:
     "Batas presensi pukul 12.00 telah lewat. Status hari ini tercatat Alpha.",
 };
@@ -111,7 +113,7 @@ async function getPresensiData(userId: string) {
   const todayKey = getJakartaDateKey();
   const attendanceDate = dateOnlyFromKey(todayKey);
 
-  const [qrCredential, attendanceRecord] = await Promise.all([
+  const [qrCredential, attendanceRecord, personalSchedule] = await Promise.all([
     prisma.qrCredential.findFirst({
       where: {
         userId,
@@ -140,6 +142,8 @@ async function getPresensiData(userId: string) {
         checkInAt: true,
         checkOutAt: true,
         lateMinutes: true,
+        wfhPlan: true,
+        wfhReport: true,
         ownerStudio: {
           select: {
             name: true,
@@ -152,12 +156,24 @@ async function getPresensiData(userId: string) {
         },
       },
     }),
+    prisma.personalWorkSchedule.findUnique({
+      where: {
+        userId_workDate: {
+          userId,
+          workDate: attendanceDate,
+        },
+      },
+      select: {
+        workMode: true,
+      },
+    }),
   ]);
 
   return {
     attendanceDate,
     attendanceRecord,
     qrCredential,
+    personalSchedule,
   };
 }
 
@@ -183,14 +199,19 @@ export default async function PersonalPresensiPage({
   const hasCheckedIn = Boolean(data.attendanceRecord?.checkInAt);
   const hasCheckedOut = Boolean(data.attendanceRecord?.checkOutAt);
   const submitLabel = hasCheckedIn ? "Check-out WFO" : "Check-in WFO";
+  const isWfhMode = data.personalSchedule?.workMode === "WFH" || data.attendanceRecord?.workMode === "WFH";
 
   return (
     <DashboardShell
       user={currentUser}
       currentPath="/member/presensi"
-      badge="Presensi WFO"
-      title="Scan QR Presensi"
-      description={`Halo ${currentUser.name}. Download QR Card sekali, simpan, lalu scan QR untuk presensi WFO.`}
+      badge={isWfhMode ? "Presensi WFH" : "Presensi WFO"}
+      title={isWfhMode ? "Laporan Harian WFH" : "Scan QR Presensi"}
+      description={
+        isWfhMode
+          ? `Halo ${currentUser.name}. Tulis rencana dan laporan kerja Anda hari ini.`
+          : `Halo ${currentUser.name}. Download QR Card sekali, simpan, lalu scan QR untuk presensi WFO.`
+      }
     >
       {params.success && successMessage[params.success] ? (
         <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
@@ -205,67 +226,88 @@ export default async function PersonalPresensiPage({
       ) : null}
 
       <section className="grid gap-6 lg:grid-cols-[0.75fr_1.25fr]">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <QrCode className="size-5 text-zinc-700" />
-              QR Card
-            </CardTitle>
-            <CardDescription>
-              Identitas presensi WFO untuk akun yang sedang login.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {hasQr ? (
-              <>
-                <div className="rounded-lg border border-zinc-200 bg-white p-4">
-                  <div
-                    className="mx-auto flex size-56 items-center justify-center [&_svg]:size-52"
-                    dangerouslySetInnerHTML={{ __html: qrSvg ?? "" }}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-zinc-500">QR UID</p>
-                  <div className="rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2 font-mono text-sm">
-                    {data.qrCredential?.qrUid}
+        {isWfhMode ? (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CalendarClock className="size-5 text-blue-700" />
+                Mode Kerja: WFH
+              </CardTitle>
+              <CardDescription>
+                Hari ini Anda dijadwalkan untuk bekerja secara Work From Home.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-lg border border-blue-100 bg-blue-50/50 p-4 text-sm text-blue-800">
+                <p>
+                  Anda tidak memerlukan kartu QR fisik untuk melakukan presensi hari ini. Silakan gunakan formulir rencana kerja dan laporan harian di sebelah kanan.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <QrCode className="size-5 text-zinc-700" />
+                QR Card
+              </CardTitle>
+              <CardDescription>
+                Identitas presensi WFO untuk akun yang sedang login.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {hasQr ? (
+                <>
+                  <div className="rounded-lg border border-zinc-200 bg-white p-4">
+                    <div
+                      className="mx-auto flex size-56 items-center justify-center [&_svg]:size-52"
+                      dangerouslySetInnerHTML={{ __html: qrSvg ?? "" }}
+                    />
                   </div>
-                  <p className="text-xs text-zinc-500">
-                    Aktif sejak {formatDate(data.qrCredential?.issuedAt ?? new Date())}.
-                  </p>
-                </div>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  <a
-                    href="/member/presensi/qr-card?format=png"
-                    className={cn(
-                      buttonVariants({ variant: "outline" }),
-                      "w-full"
-                    )}
-                  >
-                    <Download aria-hidden="true" />
-                    Download PNG
-                  </a>
-                  <a
-                    href="/member/presensi/qr-card?format=jpeg"
-                    className={cn(
-                      buttonVariants({ variant: "outline" }),
-                      "w-full"
-                    )}
-                  >
-                    <Download aria-hidden="true" />
-                    Download JPEG
-                  </a>
-                </div>
-              </>
-            ) : (
-              <form action={createPersonalQrCredentialAction}>
-                <Button type="submit" className="w-full">
-                  <ShieldCheck aria-hidden="true" />
-                  Aktifkan QR Card
-                </Button>
-              </form>
-            )}
-          </CardContent>
-        </Card>
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-zinc-500">QR UID</p>
+                    <div className="rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2 font-mono text-sm">
+                      {data.qrCredential?.qrUid}
+                    </div>
+                    <p className="text-xs text-zinc-500">
+                      Aktif sejak {formatDate(data.qrCredential?.issuedAt ?? new Date())}.
+                    </p>
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <a
+                      href="/member/presensi/qr-card?format=png"
+                      className={cn(
+                        buttonVariants({ variant: "outline" }),
+                        "w-full"
+                      )}
+                    >
+                      <Download aria-hidden="true" />
+                      Download PNG
+                    </a>
+                    <a
+                      href="/member/presensi/qr-card?format=jpeg"
+                      className={cn(
+                        buttonVariants({ variant: "outline" }),
+                        "w-full"
+                      )}
+                    >
+                      <Download aria-hidden="true" />
+                      Download JPEG
+                    </a>
+                  </div>
+                </>
+              ) : (
+                <form action={createPersonalQrCredentialAction}>
+                  <Button type="submit" className="w-full">
+                    <ShieldCheck aria-hidden="true" />
+                    Aktifkan QR Card
+                  </Button>
+                </form>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid gap-6">
           <Card>
@@ -319,30 +361,51 @@ export default async function PersonalPresensiPage({
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <QrCode className="size-5 text-emerald-700" />
-                Scan QR
-              </CardTitle>
-              <CardDescription>
-                Kamera membaca QR Card yang sudah disimpan. Setelah QR terbaca,
-                tombol presensi akan aktif.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <QrScannerForm
-                disabled={!hasQr || hasCheckedOut}
-                submitLabel={hasCheckedOut ? "Presensi Selesai" : submitLabel}
-              />
-              {data.attendanceRecord?.lateMinutes ? (
-                <p className="mt-3 flex items-center gap-2 text-sm text-orange-700">
-                  <Clock3 className="size-4" />
-                  Terlambat {data.attendanceRecord.lateMinutes} menit.
-                </p>
-              ) : null}
-            </CardContent>
-          </Card>
+          {isWfhMode ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="size-5 text-emerald-700" />
+                  Presensi WFH
+                </CardTitle>
+                <CardDescription>
+                  Isi rencana kerja di pagi hari untuk check-in, dan isi laporan kerja di sore hari untuk check-out.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <WfhForm
+                  hasCheckedIn={hasCheckedIn}
+                  hasCheckedOut={hasCheckedOut}
+                  checkInPlan={data.attendanceRecord?.wfhPlan}
+                />
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <QrCode className="size-5 text-emerald-700" />
+                  Scan QR
+                </CardTitle>
+                <CardDescription>
+                  Kamera membaca QR Card yang sudah disimpan. Setelah QR terbaca,
+                  tombol presensi akan aktif.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <QrScannerForm
+                  disabled={!hasQr || hasCheckedOut}
+                  submitLabel={hasCheckedOut ? "Presensi Selesai" : submitLabel}
+                />
+                {data.attendanceRecord?.lateMinutes ? (
+                  <p className="mt-3 flex items-center gap-2 text-sm text-orange-700">
+                    <Clock3 className="size-4" />
+                    Terlambat {data.attendanceRecord.lateMinutes} menit.
+                  </p>
+                ) : null}
+              </CardContent>
+            </Card>
+          )}
         </div>
       </section>
     </DashboardShell>
