@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getCurrentUser } from "@/lib/auth";
 import { cn } from "@/lib/utils";
+import { prisma } from "@/lib/prisma";
+import { getJakartaDateKey, dateOnlyFromKey } from "@/lib/attendance-time";
 import { loginAction } from "./actions";
 import { QrLoginScanner } from "./qr-login-scanner";
 
@@ -35,6 +37,85 @@ export default async function LoginPage({
 
   const isRegistered = params.registered === "1";
   const errorMessage = params.error ? errorMessages[params.error] : null;
+
+  let statusText = "Belum Check-in WFO";
+  let statusColor = "bg-zinc-100 text-zinc-500 border-zinc-200";
+
+  if (currentUser) {
+    const todayKey = getJakartaDateKey();
+    const todayDate = dateOnlyFromKey(todayKey);
+
+    const attendance = await prisma.attendanceRecord.findUnique({
+      where: {
+        userId_attendanceDate: {
+          userId: currentUser.id,
+          attendanceDate: todayDate,
+        },
+      },
+      select: {
+        checkInAt: true,
+        checkOutAt: true,
+        status: true,
+        lateMinutes: true,
+        workMode: true,
+      },
+    });
+
+    if (attendance) {
+      if (attendance.status === "SICK") {
+        statusText = "Sakit (Izin)";
+        statusColor = "bg-red-50 text-red-700 border-red-200";
+      } else if (attendance.status === "LEAVE") {
+        statusText = "Cuti (Izin)";
+        statusColor = "bg-blue-50 text-blue-700 border-blue-200";
+      } else if (attendance.status === "PERMISSION") {
+        statusText = "Izin Khusus";
+        statusColor = "bg-amber-50 text-amber-700 border-amber-200";
+      } else if (attendance.status === "ALPHA") {
+        statusText = "Alpha";
+        statusColor = "bg-red-50 text-red-700 border-red-200";
+      } else if (attendance.checkInAt) {
+        const checkInTime = new Intl.DateTimeFormat("id-ID", {
+          hour: "2-digit",
+          minute: "2-digit",
+          timeZone: "Asia/Jakarta",
+        }).format(new Date(attendance.checkInAt));
+
+        if (attendance.checkOutAt) {
+          const checkOutTime = new Intl.DateTimeFormat("id-ID", {
+            hour: "2-digit",
+            minute: "2-digit",
+            timeZone: "Asia/Jakarta",
+          }).format(new Date(attendance.checkOutAt));
+          statusText = `WFO: Check-in ${checkInTime} & Check-out ${checkOutTime}`;
+          statusColor = "bg-emerald-50 text-emerald-700 border-emerald-200";
+        } else {
+          if (attendance.status === "LATE") {
+            statusText = `WFO: Check-in ${checkInTime} (Terlambat ${attendance.lateMinutes}m)`;
+            statusColor = "bg-amber-50 text-amber-700 border-amber-200";
+          } else {
+            statusText = `WFO: Check-in ${checkInTime} (Tepat Waktu)`;
+            statusColor = "bg-emerald-50 text-emerald-700 border-emerald-200";
+          }
+        }
+      }
+    } else {
+      const personalSchedule = await prisma.personalWorkSchedule.findUnique({
+        where: {
+          userId_workDate: {
+            userId: currentUser.id,
+            workDate: todayDate,
+          },
+        },
+        select: { workMode: true },
+      });
+
+      if (personalSchedule?.workMode === "WFH") {
+        statusText = "Jadwal WFH (Belum Check-in)";
+        statusColor = "bg-blue-50 text-blue-700 border-blue-200";
+      }
+    }
+  }
 
   return (
     <main className="grid min-h-screen place-items-center bg-zinc-50 px-6 py-10 text-zinc-950">
@@ -72,6 +153,8 @@ export default async function LoginPage({
                 name: currentUser.name,
                 role: currentUser.role,
                 studioName: currentUser.defaultStudio?.name || "Mahative/Kipa",
+                statusText,
+                statusColor,
               }}
             />
           ) : (

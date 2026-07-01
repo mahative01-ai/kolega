@@ -5,6 +5,7 @@ import {
   BriefcaseBusiness,
   Building2,
   CalendarDays,
+  Camera,
   ClipboardCheck,
   ClipboardList,
   Home,
@@ -280,6 +281,15 @@ function SidebarNav({
               ) : null}
             </div>
           </div>
+          {user.role !== "SUPER_ADMIN" && (
+            <Link
+              href="/login"
+              className="mb-2 flex w-full items-center gap-2 rounded-md bg-zinc-950 px-3 py-2 text-center text-xs font-semibold text-white hover:bg-zinc-900 justify-center shadow transition-colors"
+            >
+              <Camera className="size-3.5" aria-hidden="true" />
+              Scan Presensi / Check-out
+            </Link>
+          )}
           <form action={logoutAction}>
             <Button
               type="submit"
@@ -328,6 +338,15 @@ function MobileNav({
           </Link>
         );
       })}
+      {user.role !== "SUPER_ADMIN" && (
+        <Link
+          href="/login"
+          className="flex h-9 shrink-0 items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 text-sm text-zinc-700 font-semibold"
+        >
+          <Camera className="size-4" aria-hidden="true" />
+          Check-out WFO
+        </Link>
+      )}
     </nav>
   );
 }

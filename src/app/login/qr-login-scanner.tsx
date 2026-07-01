@@ -10,6 +10,8 @@ type CurrentUserProp = {
   name: string;
   role: string;
   studioName: string;
+  statusText: string;
+  statusColor: string;
 };
 
 export function QrLoginScanner({
@@ -168,11 +170,19 @@ export function QrLoginScanner({
   return (
     <div className="grid gap-3">
       {currentUser && (
-        <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-sm shadow-sm">
-          <p className="font-semibold text-zinc-950">{currentUser.name}</p>
-          <p className="text-xs text-zinc-500">
-            {currentUser.role === "ADMIN" ? "Admin" : "Member"} • {currentUser.studioName}
-          </p>
+        <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-sm shadow-sm flex flex-col gap-2">
+          <div>
+            <p className="font-semibold text-zinc-950">{currentUser.name}</p>
+            <p className="text-xs text-zinc-500">
+              {currentUser.role === "ADMIN" ? "Admin" : "Member"} • {currentUser.studioName}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-zinc-200/60 mt-1">
+            <span className="text-[11px] text-zinc-400 font-medium">Status hari ini:</span>
+            <span className={`text-[11px] font-semibold px-2 py-0.5 rounded border ${currentUser.statusColor}`}>
+              {currentUser.statusText}
+            </span>
+          </div>
         </div>
       )}
 
