@@ -1,6 +1,5 @@
 import {
   AlertTriangle,
-  CheckCircle2,
   ClipboardCheck,
   Clock3,
   HeartPulse,
@@ -211,12 +210,7 @@ export default async function AdminDashboardPage({
       icon: Clock3,
       color: "text-orange-700",
     },
-    {
-      label: `Tepat Waktu ${data.monthLabel}`,
-      value: data.summary.onTime,
-      icon: CheckCircle2,
-      color: "text-emerald-700",
-    },
+
     {
       label: `Alpha ${data.monthLabel}`,
       value: data.summary.alpha,
@@ -239,7 +233,7 @@ export default async function AdminDashboardPage({
       title="Dashboard Admin"
       description={`${data.activeMembers} user aktif dan ${data.pendingRequests} request pending. Scope laporan dikunci ke ${data.studio?.name ?? "studio Admin"}.`}
     >
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
         {metrics.map((metric) => {
           const Icon = metric.icon;
 
@@ -264,7 +258,7 @@ export default async function AdminDashboardPage({
       <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
         <Card>
           <CardHeader>
-            <CardTitle>Presensi Tim Terbaru</CardTitle>
+            <CardTitle>Today</CardTitle>
             <CardDescription>
               Catatan terbaru dari PostgreSQL untuk seluruh user aktif dalam
               scope studio Admin.
