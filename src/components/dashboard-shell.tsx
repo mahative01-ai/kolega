@@ -10,7 +10,6 @@ import {
   Home,
   LogOut,
   MapPin,
-  QrCode,
   Settings,
   ShieldCheck,
   UserCog,

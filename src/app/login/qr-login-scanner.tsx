@@ -96,8 +96,9 @@ export function QrLoginScanner() {
               setStatusType("error");
               setLoading(false);
             }
-          } catch (err: any) {
-            setMessage(err.message || "Terjadi kesalahan sistem saat masuk.");
+          } catch (err) {
+            const error = err as Error;
+            setMessage(error.message || "Terjadi kesalahan sistem saat masuk.");
             setStatusType("error");
             setLoading(false);
           }
@@ -110,7 +111,7 @@ export function QrLoginScanner() {
       setIsScanning(true);
       setMessage("Arahkan kartu QR Card ke kamera.");
       setStatusType("info");
-    } catch (err: any) {
+    } catch {
       await stopScanner();
       setMessage("Gagal mengaktifkan kamera. Pastikan izin kamera diberikan.");
       setStatusType("error");

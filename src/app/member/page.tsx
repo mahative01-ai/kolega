@@ -1,6 +1,5 @@
 import {
   AlertTriangle,
-  CalendarDays,
   CheckCircle2,
   Clock3,
   Download,
@@ -10,7 +9,6 @@ import {
   ShieldCheck,
   ShieldMinus,
 } from "lucide-react";
-import Link from "next/link";
 import QRCode from "qrcode";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
