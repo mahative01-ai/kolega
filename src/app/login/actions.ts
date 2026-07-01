@@ -1,8 +1,10 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import {
   clearSession,
+  getCurrentUser,
   getDashboardPath,
   setSession,
   verifyPassword,
@@ -275,7 +277,11 @@ export async function loginAndAttendWithQrAction(qrUid: string) {
   } else {
     // Check-out WFO
     if (existingRecord.checkInAt && existingRecord.checkOutAt) {
-      return { success: true, redirectUrl: getDashboardPath(user.role) };
+      return {
+        success: true,
+        message: "Anda sudah check-out hari ini.",
+        redirectUrl: getDashboardPath(user.role),
+      };
     }
 
     if (existingRecord.checkInAt && !existingRecord.checkOutAt) {
@@ -297,4 +303,45 @@ export async function loginAndAttendWithQrAction(qrUid: string) {
     // fallback jika status record aneh
     return { success: true, redirectUrl: getDashboardPath(user.role) };
   }
+}
+
+export async function verifyQrForRequestAction(qrUid: string) {
+  const cleanQrUid = qrUid.trim();
+
+  const credential = await prisma.qrCredential.findUnique({
+    where: { qrUid: cleanQrUid },
+    include: {
+      user: {
+        select: {
+          id: true,
+          role: true,
+          accountStatus: true,
+        },
+      },
+    },
+  });
+
+  if (!credential || credential.status !== "ACTIVE" || credential.user.accountStatus !== "ACTIVE") {
+    return { success: false, error: "Kartu QR tidak valid atau dinonaktifkan." };
+  }
+
+  const currentUser = await getCurrentUser();
+  if (!currentUser || currentUser.id !== credential.user.id) {
+    return { success: false, error: "Kartu QR tidak sesuai dengan akun yang sedang login." };
+  }
+
+  // Set the unlock cookie for 15 minutes
+  const cookieStore = await cookies();
+  cookieStore.set("mahateams_unlocked_requests", "1", {
+    maxAge: 15 * 60, // 15 minutes
+    path: "/",
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+  });
+
+  return {
+    success: true,
+    message: "Verifikasi berhasil. Mengalihkan ke halaman pengajuan...",
+    redirectUrl: "/member/requests",
+  };
 }

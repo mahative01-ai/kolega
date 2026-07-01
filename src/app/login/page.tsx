@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -17,17 +18,10 @@ import { QrLoginScanner } from "./qr-login-scanner";
 
 export const dynamic = "force-dynamic";
 
-function getDashboardPath(role: string) {
-  if (role === "SUPER_ADMIN") {
-    return "/super-admin";
-  }
-
-  if (role === "ADMIN") {
-    return "/admin";
-  }
-
-  return "/member";
-}
+const errorMessages: Record<string, string> = {
+  "invalid": "Email atau password tidak sesuai.",
+  "need-presence": "Akses dasbor terkunci. Silakan lakukan scan QR Card presensi atau verifikasi izin terlebih dahulu hari ini.",
+};
 
 export default async function LoginPage({
   searchParams,
@@ -39,8 +33,8 @@ export default async function LoginPage({
     searchParams,
   ]);
 
-  const hasError = params.error === "invalid";
   const isRegistered = params.registered === "1";
+  const errorMessage = params.error ? errorMessages[params.error] : null;
 
   return (
     <main className="grid min-h-screen place-items-center bg-zinc-50 px-6 py-10 text-zinc-950">
@@ -54,46 +48,32 @@ export default async function LoginPage({
           </CardTitle>
           <CardDescription>
             {currentUser
-              ? "Pindai QR Card Anda untuk mencatatkan kehadiran hari ini."
+              ? "Pindai QR Card Anda untuk mencatatkan kehadiran atau mengajukan izin hari ini."
               : "Pilih cara masuk untuk membuka dasbor Anda."}
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {errorMessage ? (
+            <p className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 border border-red-100">
+              {errorMessage}
+            </p>
+          ) : null}
+
+          {isRegistered ? (
+            <p className="mb-4 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700 border border-emerald-100">
+              Registrasi berhasil. Silakan login.
+            </p>
+          ) : null}
+
           {currentUser ? (
-            <div className="grid gap-4">
-              <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-sm flex justify-between items-center shadow-sm">
-                <div>
-                  <p className="font-semibold text-zinc-950">{currentUser.name}</p>
-                  <p className="text-xs text-zinc-500">
-                    {currentUser.role === "ADMIN" ? "Admin" : "Member"} •{" "}
-                    {currentUser.defaultStudio?.name || "Mahative/Kipa"}
-                  </p>
-                </div>
-                <Link
-                  href={getDashboardPath(currentUser.role)}
-                  className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
-                >
-                  Dashboard
-                </Link>
-              </div>
-
-              <QrLoginScanner autoStart={true} />
-
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                <Link
-                  href="/member/requests?type=SICK"
-                  className={cn(buttonVariants({ variant: "secondary" }), "w-full text-center flex items-center justify-center")}
-                >
-                  🤒 Saya Sedang Sakit
-                </Link>
-                <Link
-                  href="/member/requests?type=LEAVE"
-                  className={cn(buttonVariants({ variant: "secondary" }), "w-full text-center flex items-center justify-center")}
-                >
-                  ✈️ Saya Sedang Cuti
-                </Link>
-              </div>
-            </div>
+            <QrLoginScanner
+              autoStart={true}
+              currentUser={{
+                name: currentUser.name,
+                role: currentUser.role,
+                studioName: currentUser.defaultStudio?.name || "Mahative/Kipa",
+              }}
+            />
           ) : (
             <Tabs defaultValue="credentials" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-4">
@@ -141,16 +121,6 @@ export default async function LoginPage({
                       Ingat saya (30 hari)
                     </label>
                   </div>
-                  {hasError ? (
-                    <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 border border-red-100">
-                      Email atau password tidak sesuai.
-                    </p>
-                  ) : null}
-                  {isRegistered ? (
-                    <p className="rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700 border border-emerald-100">
-                      Registrasi berhasil. Silakan login.
-                    </p>
-                  ) : null}
                   <Button
                     type="submit"
                     className="w-full bg-zinc-950 text-white hover:bg-zinc-900"

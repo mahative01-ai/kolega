@@ -2,19 +2,42 @@
 
 import type { Html5Qrcode } from "html5-qrcode";
 import { useEffect, useId, useRef, useState } from "react";
-import { Camera } from "lucide-react";
+import { Camera, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { loginAndAttendWithQrAction } from "./actions";
+import { loginAndAttendWithQrAction, verifyQrForRequestAction } from "./actions";
 
-export function QrLoginScanner({ autoStart = false }: { autoStart?: boolean }) {
+type CurrentUserProp = {
+  name: string;
+  role: string;
+  studioName: string;
+};
+
+export function QrLoginScanner({
+  autoStart = false,
+  currentUser,
+}: {
+  autoStart?: boolean;
+  currentUser?: CurrentUserProp;
+}) {
   const scannerId = `login-qr-scanner-${useId().replace(/:/g, "")}`;
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState(
-    "Arahkan kartu QR Card Anda ke kamera webcam untuk login & presensi otomatis."
-  );
+  const [requestMode, setRequestMode] = useState(false);
+
+  const defaultMsg = currentUser
+    ? "Arahkan kartu QR Card Anda ke kamera webcam untuk presensi harian WFO."
+    : "Arahkan kartu QR Card Anda ke kamera webcam untuk login & presensi otomatis.";
+  const requestMsg = "Mode Verifikasi Izin: Pindai QR Card Anda untuk memverifikasi identitas sebelum mengajukan Sakit/Cuti.";
+
+  const [message, setMessage] = useState(defaultMsg);
   const [statusType, setStatusType] = useState<"info" | "success" | "error" | null>(null);
+
+  // Sync message when mode changes
+  useEffect(() => {
+    setMessage(requestMode ? requestMsg : defaultMsg);
+    setStatusType(requestMode ? "info" : null);
+  }, [requestMode, defaultMsg]);
 
   async function stopScanner() {
     const scanner = scannerRef.current;
@@ -36,7 +59,7 @@ export function QrLoginScanner({ autoStart = false }: { autoStart?: boolean }) {
   }
 
   async function startScanner() {
-    if (isScanning || loading) return;
+    if (loading) return;
 
     if (!navigator.mediaDevices?.getUserMedia) {
       setMessage("Akses kamera tidak didukung di browser ini.");
@@ -44,7 +67,7 @@ export function QrLoginScanner({ autoStart = false }: { autoStart?: boolean }) {
       return;
     }
 
-    setMessage("Membuka kamera...");
+    setMessage(requestMode ? "Membuka kamera verifikasi..." : "Membuka kamera...");
     setStatusType("info");
 
     try {
@@ -66,12 +89,22 @@ export function QrLoginScanner({ autoStart = false }: { autoStart?: boolean }) {
           if (!qrUid) return;
 
           setLoading(true);
-          setMessage("QR terdeteksi. Memproses masuk...");
+          setMessage(requestMode ? "Memproses verifikasi QR..." : "QR terdeteksi. Memproses masuk...");
           setStatusType("info");
           await stopScanner();
 
           try {
-            const res = await loginAndAttendWithQrAction(qrUid);
+            const res = (requestMode
+              ? await verifyQrForRequestAction(qrUid)
+              : await loginAndAttendWithQrAction(qrUid)) as {
+                success: boolean;
+                error?: string;
+                warning?: string;
+                info?: string;
+                message?: string;
+                redirectUrl?: string;
+              };
+
             if (res.success) {
               if (res.warning) {
                 setMessage(res.warning);
@@ -83,7 +116,7 @@ export function QrLoginScanner({ autoStart = false }: { autoStart?: boolean }) {
                 setMessage(res.message);
                 setStatusType("success");
               } else {
-                setMessage("Login berhasil. Mengalihkan...");
+                setMessage("Berhasil. Mengalihkan...");
                 setStatusType("success");
               }
               
@@ -92,13 +125,12 @@ export function QrLoginScanner({ autoStart = false }: { autoStart?: boolean }) {
                 window.location.href = res.redirectUrl || "/";
               }, delay);
             } else {
-              setMessage(res.error || "Gagal masuk menggunakan QR.");
+              setMessage(res.error || "Gagal memproses QR.");
               setStatusType("error");
               setLoading(false);
             }
-          } catch (err) {
-            const error = err as Error;
-            setMessage(error.message || "Terjadi kesalahan sistem saat masuk.");
+          } catch (err: any) {
+            setMessage(err.message || "Terjadi kesalahan sistem saat memproses.");
             setStatusType("error");
             setLoading(false);
           }
@@ -109,9 +141,9 @@ export function QrLoginScanner({ autoStart = false }: { autoStart?: boolean }) {
       );
 
       setIsScanning(true);
-      setMessage("Arahkan kartu QR Card ke kamera.");
+      setMessage(requestMode ? "Arahkan kartu QR ke kamera untuk verifikasi izin." : "Arahkan kartu QR ke kamera.");
       setStatusType("info");
-    } catch {
+    } catch (err: any) {
       await stopScanner();
       setMessage("Gagal mengaktifkan kamera. Pastikan izin kamera diberikan.");
       setStatusType("error");
@@ -131,10 +163,19 @@ export function QrLoginScanner({ autoStart = false }: { autoStart?: boolean }) {
     return () => {
       void stopScanner();
     };
-  }, [autoStart]);
+  }, [autoStart, requestMode]);
 
   return (
     <div className="grid gap-3">
+      {currentUser && (
+        <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-sm shadow-sm">
+          <p className="font-semibold text-zinc-950">{currentUser.name}</p>
+          <p className="text-xs text-zinc-500">
+            {currentUser.role === "ADMIN" ? "Admin" : "Member"} • {currentUser.studioName}
+          </p>
+        </div>
+      )}
+
       <div className="relative min-h-64 overflow-hidden rounded-md border border-zinc-200 bg-zinc-950">
         <div
           id={scannerId}
@@ -167,14 +208,48 @@ export function QrLoginScanner({ autoStart = false }: { autoStart?: boolean }) {
         </div>
       ) : null}
 
+      {/* Button for Sick / Leave requests */}
+      {currentUser ? (
+        <div className="mt-2">
+          {!requestMode ? (
+            <Button
+              type="button"
+              variant="secondary"
+              className="w-full"
+              onClick={async () => {
+                await stopScanner();
+                setRequestMode(true);
+              }}
+              disabled={loading}
+            >
+              🤒 / ✈️ Saya Sedang Sakit / Cuti
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full flex items-center justify-center gap-1.5"
+              onClick={async () => {
+                await stopScanner();
+                setRequestMode(false);
+              }}
+              disabled={loading}
+            >
+              <ArrowLeft className="size-4" />
+              Kembali ke Presensi WFO
+            </Button>
+          )}
+        </div>
+      ) : null}
+
       <div
         className={`rounded-md p-3 text-sm border ${
           statusType === "success"
             ? "bg-emerald-50 border-emerald-200 text-emerald-800"
             : statusType === "error"
               ? "bg-red-50 border-red-200 text-red-800"
-              : statusType === "info"
-                ? "bg-blue-50 border-blue-200 text-blue-800"
+              : statusType === "info" || requestMode
+                ? "bg-amber-50 border-amber-200 text-amber-800"
                 : "bg-zinc-50 border-zinc-200 text-zinc-600"
         }`}
       >
