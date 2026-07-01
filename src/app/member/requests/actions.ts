@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getJakartaDateKey, getJakartaMinutes } from "@/lib/attendance-time";
 
 export async function createRequestAction(formData: FormData) {
   const currentUser = await requireRole("MEMBER");
@@ -14,7 +15,7 @@ export async function createRequestAction(formData: FormData) {
   const reason = String(formData.get("reason") ?? "").trim();
 
   // Validate fields
-  if (!["PERMISSION", "SICK", "LEAVE"].includes(type)) {
+  if (!["SICK", "LEAVE", "WFH"].includes(type)) {
     redirect("/member/requests?error=invalid-type");
   }
 
@@ -31,6 +32,32 @@ export async function createRequestAction(formData: FormData) {
 
   if (startDate > endDate) {
     redirect("/member/requests?error=date-range");
+  }
+
+  // 1. Dapatkan tanggal Jakarta hari ini dan besok
+  const todayKey = getJakartaDateKey(new Date());
+  const todayDate = new Date(`${todayKey}T00:00:00.000Z`);
+  const tomorrowDate = new Date(todayDate.getTime() + 24 * 60 * 60 * 1000);
+
+  const startDateTime = new Date(`${startDateStr}T00:00:00.000Z`);
+
+  // 2. Blokir tanggal di masa lampau (hari sebelum hari ini)
+  if (startDateTime < todayDate) {
+    redirect("/member/requests?error=past-date");
+  }
+
+  // 3. Validasi Cuti (LEAVE): minimal H-1
+  if (type === "LEAVE" && startDateTime < tomorrowDate) {
+    redirect("/member/requests?error=leave-notice");
+  }
+
+  // 4. Validasi Sakit (SICK): maksimal 1 jam sebelum jam masuk jika diajukan hari H
+  if (type === "SICK" && startDateTime.getTime() === todayDate.getTime()) {
+    const currentMinutes = getJakartaMinutes(new Date());
+    // Batas 07:00 pagi adalah 7 * 60 = 420 menit
+    if (currentMinutes >= 420) {
+      redirect("/member/requests?error=sick-notice");
+    }
   }
 
   // Handle optional file attachment (Base64 for serverless compatibility)
@@ -57,7 +84,7 @@ export async function createRequestAction(formData: FormData) {
   await prisma.request.create({
     data: {
       userId: currentUser.id,
-      type: type as "PERMISSION" | "SICK" | "LEAVE",
+      type: type as "SICK" | "LEAVE" | "WFH",
       status: "PENDING",
       startDate,
       endDate,

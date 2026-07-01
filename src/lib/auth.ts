@@ -51,8 +51,8 @@ export function verifyPassword(password: string, storedHash: string | null) {
   return timingSafeEqual(passwordHash, storedPasswordHash);
 }
 
-function createSessionToken(userId: string) {
-  const expiresAt = Date.now() + SESSION_MAX_AGE_SECONDS * 1000;
+function createSessionToken(userId: string, maxAgeSeconds = SESSION_MAX_AGE_SECONDS) {
+  const expiresAt = Date.now() + maxAgeSeconds * 1000;
   const payload = `${userId}.${expiresAt}`;
 
   return `${payload}.${sign(payload)}`;
@@ -77,14 +77,15 @@ function readSessionToken(token: string | undefined) {
   return { userId };
 }
 
-export async function setSession(userId: string) {
+export async function setSession(userId: string, rememberMe?: boolean) {
   const cookieStore = await cookies();
+  const maxAge = rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 24; // 30 hari vs 24 jam
 
-  cookieStore.set(SESSION_COOKIE, createSessionToken(userId), {
+  cookieStore.set(SESSION_COOKIE, createSessionToken(userId, maxAge), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
-    maxAge: SESSION_MAX_AGE_SECONDS,
+    maxAge: maxAge,
     path: "/",
   });
 }

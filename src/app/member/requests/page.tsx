@@ -34,12 +34,14 @@ const requestTypeLabel: Record<string, string> = {
   PERMISSION: "Izin",
   SICK: "Sakit",
   LEAVE: "Cuti",
+  WFH: "WFH",
 };
 
 const requestTypeColor: Record<string, string> = {
   PERMISSION: "bg-amber-100 text-amber-800",
   SICK: "bg-violet-100 text-violet-800",
   LEAVE: "bg-sky-100 text-sky-800",
+  WFH: "bg-indigo-100 text-indigo-800",
 };
 
 const requestStatusLabel: Record<string, string> = {
@@ -76,6 +78,9 @@ const errorMessages: Record<string, string> = {
   "date-range": "Tanggal selesai tidak boleh sebelum tanggal mulai.",
   "file-size": "Ukuran file lampiran terlalu besar (maksimal 2MB).",
   "upload-failed": "Gagal memproses lampiran berkas.",
+  "leave-notice": "Pengajuan Cuti Tahunan hanya dapat diajukan minimal H-1.",
+  "sick-notice": "Pengajuan Sakit hari ini harus dilakukan maksimal 1 jam sebelum jam masuk (sebelum 07:00 pagi).",
+  "past-date": "Tanggal mulai pengajuan tidak boleh berada di masa lampau.",
 };
 
 export default async function MemberRequestsPage({
@@ -89,7 +94,7 @@ export default async function MemberRequestsPage({
   const requests = await prisma.request.findMany({
     where: {
       userId: currentUser.id,
-      type: { in: ["PERMISSION", "SICK", "LEAVE"] },
+      type: { in: ["PERMISSION", "SICK", "LEAVE", "WFH"] },
     },
     orderBy: { createdAt: "desc" },
     include: {
@@ -147,9 +152,9 @@ export default async function MemberRequestsPage({
                   className="h-9 w-full rounded-md border border-zinc-200 bg-white px-3 text-sm outline-none focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950"
                   required
                 >
-                  <option value="PERMISSION">Izin tidak masuk</option>
-                  <option value="SICK">Sakit (Keterangan Dokter)</option>
-                  <option value="LEAVE">Cuti Tahunan</option>
+                  <option value="LEAVE">Cuti Tahunan (Min H-1)</option>
+                  <option value="SICK">Sakit (Keterangan Dokter, Maks H-H 07:00)</option>
+                  <option value="WFH">Pengajuan WFH</option>
                 </select>
               </div>
 

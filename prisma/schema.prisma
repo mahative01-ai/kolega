@@ -64,6 +64,7 @@ enum RequestType {
   PERMISSION
   SICK
   LEAVE
+  WFH
   ACCOUNT_ARCHIVE
   ACCOUNT_DEACTIVATION
 }
@@ -115,6 +116,8 @@ model User {
   id                         String                 @id @default(uuid())
   name                       String
   email                      String                 @unique
+  username                   String?                @unique
+  birthDate                  DateTime?              @db.Date
   passwordHash               String?
   role                       UserRole               @default(MEMBER)
   memberStatus               MemberStatus           @default(TEAM)

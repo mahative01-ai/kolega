@@ -210,6 +210,22 @@ export async function submitWfoAttendanceAction(formData: FormData) {
     );
   }
 
+  if (!existingRecord || !existingRecord.checkInAt) {
+    const unfinishedRecord = await prisma.attendanceRecord.findFirst({
+      where: {
+        userId: currentUser.id,
+        checkInAt: { not: null },
+        checkOutAt: null,
+        attendanceDate: { lt: attendanceDate },
+      },
+      select: { id: true },
+    });
+
+    if (unfinishedRecord) {
+      redirect("/member/presensi?error=missing-checkout");
+    }
+  }
+
   const scheduledMinutes = timeToMinutes(policy?.checkInTime, "08:00");
   const graceMinutes = policy?.graceMinutes ?? 10;
   const currentMinutes = getJakartaMinutes(now);
@@ -339,6 +355,20 @@ export async function submitWfhAttendanceAction(formData: FormData) {
 
   // 3. Proses check-in atau check-out
   if (!existingRecord) {
+    const unfinishedRecord = await prisma.attendanceRecord.findFirst({
+      where: {
+        userId: currentUser.id,
+        checkInAt: { not: null },
+        checkOutAt: null,
+        attendanceDate: { lt: attendanceDate },
+      },
+      select: { id: true },
+    });
+
+    if (unfinishedRecord) {
+      redirect("/member/presensi?error=missing-checkout");
+    }
+
     // Check-in WFH
     const wfhPlan = String(formData.get("wfhPlan") ?? "").trim();
     if (!wfhPlan) {

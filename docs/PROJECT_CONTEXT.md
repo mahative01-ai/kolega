@@ -31,30 +31,35 @@ Fokus MVP:
 
 ## Status Terakhir
 
-Sudah ada:
+Sudah ada (Fitur Terimplementasi):
 
-- Project Next.js dan shadcn/ui.
-- Prisma schema di `prisma/schema.prisma`.
-- Database utama memakai Neon.
-- Vercel sudah berhasil deploy dari GitHub.
-- Dashboard `/` sudah dynamic dan membaca data dari PostgreSQL.
-- Login sederhana di `/login`.
-- Dashboard khusus Super Admin di `/super-admin`.
-- Role management MVP di `/roles`.
-- Session auth memakai signed cookie.
-- Password preview memakai hash `scrypt`.
-- Seed data preview di `prisma/seed.mjs`.
+- Project Next.js, TypeScript, Tailwind CSS, dan shadcn/ui.
+- Prisma schema di `prisma/schema.prisma` dan database Neon PostgreSQL online.
+- Sesi autentikasi aman dengan signed cookie dan middleware proteksi global (`middleware.ts`).
+- Registrasi Member Publik (`/register`) dan halaman Login (`/login`).
+- Halaman Presensi WFO (`/member/presensi`) menggunakan kartu QR (download PNG/JPEG) dan webcam scan.
+- Halaman Presensi WFH (`/member/presensi` dinamis) dengan input rencana kerja (check-in) dan laporan harian (check-out) jika terjadwal WFH.
+- Dashboard khusus Super Admin (`/super-admin`), Admin (`/admin`), dan Member (`/member`).
+- Integrasi Kalender Kerja Personal di dashboard Member & Admin.
+- Modul Pengajuan Izin/Sakit/Cuti (`/member/requests`) dan approval Admin (`/admin/requests`).
+- Modul Koreksi Presensi (`/member/corrections`) dan approval Admin (`/admin/corrections`).
+- Halaman Laporan Presensi Tim (`/laporan-presensi`) untuk Admin & Super Admin.
+- Halaman User & Role (`/roles`) untuk manajemen role, default studio, dan placement user.
 
-Belum ada:
+Belum ada (Roadmap Fitur Baru):
 
-- registrasi member publik
-- QR scanner/presensi WFO
-- WFH check-in/check-out plan/report
-- halaman member management lengkap
-- halaman izin/sakit/cuti
-- dashboard khusus Admin dan Member
-- middleware auth global
-- UI final
+- Form Tambah User menggunakan Pop-up Modal di `/roles`.
+- CRUD manajemen akun per member menggunakan pop-up formulir edit detail di `/roles`.
+- Opsi Remember Me pada login (cookie sesi aktif 30 hari vs 24 jam).
+- Scan QR Code untuk Login & Presensi cepat langsung dari halaman depan (`/login`).
+- Notifikasi jadwal (WFH/Cuti/Sakit/Libur) pada pemindai QR halaman depan.
+- Validasi strict pengajuan: Cuti minimal H-1, Sakit hari H maksimal sebelum pukul 07:00 pagi (tidak ada lagi tipe "Izin tidak masuk" biasa).
+- Blokir check-in baru jika karyawan belum melakukan check-out pada hari sebelumnya.
+- Pengajuan WFH oleh member dan persetujuan otomatis oleh Super Admin (mengupdate `PersonalWorkSchedule`).
+- Pembaruan dasbor: Ganti label "Presensi Tim Terbaru" menjadi "Today", hilangkan metrik "Tepat Waktu", dan ganti matriks role di `/roles` menjadi "Total Anggota".
+- Validasi geofencing koordinat GPS studio di server-side.
+- Halaman edit Studio & Lokasi Geofence.
+- Halaman edit Cuti & Kalender Libur Studio (`CalendarEvent`).
 
 ## Setup di Laptop Baru
 
@@ -139,18 +144,17 @@ Role:
 Keputusan:
 
 - Super Admin adalah owner studio Mahative/Kipa.
-- Super Admin tidak perlu registrasi publik.
-- Registrasi publik nanti hanya membuat role `MEMBER`.
-- Admin adalah member/karyawan yang diberi akses tambahan.
-- Admin bisa mengubah Member menjadi Admin di MVP role management.
-- Super Admin tidak boleh diubah dari halaman role MVP.
+- **Pembuatan Akun Terpusat**: Semua akun karyawan (`MEMBER` status `TEAM` atau `INTERN`) dibuat langsung oleh Admin/Super Admin (Form input: Full Name, Username, Password, Email, Birth Date, Status Active, Default Studio, Placement, dan Start/End magang jika Intern).
+- **Registrasi Mandiri Publik**: Dinonaktifkan dan diredirect untuk keamanan sistem.
+- Member login awal menggunakan kredensial yang diberikan dan didukung checkbox **Remember Me** (masa aktif cookie diset 30 hari).
+- Super Admin tidak boleh diubah perannya dari halaman role.
 
 Status member:
 
 - `TEAM`
 - `INTERN`
 
-Intern memiliki program `MAGANG` atau `PKL`, institusi, tanggal mulai, tanggal selesai, dan mentor opsional.
+Intern memiliki program magang dengan data Start Date dan End Date yang terkonfigurasi.
 
 ## Studio dan Placement
 
@@ -160,59 +164,45 @@ Konsep:
 - `placement` adalah lokasi kerja aktif jika user dipindah sementara ke studio lain.
 - Presensi tetap masuk owner/default studio, tetapi lokasi presensi bisa mengikuti placement.
 
-Contoh:
-
-```txt
-Intern default Mahative dipindah ke Kipa 50 hari.
-Rekap tetap milik Mahative.
-Lokasi presensi tercatat Kipa.
-Mahative tidak menghitung 50 hari itu sebagai alpha.
-```
-
 ## Attendance Rules MVP
 
 Metrik dipisah:
 
 - Jumlah Presensi
-- Izin
-- Sakit
+- Cuti (LEAVE)
+- Sakit (SICK)
 - WFH
-- Tepat Waktu
 - Terlambat
 - Alpha
 
-Aturan:
+Aturan Waktu & Kehadiran:
 
-- Jam masuk contoh: 08.00.
-- Toleransi tepat waktu: 10 menit.
-- Telat dihitung dari 08.00, bukan 08.10.
-- 08.11 sampai 11.59 masih terlambat.
-- Alpha jika tidak ada check-in/keterangan sampai 12.00.
-- Terlambat wajib diganti di hari yang sama.
-- Alpha wajib diganti di hari lain.
-- Izin H-1 atau 24 jam sebelum hari masuk.
-- Sakit boleh hari H dengan cutoff 30 atau 60 menit sebelum jam masuk.
+- **Jam Kerja**: Jam masuk pukul 08:00 dan jam pulang pukul 16:00.
+- **Check-out Manual**: Anggota diharuskan melakukan check-out secara manual di dashboard/scan QR.
+- **Pencegahan Keterlambatan Check-out**: Anggota tidak bisa melakukan check-in baru hari ini jika catatan presensi hari sebelumnya masih belum di-check-out.
+- **Aturan Pengajuan Ketidakhadiran**:
+  - Tidak ada lagi *"Izin tidak masuk"* biasa. Hanya ada **Cuti** dan **Sakit**.
+  - **Cuti (`LEAVE`)**: Hanya bisa diajukan dan disetujui minimal **H-1** (tanggal mulai >= besok).
+  - **Sakit (`SICK`)**: Diajukan pada hari H maksimal **1 jam sebelum jam masuk** (sebelum pukul 07:00 pagi).
 
 ## WFO, WFH, dan QR
 
 WFO:
 
-- pakai QR card personal statis
-- QR dibuat sekali di awal akun
-- QR card juga berfungsi sebagai identitas
-- QR tidak diupload via file explorer sebagai flow utama
+- Menggunakan kartu QR (personal QR Card statis) yang diaktifkan sekali di awal akun.
+- **Quick Login & Presensi QR**: Member bisa memindai QR Card mereka di webcam halaman depan (`/login`) laptop pribadi untuk otomatis login + absen check-in/out.
+- **Notifikasi Layar Scan**: Jika jadwal hari itu bukan WFO (seperti WFH, Cuti, Sakit, Libur), layar scan di depan menampilkan notifikasi sesuai jadwal beserta tombol pengalihan ("Masuk ke Dashboard").
 
 WFH:
 
-- tidak memakai QR
-- dibuat/diperintahkan oleh Super Admin lewat jadwal
-- Member wajib mengisi rencana kerja dan laporan kerja
+- Tidak menggunakan pemindaian QR di halaman depan untuk absen.
+- Pengajuan WFH dapat diajukan secara mandiri oleh Member/Admin dan memerlukan persetujuan (acc) oleh Super Admin.
+- Member wajib mengisi rencana kerja (saat check-in) dan laporan harian (saat check-out) secara tertulis di dashboard.
 
 Geofence:
 
-- titik nol/radius disiapkan
-- luar radius tidak ditolak otomatis
-- status soft warning: `Diluar Jangkauan`
+- Titik koordinat dan radius studio dikonfigurasi.
+- Jika presensi dilakukan di luar jangkauan radius, sistem memberikan status `OUTSIDE_RADIUS` (soft warning).
 
 ## Kalender
 

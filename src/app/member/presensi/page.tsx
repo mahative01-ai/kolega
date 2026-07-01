@@ -67,6 +67,8 @@ const errorMessage: Record<string, string> = {
   mode: "Presensi hari ini tidak sesuai dengan jadwal Anda.",
   alpha:
     "Batas presensi pukul 12.00 telah lewat. Status hari ini tercatat Alpha.",
+  "missing-checkout":
+    "Anda belum melakukan check-out pada hari sebelumnya. Silakan ajukan koreksi presensi di dashboard terlebih dahulu.",
 };
 
 const JAKARTA_TIME_ZONE = "Asia/Jakarta";

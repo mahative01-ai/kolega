@@ -73,17 +73,8 @@ export async function reviewRequestAction(formData: FormData) {
       },
     });
 
-    // 3. If approved, materialize attendance records
+    // 3. If approved, materialize attendance records or schedules
     if (newStatus === "APPROVED") {
-      const attendanceStatusMap = {
-        PERMISSION: "PERMISSION" as const,
-        SICK: "SICK" as const,
-        LEAVE: "LEAVE" as const,
-        ACCOUNT_ARCHIVE: "PERMISSION" as const, // Fallbacks, should not occur
-        ACCOUNT_DEACTIVATION: "PERMISSION" as const,
-      };
-
-      const attendanceStatus = attendanceStatusMap[request.type];
       const start = new Date(request.startDate);
       const end = new Date(request.endDate);
 
@@ -97,34 +88,65 @@ export async function reviewRequestAction(formData: FormData) {
           throw new Error("User default studio is not configured.");
         }
 
-        // Upsert attendance record
-        await tx.attendanceRecord.upsert({
-          where: {
-            userId_attendanceDate: {
+        if (request.type === "WFH") {
+          // Materialize PersonalWorkSchedule WFH
+          await tx.personalWorkSchedule.upsert({
+            where: {
+              userId_workDate: {
+                userId: request.userId,
+                workDate: attendanceDate,
+              },
+            },
+            update: {
+              workMode: "WFH",
+              updatedAt: new Date(),
+            },
+            create: {
+              userId: request.userId,
+              workDate: attendanceDate,
+              workMode: "WFH",
+            },
+          });
+        } else {
+          // Materialize AttendanceRecord for SICK, LEAVE, PERMISSION
+          const attendanceStatusMap = {
+            PERMISSION: "PERMISSION" as const,
+            SICK: "SICK" as const,
+            LEAVE: "LEAVE" as const,
+            ACCOUNT_ARCHIVE: "PERMISSION" as const,
+            ACCOUNT_DEACTIVATION: "PERMISSION" as const,
+          };
+          const attendanceStatus =
+            attendanceStatusMap[request.type as keyof typeof attendanceStatusMap] || "PERMISSION";
+
+          await tx.attendanceRecord.upsert({
+            where: {
+              userId_attendanceDate: {
+                userId: request.userId,
+                attendanceDate,
+              },
+            },
+            update: {
+              status: attendanceStatus,
+              checkInAt: null,
+              checkOutAt: null,
+              workMode: "WFO",
+              locationValidationStatus: "NOT_REQUIRED",
+              lateMinutes: 0,
+              updatedAt: new Date(),
+            },
+            create: {
               userId: request.userId,
               attendanceDate,
+              ownerStudioId: studioId,
+              workMode: "WFO",
+              status: attendanceStatus,
+              locationValidationStatus: "NOT_REQUIRED",
+              lateMinutes: 0,
+              createdById: reviewer.id,
             },
-          },
-          update: {
-            status: attendanceStatus,
-            checkInAt: null,
-            checkOutAt: null,
-            workMode: "WFO",
-            locationValidationStatus: "NOT_REQUIRED",
-            lateMinutes: 0,
-            updatedAt: new Date(),
-          },
-          create: {
-            userId: request.userId,
-            attendanceDate,
-            ownerStudioId: studioId,
-            workMode: "WFO",
-            status: attendanceStatus,
-            locationValidationStatus: "NOT_REQUIRED",
-            lateMinutes: 0,
-            createdById: reviewer.id,
-          },
-        });
+          });
+        }
 
         // Move to next day in UTC
         current.setUTCDate(current.getUTCDate() + 1);
