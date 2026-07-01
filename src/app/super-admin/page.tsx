@@ -1,20 +1,12 @@
 import {
   AlertTriangle,
-  Archive,
-  CheckCircle2,
   ClipboardCheck,
   Clock3,
   HeartPulse,
   Home,
-  RotateCcw,
-  Save,
   ShieldMinus,
-  ShieldCheck,
-  UserPlus,
 } from "lucide-react";
-import { revalidatePath } from "next/cache";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -22,7 +14,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -38,9 +29,8 @@ import {
   normalizeReportMonth,
   summarizeAttendanceStatuses,
 } from "@/lib/attendance-report";
-import { hashPassword, requireRole } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { ROLE_LABEL } from "@/lib/roles";
 
 export const dynamic = "force-dynamic";
 
@@ -69,51 +59,6 @@ const statusColor: Record<string, string> = {
   HOLIDAY: "bg-zinc-200 text-zinc-700",
   OFF_DAY: "bg-zinc-200 text-zinc-700",
 };
-
-const accountStatusLabel: Record<string, string> = {
-  ACTIVE: "Aktif",
-  INACTIVE: "Nonaktif",
-  ARCHIVED: "Arsip",
-};
-
-const accountStatusColor: Record<string, string> = {
-  ACTIVE: "bg-emerald-100 text-emerald-800",
-  INACTIVE: "bg-amber-100 text-amber-800",
-  ARCHIVED: "bg-zinc-200 text-zinc-700",
-};
-
-const accountStatuses = ["ACTIVE", "INACTIVE", "ARCHIVED"] as const;
-
-type EditableRole = "ADMIN" | "MEMBER";
-type EditableMemberStatus = "TEAM" | "INTERN";
-type EditableAccountStatus = (typeof accountStatuses)[number];
-
-function readFormString(formData: FormData, key: string) {
-  return String(formData.get(key) ?? "").trim();
-}
-
-function parseEditableRole(value: string): EditableRole {
-  return value === "ADMIN" ? "ADMIN" : "MEMBER";
-}
-
-function parseMemberStatus(value: string): EditableMemberStatus {
-  return value === "INTERN" ? "INTERN" : "TEAM";
-}
-
-function parseAccountStatus(value: string): EditableAccountStatus {
-  return accountStatuses.includes(value as EditableAccountStatus)
-    ? (value as EditableAccountStatus)
-    : "ACTIVE";
-}
-
-function dateOnly(date = new Date()) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
-
-async function requireSuperAdminActor() {
-  return requireRole("SUPER_ADMIN");
-}
-
 
 
 function formatDate(date: Date) {
@@ -308,7 +253,7 @@ export default async function SuperAdminDashboardPage() {
       title="Super Admin Dashboard"
       description={`Halo ${currentUser.name}. Halaman ini khusus Owner untuk melihat ringkasan Mahative dan Kipa dalam satu tempat.`}
     >
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
           {metrics.map((metric) => {
             const Icon = metric.icon;
 

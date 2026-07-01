@@ -1,6 +1,5 @@
 import {
   AlertTriangle,
-  CheckCircle2,
   ClipboardCheck,
   Clock3,
   Download,
@@ -262,7 +261,7 @@ export default async function AdminDashboardPage({
       title="Dashboard Admin"
       description={`${data.activeMembers} user aktif dan ${data.pendingRequests} request pending. Scope laporan dikunci ke ${data.studio?.name ?? "studio Admin"}.`}
     >
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
         {metrics.map((metric) => {
           const Icon = metric.icon;
 
