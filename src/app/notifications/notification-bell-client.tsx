@@ -75,12 +75,12 @@ export function NotificationBellClient({ initialNotifications, initialUnreadCoun
     <>
       <button
         onClick={() => setOpen(true)}
-        className="relative rounded-full p-2 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 transition-colors"
+        className="relative rounded-full p-2 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
         aria-label="Notifikasi"
       >
         <Bell className="size-5" />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 flex size-5 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white ring-2 ring-white">
+          <span className="absolute top-1 right-1 flex size-5 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white ring-2 ring-white dark:ring-zinc-950">
             {unreadCount}
           </span>
         )}
@@ -88,25 +88,25 @@ export function NotificationBellClient({ initialNotifications, initialUnreadCoun
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-md">
-          <DialogHeader className="flex-row items-center justify-between pb-2 border-b border-zinc-100">
+          <DialogHeader className="flex-row items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-800">
             <div>
-              <DialogTitle className="text-base flex items-center gap-1.5">
-                <Bell className="size-4 text-blue-700" />
+              <DialogTitle className="text-base flex items-center gap-1.5 text-zinc-950 dark:text-zinc-50">
+                <Bell className="size-4 text-blue-700 dark:text-blue-400" />
                 Notifikasi
               </DialogTitle>
-              <DialogDescription className="text-xs">
+              <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
                 Anda memiliki {unreadCount} pesan belum dibaca
               </DialogDescription>
             </div>
             {unreadCount > 0 && (
-              <Button variant="ghost" size="sm" className="h-8 text-xs text-zinc-500 hover:text-zinc-900" onClick={handleMarkAllRead} disabled={isPending}>
+              <Button variant="ghost" size="sm" className="h-8 text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100" onClick={handleMarkAllRead} disabled={isPending}>
                 <Check className="size-3 mr-1" />
                 Semua Dibaca
               </Button>
             )}
           </DialogHeader>
 
-          <div className="max-h-72 overflow-y-auto py-2 divide-y divide-zinc-100">
+          <div className="max-h-72 overflow-y-auto py-2 divide-y divide-zinc-100 dark:divide-zinc-800">
             {notifications.length === 0 ? (
               <p className="text-center py-8 text-xs text-zinc-400">Tidak ada notifikasi baru.</p>
             ) : (
@@ -120,22 +120,22 @@ export function NotificationBellClient({ initialNotifications, initialUnreadCoun
                   <div
                     key={n.id}
                     className={`flex items-start gap-3 p-3 transition-colors ${
-                      !n.readAt ? "bg-blue-50/30" : ""
+                      !n.readAt ? "bg-blue-50/30 dark:bg-blue-500/5" : ""
                     }`}
                   >
-                    <div className={`mt-0.5 rounded-full p-1.5 ${!n.readAt ? "bg-blue-100 text-blue-700" : "bg-zinc-100 text-zinc-400"}`}>
+                    <div className={`mt-0.5 rounded-full p-1.5 ${!n.readAt ? "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500"}`}>
                       <Mail className="size-3.5" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold text-zinc-950">{n.title}</p>
-                      <p className="text-xs text-zinc-600 mt-0.5 leading-relaxed">{n.message}</p>
-                      <p className="text-[10px] text-zinc-400 mt-1">{dateStr}</p>
+                      <p className="text-xs font-semibold text-zinc-950 dark:text-zinc-50">{n.title}</p>
+                      <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5 leading-relaxed">{n.message}</p>
+                      <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-1">{dateStr}</p>
                     </div>
                     {!n.readAt && (
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 rounded"
+                        className="h-6 w-6 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded"
                         onClick={() => handleMarkRead(n.id)}
                         disabled={isPending}
                         title="Tandai dibaca"
@@ -149,11 +149,11 @@ export function NotificationBellClient({ initialNotifications, initialUnreadCoun
             )}
           </div>
 
-          <div className="pt-2 border-t border-zinc-100 flex justify-center">
+          <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 flex justify-center">
             <Link
               href="/notifications"
               onClick={() => setOpen(false)}
-              className="text-xs font-medium text-blue-700 hover:text-blue-800 hover:underline"
+              className="text-xs font-medium text-blue-700 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline"
             >
               Lihat Semua Notifikasi
             </Link>

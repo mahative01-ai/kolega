@@ -87,11 +87,11 @@ export const EVENT_TYPE_CONFIG: Record<
   string,
   { label: string; color: string; bg: string; icon: React.ElementType }
 > = {
-  NATIONAL_HOLIDAY: { label: "Libur Nasional", color: "text-red-700", bg: "bg-red-100", icon: Flag },
-  COMPANY_LEAVE: { label: "Cuti Bersama", color: "text-orange-700", bg: "bg-orange-100", icon: Star },
-  REGULAR_OFF_DAY: { label: "Libur Final", color: "text-zinc-600", bg: "bg-zinc-100", icon: XCircle },
-  REPLACEMENT_WORKDAY: { label: "Hari Pengganti", color: "text-emerald-700", bg: "bg-emerald-100", icon: RefreshCw },
-  STUDIO_EVENT: { label: "Kegiatan Studio", color: "text-blue-700", bg: "bg-blue-100", icon: Building2 },
+  NATIONAL_HOLIDAY: { label: "Libur Nasional", color: "text-red-700 dark:text-red-300", bg: "bg-red-100 dark:bg-red-950/50", icon: Flag },
+  COMPANY_LEAVE: { label: "Cuti Bersama", color: "text-orange-700 dark:text-orange-300", bg: "bg-orange-100 dark:bg-orange-950/50", icon: Star },
+  REGULAR_OFF_DAY: { label: "Libur Final", color: "text-zinc-600 dark:text-zinc-300", bg: "bg-zinc-100 dark:bg-zinc-800", icon: XCircle },
+  REPLACEMENT_WORKDAY: { label: "Hari Pengganti", color: "text-emerald-700 dark:text-emerald-300", bg: "bg-emerald-100 dark:bg-emerald-950/50", icon: RefreshCw },
+  STUDIO_EVENT: { label: "Kegiatan Studio", color: "text-blue-700 dark:text-blue-300", bg: "bg-blue-100 dark:bg-blue-950/50", icon: Building2 },
 };
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -207,10 +207,10 @@ export default async function CalendarPage({
               ))}
             </div>
             {/* Day cells */}
-            <div className="grid grid-cols-7 gap-px rounded-lg overflow-hidden border border-zinc-200 bg-zinc-200">
+            <div className="grid grid-cols-7 gap-px rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-200 dark:bg-zinc-800">
               {/* Empty cells before first day */}
               {Array.from({ length: firstDay }).map((_, i) => (
-                <div key={`empty-${i}`} className="min-h-16 bg-zinc-50" />
+                <div key={`empty-${i}`} className="min-h-16 bg-zinc-50 dark:bg-zinc-900/50" />
               ))}
               {/* Day cells */}
               {Array.from({ length: totalDays }).map((_, i) => {
@@ -225,13 +225,13 @@ export default async function CalendarPage({
                 return (
                   <div
                     key={day}
-                    className={`min-h-16 p-1.5 bg-white transition-colors ${hasEvent ? "bg-amber-50/30" : ""}`}
+                    className={`min-h-16 p-1.5 bg-white dark:bg-zinc-950 transition-colors ${hasEvent ? "bg-amber-50/30 dark:bg-amber-500/5" : ""}`}
                   >
                     <span
                       className={`inline-flex size-6 items-center justify-center rounded-full text-xs font-medium mb-1 ${
                         isToday
-                          ? "bg-zinc-950 text-white"
-                          : "text-zinc-700"
+                          ? "bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950"
+                          : "text-zinc-700 dark:text-zinc-300"
                       }`}
                     >
                       {day}
