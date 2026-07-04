@@ -7,7 +7,6 @@ import {
   Home,
   QrCode,
   ShieldCheck,
-  ShieldMinus,
   History,
   Camera,
 } from "lucide-react";
@@ -245,12 +244,6 @@ export default async function AdminDashboardPage({
       color: "text-blue-700",
     },
     {
-      label: `Izin ${data.monthLabel}`,
-      value: data.summary.permission,
-      icon: ShieldMinus,
-      color: "text-amber-700",
-    },
-    {
       label: `Sakit ${data.monthLabel}`,
       value: data.summary.sick,
       icon: HeartPulse,
@@ -300,7 +293,7 @@ export default async function AdminDashboardPage({
       title="Dashboard Admin"
       description={`${data.activeMembers} user aktif dan ${data.pendingRequests} request pending. Scope laporan dikunci ke ${data.studio?.name ?? "studio Admin"}.`}
     >
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {metrics.map((metric) => {
           const Icon = metric.icon;
 

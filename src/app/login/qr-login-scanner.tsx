@@ -121,8 +121,12 @@ export function QrLoginScanner({
               setStatusType("error");
               setLoading(false);
             }
-          } catch (err: any) {
-            setMessage(err.message || "Terjadi kesalahan sistem saat memproses.");
+          } catch (error: unknown) {
+            setMessage(
+              error instanceof Error
+                ? error.message
+                : "Terjadi kesalahan sistem saat memproses."
+            );
             setStatusType("error");
             setLoading(false);
           }
@@ -135,7 +139,7 @@ export function QrLoginScanner({
       setIsScanning(true);
       setMessage("Arahkan kartu QR ke kamera.");
       setStatusType("info");
-    } catch (err: any) {
+    } catch {
       await stopScanner();
       setMessage("Gagal mengaktifkan kamera. Pastikan izin kamera diberikan.");
       setStatusType("error");
@@ -155,6 +159,8 @@ export function QrLoginScanner({
     return () => {
       void stopScanner();
     };
+    // Kamera auto-start hanya mengikuti perubahan mode halaman.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoStart]);
 
   return (

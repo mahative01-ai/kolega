@@ -5,7 +5,6 @@ import {
   BriefcaseBusiness,
   Building2,
   CalendarDays,
-  Camera,
   ClipboardCheck,
   ClipboardList,
   Home,

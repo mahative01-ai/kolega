@@ -9,7 +9,11 @@ async function getRoleData(actor: Awaited<ReturnType<typeof requireAnyRole>>) {
   const isSuperAdmin = actor.role === "SUPER_ADMIN";
   
   const scopedWhere = isSuperAdmin
-    ? {}
+    ? {
+        role: {
+          not: "SUPER_ADMIN" as const,
+        },
+      }
     : {
         accountStatus: "ACTIVE" as const,
         defaultStudioId: actor.defaultStudioId ?? "__NO_STUDIO__",
@@ -106,7 +110,7 @@ export default async function RolesPage() {
       title={canEditRoles ? "User dan Role" : "User Studio"}
       description={
         canEditRoles
-          ? `Super Admin mengatur semua akun, role, default studio, placement studio, dan tambah user.`
+          ? "Super Admin mengelola anggota Mahative dan Kipa berdasarkan studio, jenis anggota, placement, dan status akun."
           : `Admin hanya melihat user aktif di studio ${currentUser.defaultStudio?.name ?? "yang sama"}. Perubahan akun hanya bisa dilakukan Super Admin.`
       }
     >

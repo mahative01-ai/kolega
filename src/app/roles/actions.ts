@@ -9,11 +9,88 @@ async function requireSuperAdminActor() {
   return requireRole("SUPER_ADMIN");
 }
 
+const ACCOUNT_STATUSES = ["ACTIVE", "INACTIVE", "ARCHIVED"] as const;
+
+function parseDateInput(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return null;
+  }
+
+  const date = new Date(`${value}T00:00:00.000Z`);
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+async function validateStudioAssignment(
+  defaultStudioId: string | null,
+  placementStudioId: string | null
+) {
+  if (!defaultStudioId) {
+    throw new Error("Default Studio wajib dipilih.");
+  }
+
+  if (placementStudioId === defaultStudioId) {
+    throw new Error("Placement harus berbeda dari Default Studio.");
+  }
+
+  const studioIds = [...new Set([defaultStudioId, placementStudioId].filter(Boolean))] as string[];
+  const studioCount = await prisma.studio.count({
+    where: { id: { in: studioIds }, isActive: true },
+  });
+
+  if (studioCount !== studioIds.length) {
+    throw new Error("Studio yang dipilih tidak tersedia atau sudah nonaktif.");
+  }
+}
+
+function readInternData(formData: FormData) {
+  const program =
+    String(formData.get("program") ?? "") === "PKL"
+      ? ("PKL" as const)
+      : ("MAGANG" as const);
+  const institution = String(formData.get("institution") ?? "").trim();
+  const startDate = parseDateInput(String(formData.get("startDate") ?? ""));
+  const endDate = parseDateInput(String(formData.get("endDate") ?? ""));
+  const mentorId = String(formData.get("mentorId") ?? "") || null;
+
+  if (!institution || !startDate || !endDate) {
+    throw new Error(
+      "Data magang (institusi, tanggal mulai, dan tanggal selesai) wajib diisi untuk Intern."
+    );
+  }
+
+  if (endDate < startDate) {
+    throw new Error("Tanggal selesai Intern tidak boleh sebelum tanggal mulai.");
+  }
+
+  return { program, institution, startDate, endDate, mentorId };
+}
+
+async function validateMentor(mentorId: string | null) {
+  if (!mentorId) {
+    return;
+  }
+
+  const mentor = await prisma.user.findFirst({
+    where: {
+      id: mentorId,
+      role: { in: ["ADMIN", "SUPER_ADMIN"] },
+      accountStatus: "ACTIVE",
+    },
+    select: { id: true },
+  });
+
+  if (!mentor) {
+    throw new Error("Mentor yang dipilih tidak tersedia.");
+  }
+}
+
 export async function createUserAction(formData: FormData) {
   const actor = await requireSuperAdminActor();
 
   const name = String(formData.get("name") ?? "").trim();
-  const username = String(formData.get("username") ?? "").trim() || null;
+  const username =
+    String(formData.get("username") ?? "").trim().toLowerCase() || null;
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
   const birthDateStr = String(formData.get("birthDate") ?? "") || null;
@@ -25,6 +102,14 @@ export async function createUserAction(formData: FormData) {
   if (!name || !email || password.length < 6) {
     throw new Error("Nama, email, dan password minimal 6 karakter wajib diisi.");
   }
+
+  if (username && !/^[a-z0-9._-]{3,30}$/.test(username)) {
+    throw new Error(
+      "Username harus 3-30 karakter dan hanya boleh berisi huruf kecil, angka, titik, garis bawah, atau tanda hubung."
+    );
+  }
+
+  await validateStudioAssignment(defaultStudioId, placementStudioId);
 
   const existingUser = await prisma.user.findUnique({
     where: { email },
@@ -45,7 +130,15 @@ export async function createUserAction(formData: FormData) {
     }
   }
 
-  const birthDate = birthDateStr ? new Date(birthDateStr) : null;
+  const birthDate = birthDateStr ? parseDateInput(birthDateStr) : null;
+
+  if (birthDateStr && !birthDate) {
+    throw new Error("Tanggal lahir tidak valid.");
+  }
+
+  const internData =
+    memberStatus === "INTERN" ? readInternData(formData) : null;
+  await validateMentor(internData?.mentorId ?? null);
 
   await prisma.$transaction(async (tx) => {
     // 1. Create User
@@ -80,24 +173,10 @@ export async function createUserAction(formData: FormData) {
 
     // 3. If Intern, create profile
     if (memberStatus === "INTERN") {
-      const program = String(formData.get("program") ?? "") === "PKL" ? "PKL" : "MAGANG";
-      const institution = String(formData.get("institution") ?? "").trim();
-      const startDateStr = String(formData.get("startDate") ?? "");
-      const endDateStr = String(formData.get("endDate") ?? "");
-      const mentorId = String(formData.get("mentorId") ?? "") || null;
-
-      if (!institution || !startDateStr || !endDateStr) {
-        throw new Error("Data magang (institusi, tgl mulai, tgl selesai) wajib diisi untuk Intern.");
-      }
-
       await tx.internProfile.create({
         data: {
           userId: user.id,
-          program,
-          institution,
-          startDate: new Date(startDateStr),
-          endDate: new Date(endDateStr),
-          mentorId,
+          ...internData!,
         },
       });
     }
@@ -129,22 +208,40 @@ export async function updateUserAction(formData: FormData) {
 
   const userId = String(formData.get("userId") ?? "");
   const name = String(formData.get("name") ?? "").trim();
-  const username = String(formData.get("username") ?? "").trim() || null;
+  const username =
+    String(formData.get("username") ?? "").trim().toLowerCase() || null;
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const birthDateStr = String(formData.get("birthDate") ?? "") || null;
   const role = String(formData.get("role") ?? "") === "ADMIN" ? "ADMIN" : "MEMBER";
   const memberStatus = String(formData.get("memberStatus") ?? "") === "INTERN" ? "INTERN" : "TEAM";
-  const accountStatus = String(formData.get("accountStatus") ?? "") as "ACTIVE" | "INACTIVE" | "ARCHIVED";
+  const requestedAccountStatus = String(formData.get("accountStatus") ?? "");
+  const accountStatus = ACCOUNT_STATUSES.find(
+    (status) => status === requestedAccountStatus
+  );
   const defaultStudioId = String(formData.get("defaultStudioId") ?? "") || null;
   const placementStudioId = String(formData.get("placementStudioId") ?? "") || null;
 
-  if (!userId || !name || !email) {
+  if (!userId || !name || !email || !accountStatus) {
     throw new Error("ID, Nama, dan Email wajib diisi.");
   }
 
+  if (username && !/^[a-z0-9._-]{3,30}$/.test(username)) {
+    throw new Error(
+      "Username harus 3-30 karakter dan hanya boleh berisi huruf kecil, angka, titik, garis bawah, atau tanda hubung."
+    );
+  }
+
+  await validateStudioAssignment(defaultStudioId, placementStudioId);
+
   const target = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, role: true, email: true, username: true },
+    select: {
+      id: true,
+      role: true,
+      email: true,
+      username: true,
+      accountStatus: true,
+    },
   });
 
   if (!target || target.role === "SUPER_ADMIN") {
@@ -172,7 +269,15 @@ export async function updateUserAction(formData: FormData) {
     }
   }
 
-  const birthDate = birthDateStr ? new Date(birthDateStr) : null;
+  const birthDate = birthDateStr ? parseDateInput(birthDateStr) : null;
+
+  if (birthDateStr && !birthDate) {
+    throw new Error("Tanggal lahir tidak valid.");
+  }
+
+  const internData =
+    memberStatus === "INTERN" ? readInternData(formData) : null;
+  await validateMentor(internData?.mentorId ?? null);
 
   await prisma.$transaction(async (tx) => {
     // 1. Update User fields
@@ -192,32 +297,14 @@ export async function updateUserAction(formData: FormData) {
 
     // 2. Handle InternProfile transitions
     if (memberStatus === "INTERN") {
-      const program = String(formData.get("program") ?? "") === "PKL" ? "PKL" : "MAGANG";
-      const institution = String(formData.get("institution") ?? "").trim();
-      const startDateStr = String(formData.get("startDate") ?? "");
-      const endDateStr = String(formData.get("endDate") ?? "");
-      const mentorId = String(formData.get("mentorId") ?? "") || null;
-
-      if (!institution || !startDateStr || !endDateStr) {
-        throw new Error("Data magang (institusi, tgl mulai, tgl selesai) wajib diisi untuk Intern.");
-      }
-
       await tx.internProfile.upsert({
         where: { userId },
         update: {
-          program,
-          institution,
-          startDate: new Date(startDateStr),
-          endDate: new Date(endDateStr),
-          mentorId,
+          ...internData!,
         },
         create: {
           userId,
-          program,
-          institution,
-          startDate: new Date(startDateStr),
-          endDate: new Date(endDateStr),
-          mentorId,
+          ...internData!,
         },
       });
     } else {
@@ -290,7 +377,10 @@ export async function updateUserAction(formData: FormData) {
         actorId: actor.id,
         entity: "User",
         entityId: userId,
-        action: "USER_UPDATED_BY_SUPER_ADMIN",
+        action:
+          accountStatus !== target.accountStatus
+            ? "ACCOUNT_STATUS_APPROVED_BY_SUPER_ADMIN"
+            : "USER_UPDATED_BY_SUPER_ADMIN",
         metadata: {
           name,
           username,
@@ -298,6 +388,7 @@ export async function updateUserAction(formData: FormData) {
           role,
           memberStatus,
           accountStatus,
+          previousAccountStatus: target.accountStatus,
           defaultStudioId,
           placementStudioId,
         },

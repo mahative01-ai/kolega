@@ -6,7 +6,6 @@ import {
   FileText,
   HeartPulse,
   Home,
-  ShieldMinus,
 } from "lucide-react";
 import type { Prisma } from "@/generated/prisma/client";
 import { Badge } from "@/components/ui/badge";
@@ -154,12 +153,6 @@ export default async function AttendanceReportPage({
       color: "text-blue-700",
     },
     {
-      label: "Izin",
-      value: summary.permission,
-      icon: ShieldMinus,
-      color: "text-amber-700",
-    },
-    {
       label: "Sakit",
       value: summary.sick,
       icon: HeartPulse,
@@ -257,7 +250,7 @@ export default async function AttendanceReportPage({
         <Button type="submit">Terapkan Filter</Button>
       </form>
 
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {metrics.map((metric) => {
           const Icon = metric.icon;
 

@@ -204,16 +204,13 @@ export default async function PersonalAttendanceHistoryPage() {
       </section>
 
       <Card>
-        <CardHeader className="flex-row items-start justify-between gap-4">
+        <CardHeader>
           <div>
             <CardTitle>Catatan Presensi</CardTitle>
             <CardDescription>
               Maksimal 60 catatan terbaru, termasuk WFO dan WFH.
             </CardDescription>
           </div>
-          <Link href="/member/presensi" className={buttonVariants()}>
-            Kembali ke Scan QR
-          </Link>
         </CardHeader>
         <CardContent>
           <Table>

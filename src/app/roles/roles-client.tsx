@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { UserPlus, UserCog, ShieldCheck, Edit } from "lucide-react";
+import { useMemo, useState, useTransition } from "react";
+import { Building2, Edit, Search, UserCog, UserPlus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -107,6 +107,15 @@ export function RolesClient({
 
   const [addMemberStatus, setAddMemberStatus] = useState("TEAM");
   const [editMemberStatus, setEditMemberStatus] = useState("TEAM");
+  const [editAccountStatus, setEditAccountStatus] = useState("ACTIVE");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [studioFilter, setStudioFilter] = useState("ALL");
+  const [memberTypeFilter, setMemberTypeFilter] = useState<
+    "ALL" | "TEAM" | "INTERN"
+  >("ALL");
+  const [statusFilter, setStatusFilter] = useState<
+    "ACTIVE" | "INACTIVE" | "ARCHIVED"
+  >("ACTIVE");
 
   const [isPending, startTransition] = useTransition();
   const [errorMsg, setErrorMsg] = useState("");
@@ -114,19 +123,55 @@ export function RolesClient({
   const handleOpenEdit = (user: UserWithRelations) => {
     setSelectedUser(user);
     setEditMemberStatus(user.memberStatus);
+    setEditAccountStatus(user.accountStatus);
     setErrorMsg("");
     setEditOpen(true);
   };
 
+  const filteredUsers = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    return users.filter((user) => {
+      const matchesStatus = isSuperAdmin
+        ? user.accountStatus === statusFilter
+        : user.accountStatus === "ACTIVE";
+      const matchesStudio =
+        !isSuperAdmin ||
+        studioFilter === "ALL" ||
+        user.defaultStudioId === studioFilter;
+      const matchesMemberType =
+        memberTypeFilter === "ALL" || user.memberStatus === memberTypeFilter;
+      const matchesQuery =
+        !query ||
+        user.name.toLowerCase().includes(query) ||
+        user.email.toLowerCase().includes(query) ||
+        user.username?.toLowerCase().includes(query);
+
+      return (
+        matchesStatus && matchesStudio && matchesMemberType && matchesQuery
+      );
+    });
+  }, [
+    isSuperAdmin,
+    memberTypeFilter,
+    searchQuery,
+    statusFilter,
+    studioFilter,
+    users,
+  ]);
+
+  const totalMembers = filteredUsers.length;
+
   const handleAddSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMsg("");
-    const formData = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
     startTransition(async () => {
       try {
         await createUserAction(formData);
         setAddOpen(false);
-        e.currentTarget.reset();
+        form.reset();
         setAddMemberStatus("TEAM");
       } catch (err) {
         const error = err as Error;
@@ -138,7 +183,8 @@ export function RolesClient({
   const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMsg("");
-    const formData = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
     startTransition(async () => {
       try {
         await updateUserAction(formData);
@@ -152,19 +198,21 @@ export function RolesClient({
 
   return (
     <div className="grid gap-6">
-      {/* 1. Metric: Total Anggota Card */}
       <section className="grid gap-3 sm:grid-cols-1">
-        <Card className="bg-white border-zinc-200">
+        <Card className="border-zinc-200 bg-white">
           <CardHeader className="p-4 text-center">
-            <CardDescription className="text-zinc-500 font-medium">Total Anggota</CardDescription>
-            <CardTitle className="text-4xl font-bold text-zinc-900 mt-1">{users.length}</CardTitle>
+            <CardDescription className="font-medium text-zinc-500">
+              Total Anggota
+            </CardDescription>
+            <CardTitle className="mt-1 text-4xl font-bold text-zinc-900">
+              {totalMembers}
+            </CardTitle>
           </CardHeader>
         </Card>
       </section>
 
-      {/* 2. User Table Card */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-4">
+        <CardHeader className="flex-row items-center justify-between gap-4">
           <div>
             <CardTitle className="flex items-center gap-2">
               <UserCog className="size-5 text-blue-700" />
@@ -177,13 +225,108 @@ export function RolesClient({
             </CardDescription>
           </div>
           {isSuperAdmin && (
-            <Button onClick={() => { setErrorMsg(""); setAddOpen(true); }} className="bg-zinc-950 text-white hover:bg-zinc-800">
-              <UserPlus className="size-4 mr-2" />
-              + Tambah User
+            <Button
+              onClick={() => {
+                setErrorMsg("");
+                setAddOpen(true);
+              }}
+            >
+              <UserPlus aria-hidden="true" />
+              Tambah Anggota
             </Button>
           )}
         </CardHeader>
-        <CardContent>
+        <CardContent className="grid gap-4">
+          {isSuperAdmin ? (
+            <div className="grid gap-3 border-b border-zinc-200 pb-4">
+              <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
+                <div className="flex min-w-36 items-center gap-2 text-sm font-medium text-zinc-700">
+                  <Building2 className="size-4" aria-hidden="true" />
+                  Default Studio
+                </div>
+                <div className="flex max-w-full gap-1 overflow-x-auto rounded-md border border-zinc-200 bg-zinc-50 p-1">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={studioFilter === "ALL" ? "default" : "ghost"}
+                    onClick={() => setStudioFilter("ALL")}
+                  >
+                    Semua Studio
+                  </Button>
+                  {studios.map((studio) => (
+                    <Button
+                      key={studio.id}
+                      type="button"
+                      size="sm"
+                      variant={
+                        studioFilter === studio.id ? "default" : "ghost"
+                      }
+                      onClick={() => setStudioFilter(studio.id)}
+                    >
+                      {studio.name}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
+                <span className="min-w-36 text-sm font-medium text-zinc-700">
+                  Jenis Anggota
+                </span>
+                <div className="flex gap-1 rounded-md border border-zinc-200 bg-zinc-50 p-1">
+                  {(["ALL", "TEAM", "INTERN"] as const).map((type) => (
+                    <Button
+                      key={type}
+                      type="button"
+                      size="sm"
+                      variant={
+                        memberTypeFilter === type ? "default" : "ghost"
+                      }
+                      onClick={() => setMemberTypeFilter(type)}
+                    >
+                      {type === "ALL"
+                        ? "Semua"
+                        : type === "TEAM"
+                          ? "Team"
+                          : "Intern"}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="relative w-full md:max-w-sm">
+              <Search
+                className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-400"
+                aria-hidden="true"
+              />
+              <Input
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Cari nama, email, atau username"
+                className="pl-9"
+              />
+            </div>
+            {isSuperAdmin ? (
+              <div className="flex gap-1 rounded-md border border-zinc-200 bg-zinc-50 p-1">
+                {(["ACTIVE", "INACTIVE", "ARCHIVED"] as const).map(
+                  (status) => (
+                    <Button
+                      key={status}
+                      type="button"
+                      size="sm"
+                      variant={statusFilter === status ? "default" : "ghost"}
+                      onClick={() => setStatusFilter(status)}
+                    >
+                      {accountStatusLabel[status]}
+                    </Button>
+                  )
+                )}
+              </div>
+            ) : null}
+          </div>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -199,8 +342,17 @@ export function RolesClient({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => {
-                  const isTargetSuperAdmin = user.role === "SUPER_ADMIN";
+                {filteredUsers.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={isSuperAdmin ? 8 : 7}
+                      className="h-24 text-center text-sm text-zinc-500"
+                    >
+                      Tidak ada anggota yang sesuai dengan pencarian atau
+                      status ini.
+                    </TableCell>
+                  </TableRow>
+                ) : filteredUsers.map((user) => {
                   const activePlacement = user.placements[0];
 
                   return (
@@ -244,7 +396,7 @@ export function RolesClient({
                       </TableCell>
                       <TableCell>
                         <Badge
-                          variant={isTargetSuperAdmin ? "default" : "secondary"}
+                          variant="secondary"
                           className={user.role === "ADMIN" ? "bg-blue-100 text-blue-800" : ""}
                         >
                           {ROLE_LABEL[user.role]}
@@ -252,22 +404,15 @@ export function RolesClient({
                       </TableCell>
                       {isSuperAdmin && (
                         <TableCell className="text-right">
-                          {isTargetSuperAdmin ? (
-                            <span className="inline-flex items-center gap-1.5 text-xs text-zinc-500">
-                              <ShieldCheck className="size-4" />
-                              System
-                            </span>
-                          ) : (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleOpenEdit(user)}
-                              className="h-8 px-2 text-xs"
-                            >
-                              <Edit className="size-3 mr-1" />
-                              Edit
-                            </Button>
-                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenEdit(user)}
+                            className="h-8 px-2 text-xs"
+                          >
+                            <Edit className="size-3" aria-hidden="true" />
+                            Edit
+                          </Button>
                         </TableCell>
                       )}
                     </TableRow>
@@ -279,9 +424,8 @@ export function RolesClient({
         </CardContent>
       </Card>
 
-      {/* 3. Pop-up Modal: Tambah User */}
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Tambah Anggota Baru</DialogTitle>
             <DialogDescription>
@@ -289,7 +433,7 @@ export function RolesClient({
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleAddSubmit} className="grid gap-3 py-2">
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold">Nama Lengkap *</label>
                 <Input name="name" placeholder="Nama lengkap" required />
@@ -300,7 +444,7 @@ export function RolesClient({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold">Email *</label>
                 <Input name="email" type="email" placeholder="email@domain.com" required />
@@ -311,7 +455,7 @@ export function RolesClient({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold">Tanggal Lahir</label>
                 <Input name="birthDate" type="date" />
@@ -329,7 +473,7 @@ export function RolesClient({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold">Status Anggota *</label>
                 <select
@@ -346,10 +490,11 @@ export function RolesClient({
                 <label className="text-xs font-semibold">Default Studio</label>
                 <select
                   name="defaultStudioId"
+                  required
                   className="h-9 rounded-md border border-zinc-200 bg-white px-2.5 text-sm"
                   defaultValue=""
                 >
-                  <option value="">Belum ada studio</option>
+                  <option value="">Pilih studio</option>
                   {studios.map((st) => (
                     <option key={st.id} value={st.id}>{st.name}</option>
                   ))}
@@ -371,11 +516,10 @@ export function RolesClient({
               </select>
             </div>
 
-            {/* Conditionally Render Intern Fields */}
             {addMemberStatus === "INTERN" && (
               <div className="rounded-lg border border-dashed border-zinc-200 bg-zinc-50/50 p-3 grid gap-2.5 mt-1">
                 <div className="text-xs font-bold text-zinc-700">Profil Magang (Intern)</div>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid gap-2 sm:grid-cols-2">
                   <div className="flex flex-col gap-1">
                     <label className="text-[10px] font-semibold text-zinc-500">Program *</label>
                     <select name="program" className="h-8 rounded-md border border-zinc-200 bg-white px-2 text-xs" defaultValue="MAGANG">
@@ -388,7 +532,7 @@ export function RolesClient({
                     <Input name="institution" placeholder="Nama sekolah/univ" className="h-8 text-xs" required={addMemberStatus === "INTERN"} />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid gap-2 sm:grid-cols-2">
                   <div className="flex flex-col gap-1">
                     <label className="text-[10px] font-semibold text-zinc-500">Tgl Mulai *</label>
                     <Input name="startDate" type="date" className="h-8 text-xs" required={addMemberStatus === "INTERN"} />
@@ -426,9 +570,8 @@ export function RolesClient({
         </DialogContent>
       </Dialog>
 
-      {/* 4. Pop-up Modal: Edit User */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit Informasi Anggota</DialogTitle>
             <DialogDescription>
@@ -439,7 +582,7 @@ export function RolesClient({
             <form onSubmit={handleEditSubmit} className="grid gap-3 py-2">
               <input type="hidden" name="userId" value={selectedUser.id} />
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-semibold">Nama Lengkap *</label>
                   <Input name="name" defaultValue={selectedUser.name} required />
@@ -450,7 +593,7 @@ export function RolesClient({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-semibold">Email *</label>
                   <Input name="email" type="email" defaultValue={selectedUser.email} required />
@@ -461,7 +604,7 @@ export function RolesClient({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-semibold">Role *</label>
                   <select
@@ -474,11 +617,16 @@ export function RolesClient({
                   </select>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold">Status Keaktifan *</label>
+                  <label className="text-xs font-semibold">
+                    Persetujuan Status Akun *
+                  </label>
                   <select
                     name="accountStatus"
                     className="h-9 rounded-md border border-zinc-200 bg-white px-2.5 text-sm"
-                    defaultValue={selectedUser.accountStatus}
+                    value={editAccountStatus}
+                    onChange={(event) =>
+                      setEditAccountStatus(event.target.value)
+                    }
                   >
                     <option value="ACTIVE">Aktif</option>
                     <option value="INACTIVE">Nonaktif</option>
@@ -487,7 +635,14 @@ export function RolesClient({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              {editAccountStatus !== selectedUser.accountStatus ? (
+                <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                  Perubahan status ini akan dicatat sebagai persetujuan Super
+                  Admin di audit log.
+                </p>
+              ) : null}
+
+              <div className="grid gap-3 sm:grid-cols-2">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-semibold">Status Anggota *</label>
                   <select
@@ -504,10 +659,11 @@ export function RolesClient({
                   <label className="text-xs font-semibold">Default Studio</label>
                   <select
                     name="defaultStudioId"
+                    required
                     className="h-9 rounded-md border border-zinc-200 bg-white px-2.5 text-sm"
                     defaultValue={selectedUser.defaultStudioId ?? ""}
                   >
-                    <option value="">Belum ada studio</option>
+                    <option value="">Pilih studio</option>
                     {studios.map((st) => (
                       <option key={st.id} value={st.id}>{st.name}</option>
                     ))}
@@ -529,11 +685,10 @@ export function RolesClient({
                 </select>
               </div>
 
-              {/* Conditionally Render Intern Fields */}
               {editMemberStatus === "INTERN" && (
                 <div className="rounded-lg border border-dashed border-zinc-200 bg-zinc-50/50 p-3 grid gap-2.5 mt-1">
                   <div className="text-xs font-bold text-zinc-700">Profil Magang (Intern)</div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid gap-2 sm:grid-cols-2">
                     <div className="flex flex-col gap-1">
                       <label className="text-[10px] font-semibold text-zinc-500">Program *</label>
                       <select
@@ -556,7 +711,7 @@ export function RolesClient({
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid gap-2 sm:grid-cols-2">
                     <div className="flex flex-col gap-1">
                       <label className="text-[10px] font-semibold text-zinc-500">Tgl Mulai *</label>
                       <Input
@@ -603,7 +758,11 @@ export function RolesClient({
                   Batal
                 </Button>
                 <Button type="submit" disabled={isPending}>
-                  {isPending ? "Menyimpan..." : "Simpan Perubahan"}
+                  {isPending
+                    ? "Menyimpan..."
+                    : editAccountStatus !== selectedUser.accountStatus
+                      ? "Setujui & Simpan"
+                      : "Simpan Perubahan"}
                 </Button>
               </DialogFooter>
             </form>

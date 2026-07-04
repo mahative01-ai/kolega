@@ -28,7 +28,6 @@ export const ATTENDANCE_STATUS_COLOR: Record<string, string> = {
 
 export type AttendanceSummary = {
   total: number;
-  permission: number;
   sick: number;
   late: number;
   onTime: number;
@@ -45,7 +44,6 @@ export function summarizeAttendanceStatuses(
 
   return {
     total: groups.reduce((total, group) => total + group._count._all, 0),
-    permission: counts.PERMISSION ?? 0,
     sick: counts.SICK ?? 0,
     late: counts.LATE ?? 0,
     onTime: (counts.ON_TIME ?? 0) + (counts.PRESENT ?? 0),

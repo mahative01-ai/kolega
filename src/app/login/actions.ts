@@ -4,7 +4,6 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import {
   clearSession,
-  getCurrentUser,
   getDashboardPath,
   setSession,
   verifyPassword,

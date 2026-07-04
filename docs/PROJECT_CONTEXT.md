@@ -54,12 +54,14 @@ Sudah ada (Fitur Terimplementasi):
 - Proteksi status `INTERN` agar tidak dapat mengajukan WFH.
 - Pengajuan & koreksi presensi pribadi khusus Admin, dengan aturan approval wajib ditinjau oleh `SUPER_ADMIN`.
 - Pembaruan dasbor: Ganti label "Presensi Tim Terbaru" menjadi "Today", hilangkan metrik "Tepat Waktu".
+- Manajemen user `/roles` menggunakan modal tambah/edit untuk Team dan Intern, termasuk masa magang, Default Studio, Placement, role, serta status akun.
+- Daftar user Super Admin memiliki pencarian dan pemisahan Aktif/Nonaktif/Arsip; Admin tetap hanya melihat user aktif di studio sendiri.
+- Super Admin dapat memfilter anggota berdasarkan Default Studio (Mahative/Kipa) dan jenis anggota (Team/Intern); Admin tidak memiliki filter lintas studio.
+- Perubahan status akun hanya dapat disetujui Super Admin dan dicatat di audit log.
+- Matriks Izin dihapus dari dashboard dan laporan; data historis `PERMISSION` tetap dipertahankan.
 
 Belum ada (Roadmap Fitur Baru):
 
-- Form Tambah User menggunakan Pop-up Modal di `/roles`.
-- CRUD manajemen akun per member menggunakan pop-up formulir edit detail di `/roles`.
-- Ganti matriks role di `/roles` menjadi "Total Anggota".
 - Validasi geofencing koordinat GPS studio di server-side.
 - Halaman edit Studio & Lokasi Geofence.
 - Halaman edit Cuti & Kalender Libur Studio (`CalendarEvent`).

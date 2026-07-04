@@ -4,7 +4,6 @@ import {
   Clock3,
   HeartPulse,
   Home,
-  ShieldMinus,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -214,12 +213,6 @@ export default async function SuperAdminDashboardPage() {
       color: "text-blue-700",
     },
     {
-      label: `Izin ${data.monthLabel}`,
-      value: data.attendanceSummary.permission,
-      icon: ShieldMinus,
-      color: "text-amber-700",
-    },
-    {
       label: `Sakit ${data.monthLabel}`,
       value: data.attendanceSummary.sick,
       icon: HeartPulse,
@@ -253,7 +246,7 @@ export default async function SuperAdminDashboardPage() {
       title="Super Admin Dashboard"
       description={`Halo ${currentUser.name}. Halaman ini khusus Owner untuk melihat ringkasan Mahative dan Kipa dalam satu tempat.`}
     >
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
+        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {metrics.map((metric) => {
             const Icon = metric.icon;
 
