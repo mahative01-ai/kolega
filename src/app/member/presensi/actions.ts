@@ -9,6 +9,7 @@ import {
   hashPassword,
   requireAnyRole,
   verifyPassword,
+  clearSession,
 } from "@/lib/auth";
 import {
   dateOnlyFromKey,
@@ -215,11 +216,12 @@ export async function submitWfoAttendanceAction(formData: FormData) {
     });
 
     revalidatePersonalAttendance(currentUser.role);
-    redirect(
-      result.count === 1
-        ? "/member/presensi?success=checkout"
-        : "/member/presensi?success=done"
-    );
+    if (result.count === 1) {
+      await clearSession();
+      redirect("/login?success=checkout");
+    } else {
+      redirect("/login?success=done");
+    }
   }
 
   if (!existingRecord || !existingRecord.checkInAt) {
@@ -433,6 +435,7 @@ export async function submitWfhAttendanceAction(formData: FormData) {
     });
 
     revalidatePersonalAttendance(currentUser.role);
-    redirect("/member/presensi?success=checkout");
+    await clearSession();
+    redirect("/login?success=checkout");
   }
 }

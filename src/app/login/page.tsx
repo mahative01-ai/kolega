@@ -26,7 +26,7 @@ const errorMessages: Record<string, string> = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; registered?: string }>;
+  searchParams: Promise<{ error?: string; registered?: string; action?: string }>;
 }) {
   const [currentUser, params] = await Promise.all([
     getCurrentUser(),
@@ -152,6 +152,7 @@ export default async function LoginPage({
             <div className="grid gap-2">
               <QrLoginScanner
                 autoStart={true}
+                action={params.action}
                 currentUser={{
                   name: currentUser.name,
                   role: currentUser.role,
@@ -223,7 +224,7 @@ export default async function LoginPage({
               </TabsContent>
 
               <TabsContent value="qr">
-                <QrLoginScanner />
+                <QrLoginScanner action={params.action} />
               </TabsContent>
             </Tabs>
           )}

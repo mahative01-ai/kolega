@@ -43,6 +43,7 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
     personalSchedules,
     qrCredential,
     todayRecord,
+    todaySchedule,
   ] = await Promise.all([
     defaultStudioId
       ? prisma.studio.findUnique({
@@ -155,6 +156,19 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
         checkOutAt: true,
         status: true,
         workMode: true,
+        wfhPlan: true,
+        wfhReport: true,
+      },
+    }),
+    prisma.personalWorkSchedule.findUnique({
+      where: {
+        userId_workDate: {
+          userId,
+          workDate: todayDate,
+        },
+      },
+      select: {
+        workMode: true,
       },
     }),
   ]);
@@ -170,6 +184,7 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
     personalSchedules,
     qrCredential,
     todayRecord,
+    todaySchedule: todaySchedule,
     monthLabel: formatMonthLabel(reportMonth),
     selectedMonth: month,
   };

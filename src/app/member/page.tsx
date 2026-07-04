@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { createPersonalQrCredentialAction } from "@/app/member/presensi/actions";
+import { WfhForm } from "@/app/member/presensi/wfh-form";
 import {
   formatMonthLabel,
   getMonthRange,
@@ -86,7 +87,7 @@ async function getMemberDashboardData(userId: string, selectedMonthKey?: string)
   const todayKey = getJakartaDateKey();
   const todayDate = dateOnlyFromKey(todayKey);
 
-  const [groups, recentAttendance, personalSchedules, qrCredential, todayRecord] = await Promise.all([
+  const [groups, recentAttendance, personalSchedules, qrCredential, todayRecord, todaySchedule] = await Promise.all([
     prisma.attendanceRecord.groupBy({
       by: ["status"],
       where: {
@@ -151,6 +152,19 @@ async function getMemberDashboardData(userId: string, selectedMonthKey?: string)
         checkOutAt: true,
         status: true,
         workMode: true,
+        wfhPlan: true,
+        wfhReport: true,
+      },
+    }),
+    prisma.personalWorkSchedule.findUnique({
+      where: {
+        userId_workDate: {
+          userId,
+          workDate: todayDate,
+        },
+      },
+      select: {
+        workMode: true,
       },
     }),
   ]);
@@ -161,6 +175,7 @@ async function getMemberDashboardData(userId: string, selectedMonthKey?: string)
     personalSchedules,
     qrCredential,
     todayRecord,
+    todaySchedule,
     monthLabel: formatMonthLabel(reportMonth),
     selectedMonth: month,
   };
@@ -177,6 +192,7 @@ export default async function MemberDashboardPage({
   ]);
 
   const data = await getMemberDashboardData(currentUser.id, params.month);
+  const isWfhMode = data.todaySchedule?.workMode === "WFH" || data.todayRecord?.workMode === "WFH";
   const qrSvg = data.qrCredential
     ? await QRCode.toString(data.qrCredential.qrUid, {
         type: "svg",
@@ -327,9 +343,9 @@ export default async function MemberDashboardPage({
             Lihat Riwayat Presensi
           </Link>
           
-          {(!data.todayRecord || !data.todayRecord.checkOutAt) && (
+          {!isWfhMode && (!data.todayRecord || !data.todayRecord.checkOutAt) && (
             <Link
-              href="/login"
+              href={data.todayRecord?.checkInAt ? "/login?action=checkout" : "/login"}
               className={cn(
                 buttonVariants({ variant: "default", size: "sm" }),
                 "flex items-center gap-1.5 bg-zinc-950 dark:bg-zinc-100 hover:bg-zinc-900 dark:hover:bg-zinc-200 text-white dark:text-zinc-950"
@@ -340,6 +356,21 @@ export default async function MemberDashboardPage({
             </Link>
           )}
         </CardContent>
+        {isWfhMode && (
+          <CardContent className="border-t border-zinc-100 dark:border-zinc-800 pt-4">
+            <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 p-4 bg-zinc-50/50 dark:bg-zinc-900/10">
+              <h3 className="text-sm font-semibold mb-3 text-zinc-900 dark:text-zinc-50 flex items-center gap-1.5">
+                <Home className="size-4 text-emerald-600" />
+                Presensi WFH
+              </h3>
+              <WfhForm
+                hasCheckedIn={!!data.todayRecord?.checkInAt}
+                hasCheckedOut={!!data.todayRecord?.checkOutAt}
+                checkInPlan={data.todayRecord?.wfhPlan}
+              />
+            </div>
+          </CardContent>
+        )}
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-[0.35fr_0.65fr]">

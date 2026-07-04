@@ -17,9 +17,11 @@ type CurrentUserProp = {
 export function QrLoginScanner({
   autoStart = false,
   currentUser,
+  action,
 }: {
   autoStart?: boolean;
   currentUser?: CurrentUserProp;
+  action?: string;
 }) {
   const scannerId = `login-qr-scanner-${useId().replace(/:/g, "")}`;
   const scannerRef = useRef<Html5Qrcode | null>(null);
@@ -88,7 +90,7 @@ export function QrLoginScanner({
           await stopScanner();
 
           try {
-            const res = (await loginAndAttendWithQrAction(qrUid)) as {
+            const res = (await loginAndAttendWithQrAction(qrUid, action)) as {
               success: boolean;
               error?: string;
               warning?: string;

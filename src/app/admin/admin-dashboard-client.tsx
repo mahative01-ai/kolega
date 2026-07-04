@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createPersonalQrCredentialAction } from "@/app/member/presensi/actions";
+import { WfhForm } from "@/app/member/presensi/wfh-form";
 
 type Props = {
   currentUser: {
@@ -78,6 +79,11 @@ type Props = {
       checkInAt: Date | null;
       checkOutAt: Date | null;
       status: string;
+      workMode: string;
+      wfhPlan?: string | null;
+      wfhReport?: string | null;
+    } | null;
+    todaySchedule?: {
       workMode: string;
     } | null;
   };
@@ -149,6 +155,7 @@ export function AdminDashboardClient({
   scheduleByDateMap,
 }: Props) {
   const [activeTab, setActiveTab] = useState<"personal" | "studio">("personal");
+  const isWfhMode = data.todaySchedule?.workMode === "WFH" || data.todayRecord?.workMode === "WFH";
 
   const personalMetrics = [
     {
@@ -323,9 +330,9 @@ export function AdminDashboardClient({
                 Lihat Riwayat Presensi Saya
               </Link>
               
-              {(!data.todayRecord || !data.todayRecord.checkOutAt) && (
+              {!isWfhMode && (!data.todayRecord || !data.todayRecord.checkOutAt) && (
                 <Link
-                  href="/login"
+                  href={data.todayRecord?.checkInAt ? "/login?action=checkout" : "/login"}
                   className={cn(
                     buttonVariants({ variant: "default", size: "sm" }),
                     "flex items-center gap-1.5 bg-zinc-950 dark:bg-zinc-100 hover:bg-zinc-900 dark:hover:bg-zinc-200 text-white dark:text-zinc-950"
@@ -336,6 +343,21 @@ export function AdminDashboardClient({
                 </Link>
               )}
             </CardContent>
+            {isWfhMode && (
+              <CardContent className="border-t border-zinc-100 dark:border-zinc-800 pt-4">
+                <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 p-4 bg-zinc-50/50 dark:bg-zinc-900/10">
+                  <h3 className="text-sm font-semibold mb-3 text-zinc-900 dark:text-zinc-50 flex items-center gap-1.5">
+                    <Home className="size-4 text-emerald-600" />
+                    Presensi WFH
+                  </h3>
+                  <WfhForm
+                    hasCheckedIn={!!data.todayRecord?.checkInAt}
+                    hasCheckedOut={!!data.todayRecord?.checkOutAt}
+                    checkInPlan={data.todayRecord?.wfhPlan}
+                  />
+                </div>
+              </CardContent>
+            )}
           </Card>
 
           {/* Calendar & QR Card Grid */}

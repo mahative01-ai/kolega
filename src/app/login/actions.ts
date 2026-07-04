@@ -58,7 +58,7 @@ function formatDate(date: Date) {
   }).format(date);
 }
 
-export async function loginAndAttendWithQrAction(qrUid: string) {
+export async function loginAndAttendWithQrAction(qrUid: string, action?: string) {
   const cleanQrUid = qrUid.trim();
 
   const credential = await prisma.qrCredential.findUnique({
@@ -285,14 +285,31 @@ export async function loginAndAttendWithQrAction(qrUid: string) {
   } else {
     // Check-out WFO
     if (existingRecord.checkInAt && existingRecord.checkOutAt) {
+      await clearSession();
       return {
         success: true,
         message: "Anda sudah check-out hari ini.",
-        redirectUrl: getDashboardPath(user.role),
+        redirectUrl: "/login?success=done",
       };
     }
 
     if (existingRecord.checkInAt && !existingRecord.checkOutAt) {
+      if (action === "checkout") {
+        await prisma.attendanceRecord.update({
+          where: { id: existingRecord.id },
+          data: {
+            checkOutAt: now,
+            updatedAt: now,
+          },
+        });
+        await clearSession();
+        return {
+          success: true,
+          message: "Check-out WFO berhasil.",
+          redirectUrl: "/login?success=checkout",
+        };
+      }
+
       // Hanya login kembali ke dashboard tanpa mengubah status check-in yang sudah ada
       return {
         success: true,
