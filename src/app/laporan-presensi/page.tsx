@@ -28,6 +28,7 @@ import {
 import { DashboardShell } from "@/components/dashboard-shell";
 import { AttendanceReportExportClient } from "./export-client";
 import { AttendanceTableBodyClient } from "./attendance-table-body-client";
+import { LaporanPresensiTabsClient } from "./laporan-presensi-tabs-client";
 import {
   ATTENDANCE_STATUS_COLOR,
   ATTENDANCE_STATUS_LABEL,
@@ -46,7 +47,6 @@ const FILTERABLE_STATUSES = [
   "ON_TIME",
   "LATE",
   "WFH",
-  "PERMISSION",
   "SICK",
   "LEAVE",
   "ALPHA",
@@ -322,40 +322,11 @@ export default async function AttendanceReportPage({
         })}
       </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="size-5" />
-            Detail Presensi
-          </CardTitle>
-          <CardDescription>
-            Menampilkan maksimal 500 catatan sesuai filter. Matriks selalu
-            merangkum seluruh status dalam bulan dan studio terpilih.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nama</TableHead>
-                <TableHead>Tanggal</TableHead>
-                <TableHead>Default Studio</TableHead>
-                <TableHead>Lokasi</TableHead>
-                <TableHead>Mode</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Check-in</TableHead>
-                <TableHead>Check-out</TableHead>
-                <TableHead>Terlambat</TableHead>
-              </TableRow>
-            </TableHeader>
-            <AttendanceTableBodyClient
-              records={serializedRecords}
-              statusColor={ATTENDANCE_STATUS_COLOR}
-              statusLabel={ATTENDANCE_STATUS_LABEL}
-            />
-          </Table>
-        </CardContent>
-      </Card>
+      <LaporanPresensiTabsClient
+        records={serializedRecords}
+        statusColor={ATTENDANCE_STATUS_COLOR}
+        statusLabel={ATTENDANCE_STATUS_LABEL}
+      />
       </div>
     </DashboardShell>
   );

@@ -589,10 +589,10 @@ export function AdminDashboardClient({
           <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
             <CardHeader>
               <CardTitle className="text-base text-zinc-900 dark:text-zinc-50">
-                Log Kehadiran Tim Terbaru
+                Kehadiran Staf Hari Ini
               </CardTitle>
               <CardDescription className="text-zinc-500 dark:text-zinc-400">
-                Data presensi terbaru dari staf studio {data.studio?.name ?? ""}.
+                Daftar kehadiran staf studio {data.studio?.name ?? ""} hari ini.
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
@@ -600,7 +600,6 @@ export function AdminDashboardClient({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Nama</TableHead>
-                    <TableHead>Tanggal</TableHead>
                     <TableHead>Lokasi Presensi</TableHead>
                     <TableHead>Mode</TableHead>
                     <TableHead>Status</TableHead>
@@ -611,8 +610,8 @@ export function AdminDashboardClient({
                 <TableBody>
                   {data.recentAttendance.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="h-24 text-center text-sm text-zinc-500">
-                        Belum ada data presensi tim.
+                      <TableCell colSpan={6} className="h-24 text-center text-sm text-zinc-500">
+                        Belum ada data presensi staf hari ini.
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -622,7 +621,6 @@ export function AdminDashboardClient({
                           <div>{item.user.name}</div>
                           <div className="text-xs font-normal text-zinc-500">{item.user.email}</div>
                         </TableCell>
-                        <TableCell>{formatDate(item.attendanceDate)}</TableCell>
                         <TableCell>{item.locationStudio?.name ?? "Tidak perlu lokasi"}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-300">

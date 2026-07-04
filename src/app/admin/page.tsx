@@ -79,9 +79,11 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
       },
     }),
     prisma.attendanceRecord.findMany({
-      take: 8,
-      where: studioFilter,
-      orderBy: [{ attendanceDate: "desc" }, { createdAt: "desc" }],
+      where: {
+        ...studioFilter,
+        attendanceDate: todayDate,
+      },
+      orderBy: [{ checkInAt: "desc" }, { createdAt: "desc" }],
       include: {
         user: {
           select: {

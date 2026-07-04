@@ -117,8 +117,10 @@ async function getSuperAdminDashboardData() {
     }),
     prisma.request.count({ where: { status: "PENDING" } }),
     prisma.attendanceRecord.findMany({
-      take: 6,
-      orderBy: [{ attendanceDate: "desc" }, { createdAt: "desc" }],
+      where: {
+        attendanceDate: todayDate,
+      },
+      orderBy: [{ checkInAt: "desc" }, { createdAt: "desc" }],
       include: {
         user: {
           select: {
@@ -276,6 +278,8 @@ export default async function SuperAdminDashboardPage() {
     status: item.status,
     wfhPlan: item.wfhPlan,
     wfhReport: item.wfhReport,
+    checkInAt: item.checkInAt ? item.checkInAt.toISOString() : null,
+    checkOutAt: item.checkOutAt ? item.checkOutAt.toISOString() : null,
     user: item.user,
     ownerStudio: item.ownerStudio,
     locationStudio: item.locationStudio,
@@ -477,9 +481,9 @@ export default async function SuperAdminDashboardPage() {
         {/* Recent Attendance across all studios */}
         <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
           <CardHeader>
-            <CardTitle className="text-zinc-900 dark:text-zinc-50">Riwayat Presensi Lintas Studio</CardTitle>
+            <CardTitle className="text-zinc-900 dark:text-zinc-50">Kehadiran Tim Lintas Studio Hari Ini</CardTitle>
             <CardDescription className="text-zinc-500 dark:text-zinc-400">
-              Data kehadiran terbaru terintegrasi lintas studio Mahative dan Kipa.
+              Daftar kehadiran staf lintas studio Mahative dan Kipa hari ini.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
@@ -487,11 +491,12 @@ export default async function SuperAdminDashboardPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nama</TableHead>
-                  <TableHead>Tanggal</TableHead>
                   <TableHead>Default Studio</TableHead>
                   <TableHead>Lokasi Presensi</TableHead>
                   <TableHead>Mode</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Check-in</TableHead>
+                  <TableHead>Check-out</TableHead>
                 </TableRow>
               </TableHeader>
               <RecentAttendanceTableClient

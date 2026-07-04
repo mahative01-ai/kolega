@@ -14,6 +14,8 @@ type SerializedRecord = {
   status: string;
   wfhPlan?: string | null;
   wfhReport?: string | null;
+  checkInAt?: string | null;
+  checkOutAt?: string | null;
   user: {
     name: string;
     email: string;
@@ -32,13 +34,13 @@ type Props = {
   statusLabel: Record<string, string>;
 };
 
-function formatDate(dateStr: string) {
+function formatTime(timeStr: string | null | undefined) {
+  if (!timeStr) return "-";
   return new Intl.DateTimeFormat("id-ID", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
     timeZone: "Asia/Jakarta",
-  }).format(new Date(dateStr));
+  }).format(new Date(timeStr));
 }
 
 export function RecentAttendanceTableClient({ records, statusColor, statusLabel }: Props) {
@@ -52,8 +54,8 @@ export function RecentAttendanceTableClient({ records, statusColor, statusLabel 
     return (
       <TableBody>
         <TableRow>
-          <TableCell colSpan={6} className="h-24 text-center text-sm text-zinc-500">
-            Belum ada data presensi.
+          <TableCell colSpan={7} className="h-24 text-center text-sm text-zinc-500">
+            Belum ada data presensi tim hari ini.
           </TableCell>
         </TableRow>
       </TableBody>
@@ -74,7 +76,6 @@ export function RecentAttendanceTableClient({ records, statusColor, statusLabel 
                 <div className="text-zinc-900 dark:text-zinc-100">{item.user.name}</div>
                 <div className="text-xs text-zinc-500 dark:text-zinc-400">{item.user.email}</div>
               </TableCell>
-              <TableCell>{formatDate(item.attendanceDate)}</TableCell>
               <TableCell>{item.ownerStudio.name}</TableCell>
               <TableCell>{item.locationStudio?.name ?? "Tidak perlu lokasi"}</TableCell>
               <TableCell>
@@ -100,12 +101,14 @@ export function RecentAttendanceTableClient({ records, statusColor, statusLabel 
                   {statusLabel[item.status] ?? item.status}
                 </Badge>
               </TableCell>
+              <TableCell className="font-mono text-xs">{formatTime(item.checkInAt)}</TableCell>
+              <TableCell className="font-mono text-xs">{formatTime(item.checkOutAt)}</TableCell>
             </TableRow>
 
             {/* Collapsible WFH details */}
             {isExpanded && hasDetails && (
               <TableRow className="bg-zinc-50/40 dark:bg-zinc-900/5 hover:bg-zinc-50/40 dark:hover:bg-zinc-900/5">
-                <TableCell colSpan={6} className="p-4 border-t border-zinc-100 dark:border-zinc-800">
+                <TableCell colSpan={7} className="p-4 border-t border-zinc-100 dark:border-zinc-800">
                   <div className="grid gap-4 md:grid-cols-2 max-w-4xl mx-auto">
                     {/* WFH Plan details */}
                     <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-3 space-y-1">
