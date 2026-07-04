@@ -54,16 +54,16 @@ const statusLabel: Record<string, string> = {
 };
 
 const statusColor: Record<string, string> = {
-  PRESENT: "bg-emerald-100 text-emerald-800",
-  ON_TIME: "bg-emerald-100 text-emerald-800",
-  LATE: "bg-orange-100 text-orange-800",
-  WFH: "bg-blue-100 text-blue-800",
-  PERMISSION: "bg-amber-100 text-amber-800",
-  SICK: "bg-violet-100 text-violet-800",
-  LEAVE: "bg-sky-100 text-sky-800",
-  ALPHA: "bg-red-100 text-red-800",
-  HOLIDAY: "bg-zinc-200 text-zinc-700",
-  OFF_DAY: "bg-zinc-200 text-zinc-700",
+  PRESENT: "bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900",
+  ON_TIME: "bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900",
+  LATE: "bg-orange-100 dark:bg-orange-950/50 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-900",
+  WFH: "bg-blue-100 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-900",
+  PERMISSION: "bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-900",
+  SICK: "bg-violet-100 dark:bg-violet-950/50 text-violet-800 dark:text-violet-300 border-violet-200 dark:border-violet-900",
+  LEAVE: "bg-sky-100 dark:bg-sky-950/50 text-sky-800 dark:text-sky-300 border-sky-200 dark:border-sky-900",
+  ALPHA: "bg-red-100 dark:bg-red-950/50 text-red-800 dark:text-red-300 border-red-200 dark:border-red-900",
+  HOLIDAY: "bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-300 dark:border-zinc-700",
+  OFF_DAY: "bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-300 dark:border-zinc-700",
 };
 
 function formatDate(date: Date) {
@@ -71,6 +71,7 @@ function formatDate(date: Date) {
     day: "2-digit",
     month: "short",
     year: "numeric",
+    timeZone: "Asia/Jakarta",
   }).format(date);
 }
 
@@ -203,31 +204,31 @@ export default async function MemberDashboardPage({
       label: `Presensi ${data.monthLabel}`,
       value: data.summary.total,
       icon: CheckCircle2,
-      color: "text-blue-700",
+      color: "text-blue-700 dark:text-blue-400",
     },
     {
       label: `Sakit ${data.monthLabel}`,
       value: data.summary.sick,
       icon: HeartPulse,
-      color: "text-violet-700",
+      color: "text-violet-700 dark:text-violet-400",
     },
     {
       label: `Terlambat ${data.monthLabel}`,
       value: data.summary.late,
       icon: Clock3,
-      color: "text-orange-700",
+      color: "text-orange-700 dark:text-orange-400",
     },
     {
       label: `Alpha ${data.monthLabel}`,
       value: data.summary.alpha,
       icon: AlertTriangle,
-      color: "text-red-700",
+      color: "text-red-700 dark:text-red-400",
     },
     {
       label: `WFH ${data.monthLabel}`,
       value: data.summary.wfh,
       icon: Home,
-      color: "text-blue-700",
+      color: "text-sky-700 dark:text-sky-400",
     },
   ];
 
@@ -255,20 +256,20 @@ export default async function MemberDashboardPage({
       title="Dashboard Member"
       description={`Halo ${currentUser.name}. Dashboard ini fokus ke presensi pribadi, jadwal, QR card, dan request izin.`}
     >
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 animate-in fade-in-50 duration-200">
         {metrics.map((metric) => {
           const Icon = metric.icon;
 
           return (
-            <Card key={metric.label}>
+            <Card key={metric.label} className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
               <CardHeader className="pb-2">
                 <CardDescription className="flex items-center gap-2">
-                  <Icon className={`size-4 ${metric.color}`} />
+                  <Icon className={cn("size-4", metric.color)} />
                   {metric.label}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className={`text-3xl font-semibold ${metric.color}`}>
+                <p className={cn("text-3xl font-semibold", metric.color)}>
                   {metric.value.toLocaleString("id-ID")}
                 </p>
               </CardContent>
@@ -277,31 +278,31 @@ export default async function MemberDashboardPage({
         })}
       </section>
 
-      <Card className="my-6">
+      <Card className="my-6 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2">
-            <Clock3 className="size-5 text-blue-700" />
+          <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
+            <Clock3 className="size-5 text-blue-700 dark:text-blue-400" />
             Presensi Hari Ini
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-zinc-500 dark:text-zinc-400">
             {formatFullDate(new Date())}
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-md border border-zinc-200 bg-white p-3 shadow-sm">
-            <p className="text-xs text-zinc-500 font-medium">Check-in</p>
-            <p className="mt-1 text-lg font-semibold text-zinc-900">
+          <div className="rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-3 shadow-sm">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Check-in</p>
+            <p className="mt-1 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
               {formatTime(data.todayRecord?.checkInAt ?? null)}
             </p>
           </div>
-          <div className="rounded-md border border-zinc-200 bg-white p-3 shadow-sm">
-            <p className="text-xs text-zinc-500 font-medium">Check-out</p>
-            <p className="mt-1 text-lg font-semibold text-zinc-900">
+          <div className="rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-3 shadow-sm">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Check-out</p>
+            <p className="mt-1 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
               {formatTime(data.todayRecord?.checkOutAt ?? null)}
             </p>
           </div>
-          <div className="rounded-md border border-zinc-200 bg-white p-3 shadow-sm">
-            <p className="text-xs text-zinc-500 font-medium">Status</p>
+          <div className="rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-3 shadow-sm">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Status</p>
             <div className="mt-1">
               {data.todayRecord ? (
                 <Badge
@@ -310,7 +311,7 @@ export default async function MemberDashboardPage({
                   {statusLabel[data.todayRecord.status] ?? data.todayRecord.status}
                 </Badge>
               ) : (
-                <Badge variant="outline" className="text-zinc-500 bg-zinc-50 border-zinc-200 text-xs px-2 py-0.5">
+                <Badge variant="outline" className="text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-xs px-2 py-0.5 shadow-none">
                   Belum Presensi
                 </Badge>
               )}
@@ -331,7 +332,7 @@ export default async function MemberDashboardPage({
               href="/login"
               className={cn(
                 buttonVariants({ variant: "default", size: "sm" }),
-                "flex items-center gap-1.5 bg-zinc-950 hover:bg-zinc-900 text-white"
+                "flex items-center gap-1.5 bg-zinc-950 dark:bg-zinc-100 hover:bg-zinc-900 dark:hover:bg-zinc-200 text-white dark:text-zinc-950"
               )}
             >
               <Camera className="size-4" />
@@ -343,28 +344,28 @@ export default async function MemberDashboardPage({
 
       <div className="grid gap-6 lg:grid-cols-[0.35fr_0.65fr]">
         <div className="space-y-6">
-          <Card>
+          <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <QrCode className="size-5 text-zinc-700" />
+              <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
+                <QrCode className="size-5 text-zinc-700 dark:text-zinc-400" />
                 QR Card Saya
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-zinc-500 dark:text-zinc-400">
                 Kartu QR Card digital untuk melakukan presensi WFO di kantor.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {data.qrCredential ? (
                 <>
-                  <div className="rounded-lg border border-zinc-200 bg-white p-4">
+                  <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
                     <div
-                      className="mx-auto flex size-44 items-center justify-center [&_svg]:size-40"
+                      className="mx-auto flex size-44 items-center justify-center [&_svg]:size-40 dark:[&_svg_rect]:fill-zinc-900"
                       dangerouslySetInnerHTML={{ __html: qrSvg ?? "" }}
                     />
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs font-medium text-zinc-500">QR UID</p>
-                    <div className="rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1 font-mono text-xs truncate">
+                    <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">QR UID</p>
+                    <div className="rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 px-3 py-1 font-mono text-xs truncate text-zinc-700 dark:text-zinc-300">
                       {data.qrCredential.qrUid}
                     </div>
                   </div>
@@ -403,11 +404,11 @@ export default async function MemberDashboardPage({
           </Card>
         </div>
 
-        <Card id="kalender-kerja">
+        <Card id="kalender-kerja" className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
           <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <CardTitle>Kalender Kerja Saya</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-zinc-900 dark:text-zinc-50">Kalender Kerja Saya</CardTitle>
+              <CardDescription className="text-zinc-500 dark:text-zinc-400">
                 Mode kerja Anda bulan {formatCalendarMonth(data.selectedMonth.year, data.selectedMonth.monthIndex)}.
               </CardDescription>
             </div>
@@ -425,11 +426,11 @@ export default async function MemberDashboardPage({
             </form>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-7 overflow-hidden rounded-md border border-zinc-200 bg-white">
+            <div className="grid grid-cols-7 overflow-hidden rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
               {dayLabels.map((label) => (
                 <div
                   key={label}
-                  className="border-b border-zinc-200 bg-zinc-50 py-2 text-center text-xs font-medium text-zinc-600"
+                  className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 py-2 text-center text-xs font-semibold text-zinc-600 dark:text-zinc-400"
                 >
                   {label}
                 </div>
@@ -437,7 +438,7 @@ export default async function MemberDashboardPage({
               {Array.from({ length: leadingBlankDays }, (_, index) => (
                 <div
                   key={`blank-${index}`}
-                  className="min-h-16 border-b border-r border-zinc-100 bg-zinc-50"
+                  className="min-h-16 border-b border-r border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/40"
                 />
               ))}
               {days.map((day) => {
@@ -449,8 +450,8 @@ export default async function MemberDashboardPage({
                   <div
                     key={day.dateKey}
                     className={cn(
-                      "min-h-16 border-b border-r border-zinc-100 p-1.5 flex flex-col justify-between",
-                      isToday && "bg-zinc-50"
+                      "min-h-16 border-b border-r border-zinc-100 dark:border-zinc-800 p-1.5 flex flex-col justify-between bg-white dark:bg-zinc-950",
+                      isToday && "bg-zinc-50 dark:bg-zinc-900/50"
                     )}
                   >
                     <div className="flex items-center justify-between">
@@ -458,18 +459,18 @@ export default async function MemberDashboardPage({
                         className={cn(
                           "text-xs font-semibold",
                           isToday
-                            ? "flex size-5 items-center justify-center rounded-full bg-zinc-950 text-[10px] text-white"
-                            : "text-zinc-700"
+                            ? "flex size-5 items-center justify-center rounded-full bg-zinc-950 dark:bg-zinc-100 text-[10px] text-white dark:text-zinc-950"
+                            : "text-zinc-700 dark:text-zinc-300"
                         )}
                       >
                         {day.dayNumber}
                       </span>
                       <span
                         className={cn(
-                          "rounded px-1 py-0.5 text-[9px] font-medium",
+                          "rounded px-1 py-0.5 text-[9px] font-medium border",
                           isWfh
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-zinc-100 text-zinc-600"
+                            ? "bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-900"
+                            : "bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800"
                         )}
                       >
                         {isWfh ? "WFH" : "WFO"}
@@ -480,7 +481,7 @@ export default async function MemberDashboardPage({
                         {schedule.note}
                       </p>
                     ) : (
-                      <p className="mt-1 truncate text-[9px] text-zinc-300">
+                      <p className="mt-1 truncate text-[9px] text-zinc-300 dark:text-zinc-600">
                         Default WFO
                       </p>
                     )}
@@ -492,14 +493,14 @@ export default async function MemberDashboardPage({
         </Card>
       </div>
 
-      <Card>
+      <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
         <CardHeader>
-          <CardTitle>Riwayat Presensi Saya</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-zinc-900 dark:text-zinc-50">Riwayat Presensi Saya</CardTitle>
+          <CardDescription className="text-zinc-500 dark:text-zinc-400">
             Data terbaru untuk akun yang sedang login.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
@@ -529,7 +530,7 @@ export default async function MemberDashboardPage({
                       {item.locationStudio?.name ?? "Tidak perlu lokasi"}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary">{item.workMode}</Badge>
+                      <Badge variant="secondary" className="dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-300">{item.workMode}</Badge>
                     </TableCell>
                     <TableCell>
                       <Badge

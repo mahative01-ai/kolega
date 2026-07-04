@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/table";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { AttendanceReportExportClient } from "./export-client";
+import { AttendanceTableBodyClient } from "./attendance-table-body-client";
 import {
   ATTENDANCE_STATUS_COLOR,
   ATTENDANCE_STATUS_LABEL,
@@ -142,6 +143,8 @@ export default async function AttendanceReportPage({
         },
         ownerStudio: { select: { name: true } },
         locationStudio: { select: { name: true } },
+        wfhPlan: true,
+        wfhReport: true,
       },
     }),
   ]);
@@ -197,6 +200,8 @@ export default async function AttendanceReportPage({
     user: r.user,
     ownerStudio: r.ownerStudio,
     locationStudio: r.locationStudio,
+    wfhPlan: r.wfhPlan,
+    wfhReport: r.wfhReport,
   }));
 
   return (
@@ -343,52 +348,11 @@ export default async function AttendanceReportPage({
                 <TableHead>Terlambat</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
-              {records.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={9}
-                    className="h-24 text-center text-sm text-zinc-500"
-                  >
-                    Tidak ada data presensi untuk filter ini.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                records.map((record) => (
-                  <TableRow key={record.id}>
-                    <TableCell className="font-medium">
-                      <div>{record.user.name}</div>
-                      <div className="text-xs font-normal text-zinc-500">
-                        {record.user.email}
-                      </div>
-                    </TableCell>
-                    <TableCell>{formatDate(record.attendanceDate)}</TableCell>
-                    <TableCell>{record.ownerStudio.name}</TableCell>
-                    <TableCell>
-                      {record.locationStudio?.name ?? "Tidak perlu lokasi"}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{record.workMode}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="secondary"
-                        className={ATTENDANCE_STATUS_COLOR[record.status]}
-                      >
-                        {ATTENDANCE_STATUS_LABEL[record.status] ?? record.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{formatTime(record.checkInAt)}</TableCell>
-                    <TableCell>{formatTime(record.checkOutAt)}</TableCell>
-                    <TableCell>
-                      {record.lateMinutes > 0
-                        ? `${record.lateMinutes} menit`
-                        : "-"}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
+            <AttendanceTableBodyClient
+              records={serializedRecords}
+              statusColor={ATTENDANCE_STATUS_COLOR}
+              statusLabel={ATTENDANCE_STATUS_LABEL}
+            />
           </Table>
         </CardContent>
       </Card>

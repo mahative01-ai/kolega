@@ -130,6 +130,11 @@ function getMenuGroups(role: DashboardUser["role"]) {
             href: "/member/corrections",
             icon: Archive,
           },
+          {
+            label: "Laporan WFH Saya",
+            href: "/member/laporan-wfh",
+            icon: Home,
+          },
         ],
       },
       {
@@ -165,7 +170,7 @@ function getMenuGroups(role: DashboardUser["role"]) {
         { label: "Izin/Sakit/Cuti", href: "/member/requests", icon: ClipboardList },
         { label: "Koreksi Presensi", href: "/member/corrections", icon: Archive },
         { label: "Jadwal Piket Saya", href: "/piket", icon: ClipboardList },
-        { label: "Laporan WFH", icon: Home, badge: "Next" },
+        { label: "Laporan WFH", href: "/member/laporan-wfh", icon: Home },
       ],
     },
   ];

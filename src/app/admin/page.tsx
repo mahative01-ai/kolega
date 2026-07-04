@@ -1,24 +1,7 @@
-import {
-  AlertTriangle,
-  ClipboardCheck,
-  Clock3,
-  Download,
-  HeartPulse,
-  Home,
-  QrCode,
-  ShieldCheck,
-  History,
-  Camera,
-} from "lucide-react";
-import QRCode from "qrcode";
-import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { requireRole } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard-shell";
-import { createPersonalQrCredentialAction } from "@/app/member/presensi/actions";
+import { AdminDashboardClient } from "./admin-dashboard-client";
 import {
   formatMonthLabel,
   getMonthRange,
@@ -26,53 +9,15 @@ import {
   summarizeAttendanceStatuses,
 } from "@/lib/attendance-report";
 import { getJakartaDateKey, dateOnlyFromKey } from "@/lib/attendance-time";
-import { requireRole } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { cn } from "@/lib/utils";
 import {
   dateOnly,
-  dayLabels,
   formatDateKey,
-  formatMonthLabel as formatCalendarMonth,
   getCalendarDays,
   parseMonthKey,
 } from "@/lib/calendar";
+import QRCode from "qrcode";
 
 export const dynamic = "force-dynamic";
-
-const statusLabel: Record<string, string> = {
-  PRESENT: "Hadir",
-  ON_TIME: "Tepat Waktu",
-  LATE: "Terlambat",
-  WFH: "WFH",
-  PERMISSION: "Izin",
-  SICK: "Sakit",
-  LEAVE: "Cuti",
-  ALPHA: "Alpha",
-  HOLIDAY: "Libur",
-  OFF_DAY: "Libur",
-};
-
-const statusColor: Record<string, string> = {
-  PRESENT: "bg-emerald-100 text-emerald-800",
-  ON_TIME: "bg-emerald-100 text-emerald-800",
-  LATE: "bg-orange-100 text-orange-800",
-  WFH: "bg-blue-100 text-blue-800",
-  PERMISSION: "bg-amber-100 text-amber-800",
-  SICK: "bg-violet-100 text-violet-800",
-  LEAVE: "bg-sky-100 text-sky-800",
-  ALPHA: "bg-red-100 text-red-800",
-  HOLIDAY: "bg-zinc-200 text-zinc-700",
-  OFF_DAY: "bg-zinc-200 text-zinc-700",
-};
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("id-ID", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(date);
-}
 
 async function getAdminDashboardData(userId: string, defaultStudioId: string | null, selectedMonthKey?: string) {
   const reportMonth = normalizeReportMonth();
@@ -91,8 +36,10 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
     studio,
     activeMembers,
     groups,
+    personalGroups,
     pendingRequests,
     recentAttendance,
+    picketToday,
     personalSchedules,
     qrCredential,
     todayRecord,
@@ -113,6 +60,14 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
       by: ["status"],
       where: {
         ...studioFilter,
+        attendanceDate: { gte: start, lt: endExclusive },
+      },
+      _count: { _all: true },
+    }),
+    prisma.attendanceRecord.groupBy({
+      by: ["status"],
+      where: {
+        userId,
         attendanceDate: { gte: start, lt: endExclusive },
       },
       _count: { _all: true },
@@ -140,6 +95,19 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
           },
         },
         locationStudio: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    }),
+    prisma.picketSchedule.findMany({
+      where: {
+        studioId: defaultStudioId ?? "__none__",
+        picketDate: todayDate,
+      },
+      include: {
+        user: {
           select: {
             name: true,
           },
@@ -193,8 +161,10 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
     studio,
     activeMembers,
     summary: summarizeAttendanceStatuses(groups),
+    personalSummary: summarizeAttendanceStatuses(personalGroups),
     pendingRequests,
     recentAttendance,
+    picketToday,
     personalSchedules,
     qrCredential,
     todayRecord,
@@ -214,6 +184,7 @@ export default async function AdminDashboardPage({
   ]);
 
   const data = await getAdminDashboardData(currentUser.id, currentUser.defaultStudioId, params.month);
+
   const qrSvg = data.qrCredential
     ? await QRCode.toString(data.qrCredential.qrUid, {
         type: "svg",
@@ -228,62 +199,16 @@ export default async function AdminDashboardPage({
     data.selectedMonth.monthIndex
   );
 
-  const scheduleByDate = new Map(
-    data.personalSchedules.map((schedule) => [
-      formatDateKey(schedule.workDate),
-      schedule,
-    ])
-  );
+  // Convert schedules array to record/map for client lookups
+  const scheduleByDateMap: Record<string, { workMode: string; note: string | null }> = {};
+  for (const sched of data.personalSchedules) {
+    scheduleByDateMap[formatDateKey(sched.workDate)] = {
+      workMode: sched.workMode,
+      note: sched.note,
+    };
+  }
+
   const todayKey = formatDateKey(dateOnly());
-
-  const metrics = [
-    {
-      label: `Jumlah Presensi ${data.monthLabel}`,
-      value: data.summary.total,
-      icon: ClipboardCheck,
-      color: "text-blue-700",
-    },
-    {
-      label: `Sakit ${data.monthLabel}`,
-      value: data.summary.sick,
-      icon: HeartPulse,
-      color: "text-violet-700",
-    },
-    {
-      label: `Terlambat ${data.monthLabel}`,
-      value: data.summary.late,
-      icon: Clock3,
-      color: "text-orange-700",
-    },
-    {
-      label: `Alpha ${data.monthLabel}`,
-      value: data.summary.alpha,
-      icon: AlertTriangle,
-      color: "text-red-700",
-    },
-    {
-      label: `WFH ${data.monthLabel}`,
-      value: data.summary.wfh,
-      icon: Home,
-      color: "text-sky-700",
-    },
-  ];
-
-  function formatTime(date: Date | null) {
-    if (!date) return "-";
-    return new Intl.DateTimeFormat("id-ID", {
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZone: "Asia/Jakarta",
-    }).format(new Date(date));
-  }
-
-  function formatFullDate(date: Date) {
-    return new Intl.DateTimeFormat("id-ID", {
-      dateStyle: "full",
-      timeZone: "Asia/Jakarta",
-    }).format(date);
-  }
 
   return (
     <DashboardShell
@@ -291,294 +216,17 @@ export default async function AdminDashboardPage({
       currentPath="/admin"
       badge="Welcome, Admin"
       title="Dashboard Admin"
-      description={`${data.activeMembers} user aktif dan ${data.pendingRequests} request pending. Scope laporan dikunci ke ${data.studio?.name ?? "studio Admin"}.`}
+      description={`Halo ${currentUser.name}. Halaman ini memuat presensi pribadi Anda serta modul operasional studio.`}
     >
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        {metrics.map((metric) => {
-          const Icon = metric.icon;
-
-          return (
-            <Card key={metric.label}>
-              <CardHeader className="pb-2">
-                <CardDescription className="flex items-center gap-2">
-                  <Icon className={`size-4 ${metric.color}`} />
-                  {metric.label}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className={`text-3xl font-semibold ${metric.color}`}>
-                  {metric.value.toLocaleString("id-ID")}
-                </p>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </section>
-
-      <Card className="my-6">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2">
-            <Clock3 className="size-5 text-blue-700" />
-            Presensi Hari Ini
-          </CardTitle>
-          <CardDescription>
-            {formatFullDate(new Date())}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-md border border-zinc-200 bg-white p-3 shadow-sm">
-            <p className="text-xs text-zinc-500 font-medium">Check-in</p>
-            <p className="mt-1 text-lg font-semibold text-zinc-900">
-              {formatTime(data.todayRecord?.checkInAt ?? null)}
-            </p>
-          </div>
-          <div className="rounded-md border border-zinc-200 bg-white p-3 shadow-sm">
-            <p className="text-xs text-zinc-500 font-medium">Check-out</p>
-            <p className="mt-1 text-lg font-semibold text-zinc-900">
-              {formatTime(data.todayRecord?.checkOutAt ?? null)}
-            </p>
-          </div>
-          <div className="rounded-md border border-zinc-200 bg-white p-3 shadow-sm">
-            <p className="text-xs text-zinc-500 font-medium">Status</p>
-            <div className="mt-1">
-              {data.todayRecord ? (
-                <Badge
-                  className={cn("text-xs font-semibold px-2 py-0.5 border shadow-none", statusColor[data.todayRecord.status])}
-                >
-                  {statusLabel[data.todayRecord.status] ?? data.todayRecord.status}
-                </Badge>
-              ) : (
-                <Badge variant="outline" className="text-zinc-500 bg-zinc-50 border-zinc-200 text-xs px-2 py-0.5">
-                  Belum Presensi
-                </Badge>
-              )}
-            </div>
-          </div>
-        </CardContent>
-        <CardContent className="pt-0 flex flex-wrap gap-2">
-          <Link
-            href="/member/presensi/riwayat"
-            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "flex items-center gap-1.5")}
-          >
-            <History className="size-4" />
-            Lihat Riwayat Presensi
-          </Link>
-          
-          {(!data.todayRecord || !data.todayRecord.checkOutAt) && (
-            <Link
-              href="/login"
-              className={cn(
-                buttonVariants({ variant: "default", size: "sm" }),
-                "flex items-center gap-1.5 bg-zinc-950 hover:bg-zinc-900 text-white"
-              )}
-            >
-              <Camera className="size-4" />
-              {data.todayRecord?.checkInAt ? "Scan Check-out WFO" : "Scan Check-in WFO"}
-            </Link>
-          )}
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
-        <Card>
-          <CardHeader>
-            <CardTitle>Today</CardTitle>
-            <CardDescription>
-              Catatan terbaru dari PostgreSQL untuk seluruh user aktif dalam
-              scope studio Admin.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nama</TableHead>
-                  <TableHead>Tanggal</TableHead>
-                  <TableHead>Default Studio</TableHead>
-                  <TableHead>Lokasi</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.recentAttendance.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={5}
-                      className="h-24 text-center text-sm text-zinc-500"
-                    >
-                      Belum ada data presensi.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  data.recentAttendance.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium">
-                        <div>{item.user.name}</div>
-                        <div className="text-xs text-zinc-500">
-                          {item.user.email}
-                        </div>
-                      </TableCell>
-                      <TableCell>{formatDate(item.attendanceDate)}</TableCell>
-                      <TableCell>{item.ownerStudio.name}</TableCell>
-                      <TableCell>
-                        {item.locationStudio?.name ?? "Tidak perlu lokasi"}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="secondary"
-                          className={statusColor[item.status]}
-                        >
-                          {statusLabel[item.status] ?? item.status}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <QrCode className="size-5 text-zinc-700" />
-                QR Card Saya
-              </CardTitle>
-              <CardDescription>
-                Kartu QR Card digital untuk melakukan presensi WFO di kantor.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {data.qrCredential ? (
-                <>
-                  <div className="rounded-lg border border-zinc-200 bg-white p-4">
-                    <div
-                      className="mx-auto flex size-44 items-center justify-center [&_svg]:size-40"
-                      dangerouslySetInnerHTML={{ __html: qrSvg ?? "" }}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium text-zinc-500">QR UID</p>
-                    <div className="rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1 font-mono text-xs truncate">
-                      {data.qrCredential.qrUid}
-                    </div>
-                  </div>
-                  <div className="grid gap-2">
-                    <a
-                      href="/member/presensi/qr-card?format=png"
-                      className={cn(
-                        buttonVariants({ variant: "outline", size: "sm" }),
-                        "w-full flex items-center justify-center gap-1.5"
-                      )}
-                    >
-                      <Download className="size-4" />
-                      Unduh PNG
-                    </a>
-                    <a
-                      href="/member/presensi/qr-card?format=jpeg"
-                      className={cn(
-                        buttonVariants({ variant: "outline", size: "sm" }),
-                        "w-full flex items-center justify-center gap-1.5"
-                      )}
-                    >
-                      <Download className="size-4" />
-                      Unduh JPEG
-                    </a>
-                  </div>
-                </>
-              ) : (
-                <form action={createPersonalQrCredentialAction}>
-                  <Button type="submit" className="w-full">
-                    <ShieldCheck className="mr-1.5 size-4" />
-                    Aktifkan QR Card
-                  </Button>
-                </form>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card id="kalender-kerja">
-            <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <CardTitle>Kalender Kerja Saya</CardTitle>
-                <CardDescription>
-                  Mode kerja Anda bulan {formatCalendarMonth(data.selectedMonth.year, data.selectedMonth.monthIndex)}.
-                </CardDescription>
-              </div>
-              <form className="flex items-center gap-2">
-                <Input
-                  id="month"
-                  name="month"
-                  type="month"
-                  defaultValue={data.selectedMonth.monthKey}
-                  className="h-8 w-36 text-sm"
-                />
-                <Button type="submit" size="sm">
-                  Filter
-                </Button>
-              </form>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-7 overflow-hidden rounded-md border border-zinc-200 bg-white">
-                {dayLabels.map((label) => (
-                  <div
-                    key={label}
-                    className="border-b border-zinc-200 bg-zinc-50 py-2 text-center text-xs font-medium text-zinc-600"
-                  >
-                    {label}
-                  </div>
-                ))}
-                {Array.from({ length: leadingBlankDays }, (_, index) => (
-                  <div
-                    key={`blank-${index}`}
-                    className="min-h-12 border-b border-r border-zinc-100 bg-zinc-50"
-                  />
-                ))}
-                {days.map((day) => {
-                  const schedule = scheduleByDate.get(day.dateKey);
-                  const isWfh = schedule?.workMode === "WFH";
-                  const isToday = day.dateKey === todayKey;
-
-                  return (
-                    <div
-                      key={day.dateKey}
-                      className={cn(
-                        "min-h-12 border-b border-r border-zinc-100 p-1 flex flex-col justify-between",
-                        isToday && "bg-zinc-50"
-                      )}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span
-                          className={cn(
-                            "text-xs font-semibold",
-                            isToday
-                              ? "flex size-5 items-center justify-center rounded-full bg-zinc-950 text-[10px] text-white"
-                              : "text-zinc-700"
-                          )}
-                        >
-                          {day.dayNumber}
-                        </span>
-                        <span
-                          className={cn(
-                            "rounded px-1 py-0.5 text-[8px] font-medium",
-                            isWfh
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-zinc-100 text-zinc-600"
-                          )}
-                        >
-                          {isWfh ? "WFH" : "WFO"}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <AdminDashboardClient
+        currentUser={currentUser}
+        data={data}
+        qrSvg={qrSvg}
+        days={days}
+        leadingBlankDays={leadingBlankDays}
+        todayKey={todayKey}
+        scheduleByDateMap={scheduleByDateMap}
+      />
     </DashboardShell>
   );
 }

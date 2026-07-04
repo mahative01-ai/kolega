@@ -4,7 +4,14 @@ import {
   Clock3,
   HeartPulse,
   Home,
+  ShieldAlert,
+  ClipboardList,
+  Users,
+  Building,
+  Brush,
+  ArrowRight
 } from "lucide-react";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -30,6 +37,8 @@ import {
 } from "@/lib/attendance-report";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getJakartaDateKey, dateOnlyFromKey } from "@/lib/attendance-time";
+import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -47,24 +56,24 @@ const statusLabel: Record<string, string> = {
 };
 
 const statusColor: Record<string, string> = {
-  PRESENT: "bg-emerald-100 text-emerald-800",
-  ON_TIME: "bg-emerald-100 text-emerald-800",
-  LATE: "bg-orange-100 text-orange-800",
-  WFH: "bg-blue-100 text-blue-800",
-  PERMISSION: "bg-amber-100 text-amber-800",
-  SICK: "bg-violet-100 text-violet-800",
-  LEAVE: "bg-sky-100 text-sky-800",
-  ALPHA: "bg-red-100 text-red-800",
-  HOLIDAY: "bg-zinc-200 text-zinc-700",
-  OFF_DAY: "bg-zinc-200 text-zinc-700",
+  PRESENT: "bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900",
+  ON_TIME: "bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900",
+  LATE: "bg-orange-100 dark:bg-orange-950/50 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-900",
+  WFH: "bg-blue-100 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-900",
+  PERMISSION: "bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-900",
+  SICK: "bg-violet-100 dark:bg-violet-950/50 text-violet-800 dark:text-violet-300 border-violet-200 dark:border-violet-900",
+  LEAVE: "bg-sky-100 dark:bg-sky-950/50 text-sky-800 dark:text-sky-300 border-sky-200 dark:border-sky-900",
+  ALPHA: "bg-red-100 dark:bg-red-950/50 text-red-800 dark:text-red-300 border-red-200 dark:border-red-900",
+  HOLIDAY: "bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-300 dark:border-zinc-700",
+  OFF_DAY: "bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-300 dark:border-zinc-700",
 };
-
 
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat("id-ID", {
     day: "2-digit",
     month: "short",
     year: "numeric",
+    timeZone: "Asia/Jakarta",
   }).format(date);
 }
 
@@ -72,12 +81,16 @@ async function getSuperAdminDashboardData() {
   const month = normalizeReportMonth();
   const { start: monthStart, endExclusive: monthEnd } = getMonthRange(month);
 
+  const todayKey = getJakartaDateKey();
+  const todayDate = dateOnlyFromKey(todayKey);
+
   const [
     studios,
     attendanceGroups,
     outsideRadiusThisMonth,
     pendingRequests,
     recentAttendance,
+    picketToday,
   ] = await Promise.all([
     prisma.studio.findMany({
       where: { isActive: true },
@@ -119,6 +132,23 @@ async function getSuperAdminDashboardData() {
           },
         },
         locationStudio: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    }),
+    prisma.picketSchedule.findMany({
+      where: {
+        picketDate: todayDate,
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+          },
+        },
+        studio: {
           select: {
             name: true,
           },
@@ -196,7 +226,7 @@ async function getSuperAdminDashboardData() {
     pendingRequests,
     recentAttendance,
     studioRows,
-    studios,
+    picketToday,
     monthLabel: formatMonthLabel(month),
   };
 }
@@ -210,31 +240,31 @@ export default async function SuperAdminDashboardPage() {
       label: `Jumlah Presensi ${data.monthLabel}`,
       value: data.attendanceSummary.total,
       icon: ClipboardCheck,
-      color: "text-blue-700",
+      color: "text-blue-700 dark:text-blue-400",
     },
     {
       label: `Sakit ${data.monthLabel}`,
       value: data.attendanceSummary.sick,
       icon: HeartPulse,
-      color: "text-violet-700",
+      color: "text-violet-700 dark:text-violet-400",
     },
     {
       label: `Terlambat ${data.monthLabel}`,
       value: data.attendanceSummary.late,
       icon: Clock3,
-      color: "text-orange-700",
+      color: "text-orange-700 dark:text-orange-400",
     },
     {
       label: `Alpha ${data.monthLabel}`,
       value: data.attendanceSummary.alpha,
       icon: AlertTriangle,
-      color: "text-red-700",
+      color: "text-red-700 dark:text-red-400",
     },
     {
       label: `WFH ${data.monthLabel}`,
       value: data.attendanceSummary.wfh,
       icon: Home,
-      color: "text-sky-700",
+      color: "text-sky-700 dark:text-sky-400",
     },
   ];
 
@@ -246,20 +276,22 @@ export default async function SuperAdminDashboardPage() {
       title="Super Admin Dashboard"
       description={`Halo ${currentUser.name}. Halaman ini khusus Owner untuk melihat ringkasan Mahative dan Kipa dalam satu tempat.`}
     >
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <div className="space-y-6">
+        {/* Metrics Grid */}
+        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 animate-in fade-in-50 duration-200">
           {metrics.map((metric) => {
             const Icon = metric.icon;
 
             return (
-              <Card key={metric.label}>
+              <Card key={metric.label} className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
                 <CardHeader className="pb-2">
                   <CardDescription className="flex items-center gap-2">
-                    <Icon className={`size-4 ${metric.color}`} />
+                    <Icon className={cn("size-4", metric.color)} />
                     {metric.label}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className={`text-3xl font-semibold ${metric.color}`}>
+                  <p className={cn("text-3xl font-semibold", metric.color)}>
                     {metric.value.toLocaleString("id-ID")}
                   </p>
                 </CardContent>
@@ -268,18 +300,17 @@ export default async function SuperAdminDashboardPage() {
           })}
         </section>
 
-
-
+        {/* Studio Summary & Live Operations Panel */}
         <section className="grid gap-6 lg:grid-cols-[1.4fr_0.6fr]">
-          <Card>
+          {/* Studio Summary */}
+          <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
             <CardHeader>
-              <CardTitle>Ringkasan Studio</CardTitle>
-              <CardDescription>
-                Super Admin melihat semua studio, sedangkan Admin nantinya
-                dibatasi ke studio tempat ia bekerja.
+              <CardTitle className="text-zinc-900 dark:text-zinc-50">Ringkasan Studio</CardTitle>
+              <CardDescription className="text-zinc-500 dark:text-zinc-400">
+                Super Admin memantau data seluruh studio aktif secara terpusat.
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -288,7 +319,7 @@ export default async function SuperAdminDashboardPage() {
                     <TableHead>Default Member</TableHead>
                     <TableHead>Admin</TableHead>
                     <TableHead>Member</TableHead>
-                    <TableHead>Placement Aktif</TableHead>
+                    <TableHead>Placement</TableHead>
                     <TableHead>Presensi Bulan Ini</TableHead>
                     <TableHead>Luar Radius</TableHead>
                   </TableRow>
@@ -297,8 +328,8 @@ export default async function SuperAdminDashboardPage() {
                   {data.studioRows.map((studio) => (
                     <TableRow key={studio.id}>
                       <TableCell className="font-medium">
-                        <div>{studio.name}</div>
-                        <div className="text-xs text-zinc-500">
+                        <div className="text-zinc-900 dark:text-zinc-100">{studio.name}</div>
+                        <div className="text-xs text-zinc-500 dark:text-zinc-400">
                           {studio.address ?? studio.slug}
                         </div>
                       </TableCell>
@@ -311,11 +342,12 @@ export default async function SuperAdminDashboardPage() {
                       <TableCell>
                         <Badge
                           variant="secondary"
-                          className={
+                          className={cn(
+                            "shadow-none px-2 py-0.5 border",
                             studio.outsideRadius > 0
-                              ? "bg-orange-100 text-orange-800"
-                              : "bg-emerald-100 text-emerald-800"
-                          }
+                              ? "bg-orange-100 dark:bg-orange-950/50 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-900"
+                              : "bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900"
+                          )}
                         >
                           {studio.outsideRadius}
                         </Badge>
@@ -327,52 +359,117 @@ export default async function SuperAdminDashboardPage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Akses Owner</CardTitle>
-              <CardDescription>
-                Bukti pemisahan dashboard dan akses Super Admin.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 text-sm text-zinc-700">
-              <div className="rounded-md border border-zinc-200 bg-white p-3">
-                <p className="font-medium text-zinc-950">Lintas Studio</p>
-                <p className="mt-1 text-zinc-600">
-                  Bisa melihat Mahative dan Kipa sekaligus.
-                </p>
-              </div>
-              <div className="rounded-md border border-zinc-200 bg-white p-3">
-                <p className="font-medium text-zinc-950">Role</p>
-                <p className="mt-1 text-zinc-600">
-                  Bisa memberi akses Admin ke Member, tetapi Super Admin tetap
-                  dibuat manual.
-                </p>
-              </div>
-              <div className="rounded-md border border-zinc-200 bg-white p-3">
-                <p className="font-medium text-zinc-950">Approval</p>
-                <p className="mt-1 text-zinc-600">
-                  Pending request saat ini: {data.pendingRequests}.
-                </p>
-              </div>
-              <div className="rounded-md border border-zinc-200 bg-white p-3">
-                <p className="font-medium text-zinc-950">Soft Warning</p>
-                <p className="mt-1 text-zinc-600">
-                  Presensi luar radius bulan ini: {data.outsideRadiusThisMonth}.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Live Action/Alert Center */}
+          <div className="space-y-4">
+            <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+              <CardHeader className="pb-3 border-b border-zinc-100 dark:border-zinc-800">
+                <CardTitle className="text-sm font-bold flex items-center gap-1.5 text-zinc-900 dark:text-zinc-50">
+                  <ShieldAlert className="size-4 text-blue-700 dark:text-blue-400" />
+                  Operasional & Monitoring Live
+                </CardTitle>
+                <CardDescription className="text-zinc-500 dark:text-zinc-400">
+                  Statistik verifikasi dan warning geofence terkini.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-4 space-y-3 text-sm">
+                {/* Pending Request Badge Button */}
+                <div className="flex items-center justify-between p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10">
+                  <div className="space-y-0.5">
+                    <p className="font-bold text-zinc-700 dark:text-zinc-300 text-xs flex items-center gap-1">
+                      <ClipboardList className="size-3 text-zinc-400" />
+                      PENDING REQUESTS
+                    </p>
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400">Menunggu persetujuan Owner</p>
+                  </div>
+                  <Link
+                    href="/admin/requests"
+                    className="rounded-full bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/30 dark:hover:bg-blue-950/50 text-blue-700 dark:text-blue-400 font-bold px-3 py-1 text-xs transition-colors flex items-center gap-0.5"
+                  >
+                    {data.pendingRequests} Izin
+                    <ArrowRight className="size-3" />
+                  </Link>
+                </div>
+
+                {/* Outside Radius Geofence Warning */}
+                <div className="flex items-center justify-between p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10">
+                  <div className="space-y-0.5">
+                    <p className="font-bold text-zinc-700 dark:text-zinc-300 text-xs flex items-center gap-1">
+                      <ShieldAlert className="size-3 text-zinc-400" />
+                      SOFT WARNING GEOFENCE
+                    </p>
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400">Presensi luar radius bulan ini</p>
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "px-2.5 py-0.5 font-semibold text-xs shadow-none border",
+                      data.outsideRadiusThisMonth > 0
+                        ? "bg-orange-50 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-900"
+                        : "bg-zinc-50 dark:bg-zinc-900/50 text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800"
+                    )}
+                  >
+                    {data.outsideRadiusThisMonth} Kali
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Picket Duty Info */}
+            <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+              <CardHeader className="pb-3 border-b border-zinc-100 dark:border-zinc-800">
+                <CardTitle className="text-sm font-bold flex items-center gap-1.5 text-zinc-900 dark:text-zinc-50">
+                  <Brush className="size-4 text-blue-700 dark:text-blue-400" />
+                  Petugas Piket Hari Ini
+                </CardTitle>
+                <CardDescription className="text-zinc-500 dark:text-zinc-400">
+                  Jadwal piket aktif Kipa & Mahative hari ini.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-4">
+                {data.picketToday.length === 0 ? (
+                  <p className="text-center py-4 text-xs text-zinc-400 dark:text-zinc-500">
+                    Tidak ada jadwal piket hari ini.
+                  </p>
+                ) : (
+                  <div className="space-y-2.5">
+                    {/* Group by studio */}
+                    {Array.from(new Set(data.picketToday.map((p) => p.studio.name))).map((studioName) => {
+                      const studioPickets = data.picketToday.filter((p) => p.studio.name === studioName);
+                      return (
+                        <div key={studioName} className="space-y-1">
+                          <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 flex items-center gap-1">
+                            <Building className="size-3 text-zinc-400" />
+                            {studioName.toUpperCase()}
+                          </p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {studioPickets.map((picket) => (
+                              <div
+                                key={picket.id}
+                                className="rounded bg-zinc-100 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800 px-2 py-0.5 text-[10px] font-medium"
+                              >
+                                {picket.user.name}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </section>
 
-        <Card>
+        {/* Recent Attendance across all studios */}
+        <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
           <CardHeader>
-            <CardTitle>Riwayat Presensi Lintas Studio</CardTitle>
-            <CardDescription>
-              Data terbaru dari Mahative dan Kipa untuk pembuktian akses Super
-              Admin.
+            <CardTitle className="text-zinc-900 dark:text-zinc-50">Riwayat Presensi Lintas Studio</CardTitle>
+            <CardDescription className="text-zinc-500 dark:text-zinc-400">
+              Data kehadiran terbaru terintegrasi lintas studio Mahative dan Kipa.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -387,10 +484,7 @@ export default async function SuperAdminDashboardPage() {
               <TableBody>
                 {data.recentAttendance.length === 0 ? (
                   <TableRow>
-                    <TableCell
-                      colSpan={6}
-                      className="h-24 text-center text-sm text-zinc-500"
-                    >
+                    <TableCell colSpan={6} className="h-24 text-center text-sm text-zinc-500">
                       Belum ada data presensi.
                     </TableCell>
                   </TableRow>
@@ -398,24 +492,19 @@ export default async function SuperAdminDashboardPage() {
                   data.recentAttendance.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">
-                        <div>{item.user.name}</div>
-                        <div className="text-xs text-zinc-500">
-                          {item.user.email}
-                        </div>
+                        <div className="text-zinc-900 dark:text-zinc-100">{item.user.name}</div>
+                        <div className="text-xs text-zinc-500 dark:text-zinc-400">{item.user.email}</div>
                       </TableCell>
                       <TableCell>{formatDate(item.attendanceDate)}</TableCell>
                       <TableCell>{item.ownerStudio.name}</TableCell>
+                      <TableCell>{item.locationStudio?.name ?? "Tidak perlu lokasi"}</TableCell>
                       <TableCell>
-                        {item.locationStudio?.name ?? "Tidak perlu lokasi"}
+                        <Badge variant="outline" className="dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-300">
+                          {item.workMode}
+                        </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary">{item.workMode}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="secondary"
-                          className={statusColor[item.status]}
-                        >
+                        <Badge variant="secondary" className={statusColor[item.status]}>
                           {statusLabel[item.status] ?? item.status}
                         </Badge>
                       </TableCell>
@@ -426,6 +515,7 @@ export default async function SuperAdminDashboardPage() {
             </Table>
           </CardContent>
         </Card>
+      </div>
     </DashboardShell>
   );
 }
