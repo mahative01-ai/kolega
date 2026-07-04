@@ -95,7 +95,7 @@ export default async function RegisterPage({
               <select
                 id="defaultStudioId"
                 name="defaultStudioId"
-                className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                className="h-8 w-full rounded-lg border border-input bg-transparent dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
                 required
               >
                 <option value="">Pilih studio</option>

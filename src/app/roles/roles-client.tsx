@@ -199,12 +199,12 @@ export function RolesClient({
   return (
     <div className="grid gap-6">
       <section className="grid gap-3 sm:grid-cols-1">
-        <Card className="border-zinc-200 bg-white">
+        <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
           <CardHeader className="p-4 text-center">
-            <CardDescription className="font-medium text-zinc-500">
+            <CardDescription className="font-medium text-zinc-500 dark:text-zinc-400">
               Total Anggota
             </CardDescription>
-            <CardTitle className="mt-1 text-4xl font-bold text-zinc-900">
+            <CardTitle className="mt-1 text-4xl font-bold text-zinc-900 dark:text-zinc-50">
               {totalMembers}
             </CardTitle>
           </CardHeader>
@@ -215,11 +215,11 @@ export function RolesClient({
         <CardHeader>
           <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <UserCog className="size-5 text-blue-700" />
+              <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
+                <UserCog className="size-5 text-blue-700 dark:text-blue-400" />
                 Daftar User Studio
               </CardTitle>
-              <CardDescription className="mt-0.5">
+              <CardDescription className="mt-0.5 text-zinc-500 dark:text-zinc-400">
                 {isSuperAdmin
                   ? "Super Admin memiliki akses penuh untuk menambah, mengedit, dan mengatur akun anggota."
                   : "Admin hanya dapat melihat daftar anggota di studio asal."}
@@ -229,12 +229,12 @@ export function RolesClient({
         </CardHeader>
         <CardContent className="grid gap-4">
           {isSuperAdmin ? (
-            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50/70 p-3">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-500 uppercase tracking-wide mr-1">
+            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-900/40 p-3">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mr-1">
                 <Building2 className="size-3.5" aria-hidden="true" />
                 Studio
               </div>
-              <div className="flex gap-1 rounded-lg border border-zinc-200 bg-white p-0.5 shadow-sm">
+              <div className="flex gap-1 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-0.5 shadow-sm">
                 <Button
                   type="button"
                   size="sm"
@@ -258,9 +258,9 @@ export function RolesClient({
                 ))}
               </div>
 
-              <div className="mx-1 h-5 w-px bg-zinc-300" />
+              <div className="mx-1 h-5 w-px bg-zinc-300 dark:bg-zinc-700" />
 
-              <div className="flex gap-1 rounded-lg border border-zinc-200 bg-white p-0.5 shadow-sm">
+              <div className="flex gap-1 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-0.5 shadow-sm">
                 {(["ALL", "TEAM", "INTERN"] as const).map((type) => (
                   <Button
                     key={type}
@@ -304,7 +304,7 @@ export function RolesClient({
               />
             </div>
             {isSuperAdmin ? (
-              <div className="flex gap-1 rounded-lg border border-zinc-200 bg-zinc-50 p-0.5 shadow-sm">
+              <div className="flex gap-1 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 p-0.5 shadow-sm">
                 {(["ACTIVE", "INACTIVE", "ARCHIVED"] as const).map((status) => (
                   <Button
                     key={status}
@@ -351,25 +351,25 @@ export function RolesClient({
                   return (
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">
-                        <div className="text-zinc-900">{user.name}</div>
-                        <div className="text-xs text-zinc-500 font-mono">
+                        <div className="text-zinc-900 dark:text-zinc-100">{user.name}</div>
+                        <div className="text-xs text-zinc-500 dark:text-zinc-400 font-mono">
                           @{user.username || "belum_diatur"}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="text-sm text-zinc-700">{user.email}</div>
-                        <div className="text-xs text-zinc-500">
+                        <div className="text-sm text-zinc-700 dark:text-zinc-300">{user.email}</div>
+                        <div className="text-xs text-zinc-500 dark:text-zinc-400">
                           Lahir: {formatDate(user.birthDate)}
                         </div>
                       </TableCell>
                       <TableCell>{user.defaultStudio?.name ?? "Belum diatur"}</TableCell>
                       <TableCell>
                         {activePlacement ? (
-                          <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-800">
+                          <Badge variant="outline" className="border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300">
                             {activePlacement.studio.name}
                           </Badge>
                         ) : (
-                          <span className="text-xs text-zinc-400">Tidak ada</span>
+                          <span className="text-xs text-zinc-400 dark:text-zinc-500">Tidak ada</span>
                         )}
                       </TableCell>
                       <TableCell>
@@ -457,7 +457,7 @@ export function RolesClient({
                 <label className="text-xs font-semibold">Role *</label>
                 <select
                   name="role"
-                  className="h-9 rounded-md border border-zinc-200 bg-white px-2.5 text-sm"
+                  className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2.5 text-sm outline-none"
                   defaultValue="MEMBER"
                 >
                   <option value="MEMBER">Member</option>
@@ -471,7 +471,7 @@ export function RolesClient({
                 <label className="text-xs font-semibold">Status Anggota *</label>
                 <select
                   name="memberStatus"
-                  className="h-9 rounded-md border border-zinc-200 bg-white px-2.5 text-sm"
+                  className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2.5 text-sm outline-none"
                   value={addMemberStatus}
                   onChange={(e) => setAddMemberStatus(e.target.value)}
                 >
@@ -484,7 +484,7 @@ export function RolesClient({
                 <select
                   name="defaultStudioId"
                   required
-                  className="h-9 rounded-md border border-zinc-200 bg-white px-2.5 text-sm"
+                  className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2.5 text-sm outline-none"
                   defaultValue=""
                 >
                   <option value="">Pilih studio</option>
@@ -499,7 +499,7 @@ export function RolesClient({
               <label className="text-xs font-semibold">Placement Studio Awal</label>
               <select
                 name="placementStudioId"
-                className="h-9 rounded-md border border-zinc-200 bg-white px-2.5 text-sm"
+                className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2.5 text-sm outline-none"
                 defaultValue=""
               >
                 <option value="">Tidak ada placement</option>
@@ -510,12 +510,12 @@ export function RolesClient({
             </div>
 
             {addMemberStatus === "INTERN" && (
-              <div className="rounded-lg border border-dashed border-zinc-200 bg-zinc-50/50 p-3 grid gap-2.5 mt-1">
-                <div className="text-xs font-bold text-zinc-700">Profil Magang (Intern)</div>
+              <div className="rounded-lg border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/40 p-3 grid gap-2.5 mt-1">
+                <div className="text-xs font-bold text-zinc-700 dark:text-zinc-300">Profil Magang (Intern)</div>
                 <div className="grid gap-2 sm:grid-cols-2">
                   <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-semibold text-zinc-500">Program *</label>
-                    <select name="program" className="h-8 rounded-md border border-zinc-200 bg-white px-2 text-xs" defaultValue="MAGANG">
+                    <label className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">Program *</label>
+                    <select name="program" className="h-8 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2 text-xs outline-none" defaultValue="MAGANG">
                       <option value="MAGANG">Magang</option>
                       <option value="PKL">PKL</option>
                     </select>
@@ -536,8 +536,8 @@ export function RolesClient({
                   </div>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-semibold text-zinc-500">Mentor Lapangan</label>
-                  <select name="mentorId" className="h-8 rounded-md border border-zinc-200 bg-white px-2 text-xs" defaultValue="">
+                  <label className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">Mentor Lapangan</label>
+                  <select name="mentorId" className="h-8 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2 text-xs outline-none" defaultValue="">
                     <option value="">Tidak ada mentor</option>
                     {mentors.map((m) => (
                       <option key={m.id} value={m.id}>{m.name}</option>
@@ -602,7 +602,7 @@ export function RolesClient({
                   <label className="text-xs font-semibold">Role *</label>
                   <select
                     name="role"
-                    className="h-9 rounded-md border border-zinc-200 bg-white px-2.5 text-sm"
+                    className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2.5 text-sm outline-none"
                     defaultValue={selectedUser.role}
                   >
                     <option value="MEMBER">Member</option>
@@ -615,7 +615,7 @@ export function RolesClient({
                   </label>
                   <select
                     name="accountStatus"
-                    className="h-9 rounded-md border border-zinc-200 bg-white px-2.5 text-sm"
+                    className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2.5 text-sm outline-none"
                     value={editAccountStatus}
                     onChange={(event) =>
                       setEditAccountStatus(event.target.value)
@@ -640,7 +640,7 @@ export function RolesClient({
                   <label className="text-xs font-semibold">Status Anggota *</label>
                   <select
                     name="memberStatus"
-                    className="h-9 rounded-md border border-zinc-200 bg-white px-2.5 text-sm"
+                    className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2.5 text-sm outline-none"
                     value={editMemberStatus}
                     onChange={(e) => setEditMemberStatus(e.target.value)}
                   >
@@ -653,7 +653,7 @@ export function RolesClient({
                   <select
                     name="defaultStudioId"
                     required
-                    className="h-9 rounded-md border border-zinc-200 bg-white px-2.5 text-sm"
+                    className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2.5 text-sm outline-none"
                     defaultValue={selectedUser.defaultStudioId ?? ""}
                   >
                     <option value="">Pilih studio</option>
@@ -668,7 +668,7 @@ export function RolesClient({
                 <label className="text-xs font-semibold">Placement Studio Aktif</label>
                 <select
                   name="placementStudioId"
-                  className="h-9 rounded-md border border-zinc-200 bg-white px-2.5 text-sm"
+                  className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2.5 text-sm outline-none"
                   defaultValue={selectedUser.placements[0]?.studioId ?? ""}
                 >
                   <option value="">Tidak ada placement aktif</option>
@@ -679,14 +679,14 @@ export function RolesClient({
               </div>
 
               {editMemberStatus === "INTERN" && (
-                <div className="rounded-lg border border-dashed border-zinc-200 bg-zinc-50/50 p-3 grid gap-2.5 mt-1">
-                  <div className="text-xs font-bold text-zinc-700">Profil Magang (Intern)</div>
+                <div className="rounded-lg border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/40 p-3 grid gap-2.5 mt-1">
+                  <div className="text-xs font-bold text-zinc-700 dark:text-zinc-300">Profil Magang (Intern)</div>
                   <div className="grid gap-2 sm:grid-cols-2">
                     <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-semibold text-zinc-500">Program *</label>
+                      <label className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">Program *</label>
                       <select
                         name="program"
-                        className="h-8 rounded-md border border-zinc-200 bg-white px-2 text-xs"
+                        className="h-8 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2 text-xs outline-none"
                         defaultValue={selectedUser.internProfile?.program ?? "MAGANG"}
                       >
                         <option value="MAGANG">Magang</option>
@@ -727,10 +727,10 @@ export function RolesClient({
                     </div>
                   </div>
                   <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-semibold text-zinc-500">Mentor Lapangan</label>
+                    <label className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">Mentor Lapangan</label>
                     <select
                       name="mentorId"
-                      className="h-8 rounded-md border border-zinc-200 bg-white px-2 text-xs"
+                      className="h-8 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2 text-xs outline-none"
                       defaultValue={selectedUser.internProfile?.mentorId ?? ""}
                     >
                       <option value="">Tidak ada mentor</option>

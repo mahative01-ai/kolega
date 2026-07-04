@@ -150,7 +150,7 @@ export default async function MemberRequestsPage({
                 <select
                   id="request-type"
                   name="type"
-                  className="h-9 w-full rounded-md border border-zinc-200 bg-white px-3 text-sm outline-none focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950"
+                  className="h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-3 text-sm outline-none focus:border-zinc-950 dark:focus:border-zinc-300 focus:ring-1 focus:ring-zinc-950 dark:focus:ring-zinc-300"
                   required
                 >
                   <option value="LEAVE">Cuti Tahunan (Min H-1)</option>

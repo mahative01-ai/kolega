@@ -331,7 +331,7 @@ export default async function WorkSchedulesPage({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold text-emerald-700">
+            <p className="text-3xl font-semibold text-emerald-700 dark:text-emerald-400">
               {data.users.length.toLocaleString("id-ID")}
             </p>
           </CardContent>
@@ -344,7 +344,7 @@ export default async function WorkSchedulesPage({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold text-zinc-800">
+            <p className="text-3xl font-semibold text-zinc-800 dark:text-zinc-100">
               {wfoCount.toLocaleString("id-ID")}
             </p>
           </CardContent>
@@ -357,7 +357,7 @@ export default async function WorkSchedulesPage({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold text-blue-700">
+            <p className="text-3xl font-semibold text-blue-700 dark:text-blue-400">
               {data.wfhCount.toLocaleString("id-ID")}
             </p>
           </CardContent>
@@ -391,7 +391,7 @@ export default async function WorkSchedulesPage({
               <select
                 id="userId"
                 name="userId"
-                className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                className="h-8 rounded-lg border border-input bg-transparent dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
                 defaultValue={data.selectedUser?.id ?? ""}
               >
                 {data.users.length === 0 ? (
@@ -427,11 +427,11 @@ export default async function WorkSchedulesPage({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-7 overflow-hidden rounded-md border border-zinc-200 bg-white">
+          <div className="grid grid-cols-7 overflow-hidden rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
             {dayLabels.map((label) => (
               <div
                 key={label}
-                className="border-b border-zinc-200 bg-zinc-50 px-2 py-2 text-center text-xs font-medium text-zinc-600"
+                className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 px-2 py-2 text-center text-xs font-medium text-zinc-600 dark:text-zinc-400"
               >
                 {label}
               </div>
@@ -439,7 +439,7 @@ export default async function WorkSchedulesPage({
             {Array.from({ length: leadingBlankDays }, (_, index) => (
               <div
                 key={`blank-${index}`}
-                className="min-h-32 border-b border-r border-zinc-100 bg-zinc-50"
+                className="min-h-32 border-b border-r border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/30"
               />
             ))}
             {days.map((day) => {
@@ -450,14 +450,14 @@ export default async function WorkSchedulesPage({
               return (
                 <div
                   key={day.dateKey}
-                  className="min-h-32 border-b border-r border-zinc-100 p-2"
+                  className="min-h-32 border-b border-r border-zinc-100 dark:border-zinc-800 p-2 bg-white dark:bg-zinc-950"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <span
                       className={
                         isToday
-                          ? "flex size-7 items-center justify-center rounded-full bg-zinc-950 text-sm font-semibold text-white"
-                          : "text-sm font-semibold text-zinc-900"
+                          ? "flex size-7 items-center justify-center rounded-full bg-zinc-950 dark:bg-zinc-100 text-sm font-semibold text-white dark:text-zinc-950"
+                          : "text-sm font-semibold text-zinc-900 dark:text-zinc-100"
                       }
                     >
                       {day.dayNumber}
@@ -466,15 +466,15 @@ export default async function WorkSchedulesPage({
                       variant="secondary"
                       className={
                         isWfh
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-zinc-100 text-zinc-700"
+                          ? "bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-900"
+                          : "bg-zinc-100 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800"
                       }
                     >
                       {isWfh ? "WFH" : "WFO"}
                     </Badge>
                   </div>
 
-                  <p className="mt-2 min-h-6 text-xs text-zinc-500">
+                  <p className="mt-2 min-h-6 text-xs text-zinc-500 dark:text-zinc-400">
                     {isWfh
                       ? schedule?.note ?? "WFH dari jadwal bulanan"
                       : "Default WFO"}

@@ -331,8 +331,8 @@ export default async function AdminRequestsPage({
                           {requestStatusLabel[req.status] ?? req.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-zinc-600">
-                        {req.reviewer?.name ?? <span className="text-zinc-400">-</span>}
+                      <TableCell className="text-zinc-600 dark:text-zinc-400">
+                        {req.reviewer?.name ?? <span className="text-zinc-400 dark:text-zinc-500">-</span>}
                       </TableCell>
                     </TableRow>
                   ))
