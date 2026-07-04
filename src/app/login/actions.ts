@@ -293,17 +293,10 @@ export async function loginAndAttendWithQrAction(qrUid: string) {
     }
 
     if (existingRecord.checkInAt && !existingRecord.checkOutAt) {
-      await prisma.attendanceRecord.update({
-        where: { id: existingRecord.id },
-        data: {
-          checkOutAt: now,
-          updatedAt: now,
-        },
-      });
-
+      // Hanya login kembali ke dashboard tanpa mengubah status check-in yang sudah ada
       return {
         success: true,
-        message: "Check-out WFO berhasil.",
+        message: "Anda sudah check-in hari ini. Masuk ke dashboard...",
         redirectUrl: getDashboardPath(user.role),
       };
     }
