@@ -212,92 +212,86 @@ export function RolesClient({
       </section>
 
       <Card>
-        <CardHeader className="flex-row items-center justify-between gap-4">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <UserCog className="size-5 text-blue-700" />
-              Daftar User Studio
-            </CardTitle>
-            <CardDescription>
-              {isSuperAdmin
-                ? "Super Admin memiliki akses penuh untuk menambah, mengedit, dan mengatur akun anggota."
-                : "Admin hanya dapat melihat daftar anggota di studio asal."}
-            </CardDescription>
+        <CardHeader>
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <UserCog className="size-5 text-blue-700" />
+                Daftar User Studio
+              </CardTitle>
+              <CardDescription className="mt-0.5">
+                {isSuperAdmin
+                  ? "Super Admin memiliki akses penuh untuk menambah, mengedit, dan mengatur akun anggota."
+                  : "Admin hanya dapat melihat daftar anggota di studio asal."}
+              </CardDescription>
+            </div>
           </div>
-          {isSuperAdmin && (
-            <Button
-              onClick={() => {
-                setErrorMsg("");
-                setAddOpen(true);
-              }}
-            >
-              <UserPlus aria-hidden="true" />
-              Tambah Anggota
-            </Button>
-          )}
         </CardHeader>
         <CardContent className="grid gap-4">
           {isSuperAdmin ? (
-            <div className="grid gap-3 border-b border-zinc-200 pb-4">
-              <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
-                <div className="flex min-w-36 items-center gap-2 text-sm font-medium text-zinc-700">
-                  <Building2 className="size-4" aria-hidden="true" />
-                  Default Studio
-                </div>
-                <div className="flex max-w-full gap-1 overflow-x-auto rounded-md border border-zinc-200 bg-zinc-50 p-1">
+            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50/70 p-3">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-500 uppercase tracking-wide mr-1">
+                <Building2 className="size-3.5" aria-hidden="true" />
+                Studio
+              </div>
+              <div className="flex gap-1 rounded-lg border border-zinc-200 bg-white p-0.5 shadow-sm">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={studioFilter === "ALL" ? "default" : "ghost"}
+                  className="h-7 px-3 text-xs"
+                  onClick={() => setStudioFilter("ALL")}
+                >
+                  Semua
+                </Button>
+                {studios.map((studio) => (
                   <Button
+                    key={studio.id}
                     type="button"
                     size="sm"
-                    variant={studioFilter === "ALL" ? "default" : "ghost"}
-                    onClick={() => setStudioFilter("ALL")}
+                    variant={studioFilter === studio.id ? "default" : "ghost"}
+                    className="h-7 px-3 text-xs"
+                    onClick={() => setStudioFilter(studio.id)}
                   >
-                    Semua Studio
+                    {studio.name}
                   </Button>
-                  {studios.map((studio) => (
-                    <Button
-                      key={studio.id}
-                      type="button"
-                      size="sm"
-                      variant={
-                        studioFilter === studio.id ? "default" : "ghost"
-                      }
-                      onClick={() => setStudioFilter(studio.id)}
-                    >
-                      {studio.name}
-                    </Button>
-                  ))}
-                </div>
+                ))}
               </div>
 
-              <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
-                <span className="min-w-36 text-sm font-medium text-zinc-700">
-                  Jenis Anggota
-                </span>
-                <div className="flex gap-1 rounded-md border border-zinc-200 bg-zinc-50 p-1">
-                  {(["ALL", "TEAM", "INTERN"] as const).map((type) => (
-                    <Button
-                      key={type}
-                      type="button"
-                      size="sm"
-                      variant={
-                        memberTypeFilter === type ? "default" : "ghost"
-                      }
-                      onClick={() => setMemberTypeFilter(type)}
-                    >
-                      {type === "ALL"
-                        ? "Semua"
-                        : type === "TEAM"
-                          ? "Team"
-                          : "Intern"}
-                    </Button>
-                  ))}
-                </div>
+              <div className="mx-1 h-5 w-px bg-zinc-300" />
+
+              <div className="flex gap-1 rounded-lg border border-zinc-200 bg-white p-0.5 shadow-sm">
+                {(["ALL", "TEAM", "INTERN"] as const).map((type) => (
+                  <Button
+                    key={type}
+                    type="button"
+                    size="sm"
+                    variant={memberTypeFilter === type ? "default" : "ghost"}
+                    className="h-7 px-3 text-xs"
+                    onClick={() => setMemberTypeFilter(type)}
+                  >
+                    {type === "ALL" ? "Semua" : type === "TEAM" ? "Team" : "Intern"}
+                  </Button>
+                ))}
+              </div>
+
+              <div className="ml-auto">
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setErrorMsg("");
+                    setAddOpen(true);
+                  }}
+                >
+                  <UserPlus aria-hidden="true" className="size-3.5" />
+                  Tambah Anggota
+                </Button>
               </div>
             </div>
           ) : null}
 
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div className="relative w-full md:max-w-sm">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative w-full sm:max-w-sm">
               <Search
                 className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-400"
                 aria-hidden="true"
@@ -305,25 +299,24 @@ export function RolesClient({
               <Input
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Cari nama, email, atau username"
+                placeholder="Cari nama, email, atau username…"
                 className="pl-9"
               />
             </div>
             {isSuperAdmin ? (
-              <div className="flex gap-1 rounded-md border border-zinc-200 bg-zinc-50 p-1">
-                {(["ACTIVE", "INACTIVE", "ARCHIVED"] as const).map(
-                  (status) => (
-                    <Button
-                      key={status}
-                      type="button"
-                      size="sm"
-                      variant={statusFilter === status ? "default" : "ghost"}
-                      onClick={() => setStatusFilter(status)}
-                    >
-                      {accountStatusLabel[status]}
-                    </Button>
-                  )
-                )}
+              <div className="flex gap-1 rounded-lg border border-zinc-200 bg-zinc-50 p-0.5 shadow-sm">
+                {(["ACTIVE", "INACTIVE", "ARCHIVED"] as const).map((status) => (
+                  <Button
+                    key={status}
+                    type="button"
+                    size="sm"
+                    variant={statusFilter === status ? "default" : "ghost"}
+                    className="h-7 px-3 text-xs"
+                    onClick={() => setStatusFilter(status)}
+                  >
+                    {accountStatusLabel[status]}
+                  </Button>
+                ))}
               </div>
             ) : null}
           </div>
