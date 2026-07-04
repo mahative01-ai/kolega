@@ -134,7 +134,7 @@ export default async function PicketPage({
                     id="studio-select"
                     name="studioId"
                     defaultValue={filterStudioId}
-                    className="h-9 rounded-lg border border-zinc-200 bg-white px-3 text-sm focus:outline-none"
+                    className="h-9 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 px-3 text-sm focus:outline-none"
                   >
                     <option value="">🌐 Semua Studio</option>
                     {studios.map((s) => (
@@ -197,7 +197,7 @@ export default async function PicketPage({
                         {isManager && <th className="p-3 text-right font-semibold text-zinc-700">Aksi</th>}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-zinc-200">
+                    <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
                       {pickets.map((p) => {
                         const dateStr = new Intl.DateTimeFormat("id-ID", {
                           weekday: "short",
@@ -211,7 +211,7 @@ export default async function PicketPage({
                           new Date().toISOString().slice(0, 10);
 
                         return (
-                          <tr key={p.id} className={isToday ? "bg-amber-50/40" : ""}>
+                          <tr key={p.id} className={isToday ? "bg-amber-500/10" : ""}>
                             <td className="p-3 font-medium whitespace-nowrap">
                               <div className="flex items-center gap-1.5">
                                 {dateStr}
@@ -222,9 +222,9 @@ export default async function PicketPage({
                                 )}
                               </div>
                             </td>
-                            <td className="p-3 font-semibold text-zinc-950">{p.user.name}</td>
-                            {isSuperAdmin && <td className="p-3 text-zinc-600">{p.studio.name}</td>}
-                            <td className="p-3 text-zinc-500 italic max-w-xs truncate" title={p.note ?? ""}>
+                            <td className="p-3 font-semibold text-zinc-950 dark:text-zinc-50">{p.user.name}</td>
+                            {isSuperAdmin && <td className="p-3 text-zinc-600 dark:text-zinc-400">{p.studio.name}</td>}
+                            <td className="p-3 text-zinc-500 dark:text-zinc-400 italic max-w-xs truncate" title={p.note ?? ""}>
                               {p.note || "–"}
                             </td>
                             {isManager && (

@@ -107,7 +107,7 @@ export default async function AuditLogsPage({
                   id="actor-select"
                   name="actorId"
                   defaultValue={filterActorId}
-                  className="h-9 rounded-lg border border-zinc-200 bg-white px-3 text-sm focus:outline-none"
+                  className="h-9 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 px-3 text-sm focus:outline-none"
                 >
                   <option value="">Semua Aktor</option>
                   {actors.map((a) => (
@@ -127,7 +127,7 @@ export default async function AuditLogsPage({
                   id="entity-select"
                   name="entity"
                   defaultValue={filterEntity}
-                  className="h-9 rounded-lg border border-zinc-200 bg-white px-3 text-sm focus:outline-none"
+                  className="h-9 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 px-3 text-sm focus:outline-none"
                 >
                   <option value="">Semua Entitas</option>
                   {entities.map((e) => (
@@ -177,37 +177,37 @@ export default async function AuditLogsPage({
                 <p className="text-xs text-zinc-400 mt-1">Tidak ada catatan audit log yang cocok dengan filter saat ini.</p>
               </div>
             ) : (
-              <div className="overflow-hidden rounded-lg border border-zinc-200">
+              <div className="overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
                 <table className="w-full text-left border-collapse text-sm">
                   <thead>
-                    <tr className="bg-zinc-50 border-b border-zinc-200">
-                      <th className="p-3 font-semibold text-zinc-700">Waktu (WIB)</th>
-                      <th className="p-3 font-semibold text-zinc-700">Aktor</th>
-                      <th className="p-3 font-semibold text-zinc-700">Entitas</th>
-                      <th className="p-3 font-semibold text-zinc-700">Tindakan</th>
-                      <th className="p-3 font-semibold text-zinc-700">Metadata</th>
+                    <tr className="bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
+                      <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">Waktu (WIB)</th>
+                      <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">Aktor</th>
+                      <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">Entitas</th>
+                      <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">Tindakan</th>
+                      <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">Metadata</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-200">
+                  <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
                     {logs.map((log) => {
-                      const badgeColor = ACTION_COLORS[log.action] ?? "bg-zinc-100 text-zinc-700";
+                      const badgeColor = ACTION_COLORS[log.action] ?? "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300";
                       return (
-                        <tr key={log.id} className="hover:bg-zinc-50/50 transition-colors">
-                          <td className="p-3 whitespace-nowrap text-zinc-600 font-medium">
+                        <tr key={log.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors">
+                          <td className="p-3 whitespace-nowrap text-zinc-600 dark:text-zinc-400 font-medium">
                             {formatDate(log.createdAt)}
                           </td>
                           <td className="p-3">
-                            <div className="font-semibold text-zinc-900">{log.actor?.name || "Sistem"}</div>
-                            <div className="text-xs text-zinc-500">{log.actor?.email || "system@mahateams.com"}</div>
+                            <div className="font-semibold text-zinc-900 dark:text-zinc-100">{log.actor?.name || "Sistem"}</div>
+                            <div className="text-xs text-zinc-500 dark:text-zinc-400">{log.actor?.email || "system@mahateams.com"}</div>
                             {log.actor?.role && (
-                              <Badge className="mt-1 text-[9px] px-1 py-0 border-0 bg-zinc-100 text-zinc-600 font-medium">
+                              <Badge className="mt-1 text-[9px] px-1 py-0 border-0 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-medium">
                                 {log.actor.role}
                               </Badge>
                             )}
                           </td>
-                          <td className="p-3 font-mono text-xs text-zinc-700">
+                          <td className="p-3 font-mono text-xs text-zinc-700 dark:text-zinc-300">
                             <div>{log.entity}</div>
-                            {log.entityId && <div className="text-[10px] text-zinc-400 mt-0.5">{log.entityId}</div>}
+                            {log.entityId && <div className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-0.5">{log.entityId}</div>}
                           </td>
                           <td className="p-3">
                             <Badge className={`text-xs px-2 py-0.5 font-semibold border-0 ${badgeColor}`}>
@@ -216,7 +216,7 @@ export default async function AuditLogsPage({
                           </td>
                           <td className="p-3 max-w-xs">
                             {log.metadata ? (
-                              <pre className="text-[10px] bg-zinc-50 border border-zinc-100 rounded p-1.5 overflow-x-auto leading-relaxed max-h-24">
+                              <pre className="text-[10px] bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800 text-zinc-800 dark:text-zinc-300 rounded p-1.5 overflow-x-auto leading-relaxed max-h-24">
                                 {JSON.stringify(log.metadata, null, 2)}
                               </pre>
                             ) : (

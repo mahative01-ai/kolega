@@ -31,6 +31,7 @@ import {
   getJakartaDateKey,
 } from "@/lib/attendance-time";
 import { NotificationBellClient } from "@/app/notifications/notification-bell-client";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 type DashboardUser = {
   id: string;
@@ -182,8 +183,8 @@ function MenuLink({
   const className = cn(
     "flex h-9 w-full items-center gap-2 rounded-md px-2.5 text-sm transition",
     isActive
-      ? "bg-zinc-950 text-white shadow-sm"
-      : "text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950",
+      ? "bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 shadow-sm"
+      : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-950 dark:hover:text-white",
     !item.href && "cursor-not-allowed opacity-55 hover:bg-transparent"
   );
 
@@ -196,7 +197,9 @@ function MenuLink({
           variant="outline"
           className={cn(
             "h-5 shrink-0 px-1.5 text-[10px]",
-            isActive ? "border-white/40 text-white" : "bg-white"
+            isActive
+              ? "border-white/40 dark:border-zinc-800 text-white dark:text-zinc-950"
+              : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300"
           )}
         >
           {item.badge}
@@ -230,16 +233,16 @@ function SidebarNav({
   const groups = getMenuGroups(user.role);
 
   return (
-    <aside className="hidden h-screen w-72 shrink-0 border-r border-zinc-200 bg-white lg:sticky lg:top-0 lg:flex lg:flex-col">
+    <aside className="hidden h-screen w-72 shrink-0 border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 lg:sticky lg:top-0 lg:flex lg:flex-col">
       <div className="flex h-full flex-col">
-        <div className="border-b border-zinc-200 p-5">
+        <div className="border-b border-zinc-200 dark:border-zinc-800 p-5">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-md bg-zinc-950 text-sm font-semibold text-white">
+            <div className="flex size-10 items-center justify-center rounded-md bg-zinc-950 dark:bg-zinc-100 text-sm font-semibold text-white dark:text-zinc-950">
               MT
             </div>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">MahaTeams</p>
-              <p className="truncate text-xs text-zinc-500">New Gen</p>
+              <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">New Gen</p>
             </div>
           </div>
         </div>
@@ -247,7 +250,7 @@ function SidebarNav({
         <nav className="flex-1 space-y-4 overflow-y-auto p-3">
           {groups.map((group) => (
             <div key={group.label}>
-              <p className="px-2.5 py-2 text-xs font-medium text-zinc-500">
+              <p className="px-2.5 py-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
                 {group.label}
               </p>
               <div className="space-y-1">
@@ -263,21 +266,21 @@ function SidebarNav({
           ))}
         </nav>
 
-        <div className="border-t border-zinc-200 p-3">
-          <div className="mb-3 rounded-md bg-zinc-50 p-3">
+        <div className="border-t border-zinc-200 dark:border-zinc-800 p-3">
+          <div className="mb-3 rounded-md bg-zinc-50 dark:bg-zinc-900 p-3">
             <div className="flex items-center gap-2">
-              <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-zinc-200 text-xs font-semibold text-zinc-700">
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-zinc-200 dark:bg-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                 {user.name.slice(0, 1).toUpperCase()}
               </div>
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium">{user.name}</p>
-                <p className="truncate text-xs text-zinc-500">{user.email}</p>
+                <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">{user.email}</p>
               </div>
             </div>
             <div className="mt-2 flex flex-wrap gap-1.5">
               <Badge variant="secondary">{ROLE_LABEL[user.role]}</Badge>
               {user.defaultStudio?.name ? (
-                <Badge variant="outline" className="bg-white">
+                <Badge variant="outline" className="bg-white dark:bg-zinc-950 text-zinc-700 dark:text-zinc-300">
                   <MapPin className="size-3" aria-hidden="true" />
                   {user.defaultStudio.name}
                 </Badge>
@@ -289,7 +292,7 @@ function SidebarNav({
             <Button
               type="submit"
               variant="ghost"
-              className="w-full justify-start"
+              className="w-full justify-start hover:bg-zinc-100 dark:hover:bg-zinc-900"
             >
               <LogOut aria-hidden="true" />
               Logout
@@ -438,25 +441,26 @@ export async function DashboardShell({
   }
 
   return (
-    <main className="min-h-screen bg-zinc-50 text-zinc-950">
+    <main className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 transition-colors duration-200">
       <div className="flex min-h-screen">
         <SidebarNav user={user} currentPath={currentPath} />
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="border-b border-zinc-200 bg-zinc-50/90 px-6 py-5 backdrop-blur lg:px-8">
+          <header className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/90 dark:bg-zinc-950/90 px-6 py-5 backdrop-blur lg:px-8">
             <div className="mx-auto flex w-full max-w-7xl items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <MobileNav user={user} currentPath={currentPath} />
                 <div className="mt-1">
-                  <Badge variant="outline" className="mb-3 bg-white">
+                  <Badge variant="outline" className="mb-3 bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 border-zinc-200 dark:border-zinc-800">
                     {badge}
                   </Badge>
                   <h1 className="text-2xl font-semibold">{title}</h1>
-                  <p className="mt-2 max-w-2xl text-sm text-zinc-600">
+                  <p className="mt-2 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
                     {description}
                   </p>
                 </div>
               </div>
-              <div className="shrink-0 flex items-center gap-2 mt-1">
+              <div className="shrink-0 flex items-center gap-3 mt-1">
+                <ThemeToggle />
                 <NotificationBellClient
                   initialNotifications={unreadNotifications}
                   initialUnreadCount={unreadCount}

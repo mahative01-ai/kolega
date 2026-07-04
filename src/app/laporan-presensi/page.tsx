@@ -241,7 +241,7 @@ export default async function AttendanceReportPage({
           />
         </div>
 
-        <form className="flex flex-wrap items-end gap-3 rounded-md border border-zinc-200 bg-white p-4">
+        <form className="flex flex-wrap items-end gap-3 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
         <div className="grid gap-1.5">
           <label htmlFor="report-month" className="text-sm font-medium">
             Bulan
@@ -251,7 +251,7 @@ export default async function AttendanceReportPage({
             name="month"
             type="month"
             defaultValue={month}
-            className="h-9 rounded-md border border-zinc-200 bg-white px-3 text-sm"
+            className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 px-3 text-sm focus:outline-none"
           />
         </div>
         {currentUser.role === "SUPER_ADMIN" ? (
@@ -263,7 +263,7 @@ export default async function AttendanceReportPage({
               id="report-studio"
               name="studio"
               defaultValue={selectedStudioId ?? ""}
-              className="h-9 rounded-md border border-zinc-200 bg-white px-3 text-sm"
+              className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 px-3 text-sm focus:outline-none"
             >
               <option value="">Semua Studio</option>
               {availableStudios.map((studio) => (
@@ -282,7 +282,7 @@ export default async function AttendanceReportPage({
             id="report-status"
             name="status"
             defaultValue={status}
-            className="h-9 rounded-md border border-zinc-200 bg-white px-3 text-sm"
+            className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 px-3 text-sm focus:outline-none"
           >
             <option value="ALL">Semua Status</option>
             {FILTERABLE_STATUSES.map((item) => (
