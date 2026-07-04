@@ -1,4 +1,4 @@
-import { Archive, BarChart3, Clock, Eye, ShieldAlert, User, Search, Filter } from "lucide-react";
+import { Archive, Clock, ShieldAlert, User, Search, Filter } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

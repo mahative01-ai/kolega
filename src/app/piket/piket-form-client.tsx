@@ -75,8 +75,8 @@ export function PicketFormClient({ members, studioId, studios, monthKey, isSuper
         setSuccess("Tugas piket berhasil ditugaskan!");
         resetForm();
         setTimeout(() => setSuccess(""), 3000);
-      } catch (e: any) {
-        setError(e.message || "Gagal menugaskan piket.");
+      } catch (error: unknown) {
+        setError(error instanceof Error ? error.message : "Gagal menugaskan piket.");
       }
     });
   }

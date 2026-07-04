@@ -2,9 +2,6 @@ import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
-  Pencil,
-  Plus,
-  Trash2,
   Flag,
   Building2,
   RefreshCw,
@@ -12,7 +9,7 @@ import {
   Star,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -26,6 +23,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { CalendarEventFormClient } from "./calendar-event-form-client";
 import { HolidaySwapFormClient } from "./holiday-swap-form-client";
+import { getJakartaDateKey } from "@/lib/attendance-time";
 
 export const dynamic = "force-dynamic";
 
@@ -120,18 +118,17 @@ export default async function CalendarPage({
     }),
     prisma.calendarEvent.findMany({
       where: {
-        OR: [
+        AND: [
           { startDate: { lte: endDate }, endDate: { gte: startDate } },
-        ],
-        // Admin sees global + their studio only
-        ...(isSuperAdmin
-          ? {}
-          : {
+          ...(isSuperAdmin
+            ? []
+            : [{
               OR: [
                 { studioId: null },
                 { studioId: user.defaultStudioId ?? "__none__" },
               ],
-            }),
+            }]),
+        ],
       },
       include: {
         studio: { select: { name: true } },
@@ -158,6 +155,9 @@ export default async function CalendarPage({
   const firstDay = firstDayOfMonth(year, month);
 
   const dayLabels = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
+  const todayDateKey = getJakartaDateKey();
+  const todayMonthKey = todayDateKey.slice(0, 7);
+  const todayDay = Number(todayDateKey.slice(8, 10));
 
   return (
     <DashboardShell
@@ -215,10 +215,9 @@ export default async function CalendarPage({
               {/* Day cells */}
               {Array.from({ length: totalDays }).map((_, i) => {
                 const day = i + 1;
-                const todayKey = getMonthKey();
                 const isToday =
-                  `${year}-${String(month).padStart(2, "0")}` === todayKey &&
-                  day === new Date().getDate();
+                  `${year}-${String(month).padStart(2, "0")}` === todayMonthKey &&
+                  day === todayDay;
                 const cellEvents = dayEvents[day] ?? [];
                 const hasEvent = cellEvents.length > 0;
 
@@ -368,7 +367,7 @@ export default async function CalendarPage({
                           monthKey={`${year}-${String(month).padStart(2, "0")}`}
                           existingEvent={{
                             id: ev.id,
-                            type: ev.type as string,
+                            type: ev.type,
                             title: ev.title,
                             startDate: ev.startDate.toISOString().slice(0, 10),
                             endDate: ev.endDate.toISOString().slice(0, 10),

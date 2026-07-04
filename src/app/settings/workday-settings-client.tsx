@@ -25,7 +25,6 @@ type Props = {
   studios: Studio[];
 };
 
-const DAY_NAMES = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 // Display order: Mon(1), Tue(2), Wed(3), Thu(4), Fri(5), Sat(6), Sun(0)
 const DISPLAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
 const DAY_LABELS_DISPLAY = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
@@ -65,8 +64,6 @@ export function WorkdaySettingsClient({ studios }: Props) {
   const [isPending, startTransition] = useTransition();
   const [savedMsg, setSavedMsg] = useState("");
   const [error, setError] = useState("");
-
-  const currentStudio = studios.find((s) => s.id === selectedStudioId);
 
   // Local rules state per studio
   const [rulesMap, setRulesMap] = useState<Record<string, DayRule[]>>(() => {
@@ -124,8 +121,8 @@ export function WorkdaySettingsClient({ studios }: Props) {
         await updateStudioWeekStartAction(selectedStudioId, currentWeekStart);
         setSavedMsg("Pengaturan berhasil disimpan.");
         setTimeout(() => setSavedMsg(""), 3000);
-      } catch (e: any) {
-        setError(e.message || "Gagal menyimpan.");
+      } catch (error: unknown) {
+        setError(error instanceof Error ? error.message : "Gagal menyimpan.");
       }
     });
   }
@@ -166,7 +163,6 @@ export function WorkdaySettingsClient({ studios }: Props) {
         <div className="flex flex-wrap gap-2 mb-4">
           {currentRules.map((rule, idx) => {
             const label = DAY_LABELS_DISPLAY[idx];
-            const isOff = !rule.isWorkday;
             const isOptional = rule.isWorkday && rule.isOptional;
             const isRequired = rule.isWorkday && !rule.isOptional;
 

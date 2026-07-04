@@ -4,7 +4,7 @@ import { useState } from "react";
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Info, ChevronDown, ChevronUp, BookOpen, CheckCircle } from "lucide-react";
+import { ChevronDown, ChevronUp, BookOpen, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type SerializedRecord = {

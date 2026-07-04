@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -70,8 +70,8 @@ export function RecentAttendanceTableClient({ records, statusColor, statusLabel 
         const isExpanded = expandedId === item.id;
 
         return (
-          <>
-            <TableRow key={item.id} className={cn(isExpanded && "bg-zinc-50/50 dark:bg-zinc-900/10")}>
+          <Fragment key={item.id}>
+            <TableRow className={cn(isExpanded && "bg-zinc-50/50 dark:bg-zinc-900/10")}>
               <TableCell className="font-medium">
                 <div className="text-zinc-900 dark:text-zinc-100">{item.user.name}</div>
                 <div className="text-xs text-zinc-500 dark:text-zinc-400">{item.user.email}</div>
@@ -135,7 +135,7 @@ export function RecentAttendanceTableClient({ records, statusColor, statusLabel 
                 </TableCell>
               </TableRow>
             )}
-          </>
+          </Fragment>
         );
       })}
     </TableBody>

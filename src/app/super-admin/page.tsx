@@ -6,7 +6,6 @@ import {
   Home,
   ShieldAlert,
   ClipboardList,
-  Users,
   Building,
   Brush,
   ArrowRight
@@ -68,15 +67,6 @@ const statusColor: Record<string, string> = {
   HOLIDAY: "bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-300 dark:border-zinc-700",
   OFF_DAY: "bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-300 dark:border-zinc-700",
 };
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("id-ID", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    timeZone: "Asia/Jakarta",
-  }).format(date);
-}
 
 async function getSuperAdminDashboardData() {
   const month = normalizeReportMonth();

@@ -16,10 +16,7 @@ export async function GET(request: Request) {
   const todayDate = new Date(`${todayKey}T00:00:00.000Z`);
   const dayOfWeek = (new Date(todayKey).getDay() + 6) % 7; // Mon=0 ... Sun=6
 
-  const [activeReminders, studios] = await Promise.all([
-    prisma.reminder.findMany({ where: { isActive: true } }),
-    prisma.studio.findMany({ where: { isActive: true } }),
-  ]);
+  const activeReminders = await prisma.reminder.findMany({ where: { isActive: true } });
 
   let notificationsCreated = 0;
   let emailsSent = 0;

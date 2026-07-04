@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Pencil, Plus, Trash2, X, Loader2 } from "lucide-react";
+import { Pencil, Plus, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,7 +10,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,13 +27,19 @@ import {
   updateCalendarEventAction,
   deleteCalendarEventAction,
 } from "./actions";
-import { EVENT_TYPE_CONFIG } from "./page";
+
+type CalendarEventType =
+  | "NATIONAL_HOLIDAY"
+  | "COMPANY_LEAVE"
+  | "REGULAR_OFF_DAY"
+  | "REPLACEMENT_WORKDAY"
+  | "STUDIO_EVENT";
 
 type Studio = { id: string; name: string };
 
 type ExistingEvent = {
   id: string;
-  type: string;
+  type: CalendarEventType;
   title: string;
   startDate: string;
   endDate: string;
@@ -101,7 +106,7 @@ export function CalendarEventFormClient({ studios, monthKey, existingEvent, mode
     if (startDate > endDate) { setError("Tanggal mulai tidak boleh setelah tanggal selesai."); return; }
 
     const input = {
-      type: type as any,
+      type,
       title,
       startDate,
       endDate,
@@ -121,8 +126,8 @@ export function CalendarEventFormClient({ studios, monthKey, existingEvent, mode
         }
         setOpen(false);
         resetForm();
-      } catch (e: any) {
-        setError(e.message || "Terjadi kesalahan.");
+      } catch (error: unknown) {
+        setError(error instanceof Error ? error.message : "Terjadi kesalahan.");
       }
     });
   }
@@ -133,8 +138,8 @@ export function CalendarEventFormClient({ studios, monthKey, existingEvent, mode
       try {
         await deleteCalendarEventAction(existingEvent.id);
         setOpen(false);
-      } catch (e: any) {
-        setError(e.message || "Gagal menghapus event.");
+      } catch (error: unknown) {
+        setError(error instanceof Error ? error.message : "Gagal menghapus event.");
       }
     });
   }
@@ -171,7 +176,7 @@ export function CalendarEventFormClient({ studios, monthKey, existingEvent, mode
           {/* Type */}
           <div className="grid gap-1.5">
             <Label>Tipe Event</Label>
-            <Select value={type} onValueChange={(val) => setType(val ?? "NATIONAL_HOLIDAY")}>
+            <Select value={type} onValueChange={(val) => setType((val ?? "NATIONAL_HOLIDAY") as CalendarEventType)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -241,7 +246,10 @@ export function CalendarEventFormClient({ studios, monthKey, existingEvent, mode
                 <Checkbox
                   id="ev-replacement"
                   checked={isReplacementRequired}
-                  onCheckedChange={(v) => setIsReplacementRequired(!!v)}
+                  onCheckedChange={(v) => {
+                    setIsReplacementRequired(!!v);
+                    if (v) setIsFinalHoliday(false);
+                  }}
                 />
                 <Label htmlFor="ev-replacement" className="cursor-pointer">Ada hari kerja pengganti</Label>
               </div>
@@ -265,7 +273,10 @@ export function CalendarEventFormClient({ studios, monthKey, existingEvent, mode
               <Checkbox
                 id="ev-final"
                 checked={isFinalHoliday}
-                onCheckedChange={(v) => setIsFinalHoliday(!!v)}
+                onCheckedChange={(v) => {
+                  setIsFinalHoliday(!!v);
+                  if (v) setIsReplacementRequired(false);
+                }}
               />
               <Label htmlFor="ev-final" className="cursor-pointer">Libur final (tidak perlu diganti)</Label>
             </div>

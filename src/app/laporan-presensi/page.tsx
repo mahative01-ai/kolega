@@ -3,31 +3,19 @@ import {
   CheckCircle2,
   ClipboardCheck,
   Clock3,
-  FileText,
   HeartPulse,
   Home,
 } from "lucide-react";
 import type { Prisma } from "@/generated/prisma/client";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { AttendanceReportExportClient } from "./export-client";
-import { AttendanceTableBodyClient } from "./attendance-table-body-client";
 import { LaporanPresensiTabsClient } from "./laporan-presensi-tabs-client";
 import {
   ATTENDANCE_STATUS_COLOR,
@@ -37,7 +25,6 @@ import {
   normalizeReportMonth,
   summarizeAttendanceStatuses,
 } from "@/lib/attendance-report";
-import { JAKARTA_TIME_ZONE } from "@/lib/attendance-time";
 import { requireAnyRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -54,27 +41,6 @@ const FILTERABLE_STATUSES = [
 
 function normalizeStatus(value?: string) {
   return FILTERABLE_STATUSES.find((status) => status === value) ?? "ALL";
-}
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("id-ID", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(date);
-}
-
-function formatTime(date: Date | null) {
-  if (!date) {
-    return "-";
-  }
-
-  return new Intl.DateTimeFormat("id-ID", {
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: JAKARTA_TIME_ZONE,
-  }).format(date);
 }
 
 export default async function AttendanceReportPage({

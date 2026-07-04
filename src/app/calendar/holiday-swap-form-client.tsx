@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ArrowLeftRight, Loader2, Plus } from "lucide-react";
+import { ArrowLeftRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -77,8 +77,8 @@ export function HolidaySwapFormClient({ studios, monthKey }: Props) {
           setOpen(false);
           resetForm();
         }, 1500);
-      } catch (e: any) {
-        setError(e.message || "Terjadi kesalahan saat memproses penukaran libur.");
+      } catch (error: unknown) {
+        setError(error instanceof Error ? error.message : "Terjadi kesalahan saat memproses penukaran libur.");
       }
     });
   }

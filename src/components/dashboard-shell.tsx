@@ -467,6 +467,7 @@ export async function DashboardShell({
               <div className="shrink-0 flex items-center gap-3 mt-1">
                 <ThemeToggle />
                 <NotificationBellClient
+                  key={`${unreadCount}:${unreadNotifications.map((item) => `${item.id}:${item.readAt ?? "unread"}`).join("|")}`}
                   initialNotifications={unreadNotifications}
                   initialUnreadCount={unreadCount}
                 />

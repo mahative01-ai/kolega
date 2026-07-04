@@ -1,4 +1,4 @@
-import { CalendarDays, ChevronLeft, ChevronRight, ClipboardList, Trash2, UserPlus, Info } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, ClipboardList, Trash2, Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {

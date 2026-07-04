@@ -18,26 +18,101 @@ type CalendarEventInput = {
   note?: string | null;
 };
 
-function parseDate(str: string): Date {
-  return new Date(`${str}T00:00:00.000Z`);
+const EVENT_TYPES = new Set<CalendarEventInput["type"]>([
+  "NATIONAL_HOLIDAY",
+  "COMPANY_LEAVE",
+  "REGULAR_OFF_DAY",
+  "REPLACEMENT_WORKDAY",
+  "STUDIO_EVENT",
+]);
+
+function parseDate(value: string, fieldName: string): Date {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    throw new Error(`${fieldName} tidak valid.`);
+  }
+
+  const date = new Date(`${value}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value) {
+    throw new Error(`${fieldName} tidak valid.`);
+  }
+  return date;
+}
+
+async function validateCalendarEventInput(input: CalendarEventInput) {
+  if (!input || typeof input !== "object") throw new Error("Data event tidak valid.");
+  if (!EVENT_TYPES.has(input.type)) throw new Error("Tipe event tidak valid.");
+  if (typeof input.title !== "string") throw new Error("Judul event tidak valid.");
+  if (typeof input.startDate !== "string" || typeof input.endDate !== "string") {
+    throw new Error("Tanggal event tidak valid.");
+  }
+  if (input.studioId != null && typeof input.studioId !== "string") {
+    throw new Error("Studio tidak valid.");
+  }
+  if (input.note != null && typeof input.note !== "string") {
+    throw new Error("Catatan tidak valid.");
+  }
+  if (input.note && input.note.trim().length > 500) {
+    throw new Error("Catatan maksimal 500 karakter.");
+  }
+  if (input.isReplacementRequired != null && typeof input.isReplacementRequired !== "boolean") {
+    throw new Error("Status hari pengganti tidak valid.");
+  }
+  if (input.isFinalHoliday != null && typeof input.isFinalHoliday !== "boolean") {
+    throw new Error("Status libur final tidak valid.");
+  }
+
+  const title = input.title.trim();
+  if (!title || title.length > 120) {
+    throw new Error("Judul event wajib diisi dan maksimal 120 karakter.");
+  }
+
+  const startDate = parseDate(input.startDate, "Tanggal mulai");
+  const endDate = parseDate(input.endDate, "Tanggal selesai");
+  if (startDate > endDate) throw new Error("Tanggal mulai tidak boleh setelah tanggal selesai.");
+
+  const supportsReplacement = input.type === "COMPANY_LEAVE" || input.type === "REGULAR_OFF_DAY";
+  const isReplacementRequired = supportsReplacement && Boolean(input.isReplacementRequired);
+  const isFinalHoliday = input.type !== "REPLACEMENT_WORKDAY" && input.type !== "STUDIO_EVENT"
+    ? Boolean(input.isFinalHoliday)
+    : false;
+  if (isReplacementRequired && isFinalHoliday) {
+    throw new Error("Libur final tidak dapat memiliki hari kerja pengganti.");
+  }
+
+  const replacementDate = isReplacementRequired
+    ? parseDate(
+        typeof input.replacementDate === "string" ? input.replacementDate : "",
+        "Tanggal pengganti"
+      )
+    : null;
+  const studioId = input.type === "NATIONAL_HOLIDAY" ? null : (input.studioId || null);
+  if (studioId) {
+    const studio = await prisma.studio.findFirst({ where: { id: studioId, isActive: true }, select: { id: true } });
+    if (!studio) throw new Error("Studio tidak ditemukan atau sudah tidak aktif.");
+  }
+
+  return {
+    type: input.type,
+    title,
+    startDate,
+    endDate,
+    studioId,
+    isReplacementRequired,
+    replacementDate,
+    isFinalHoliday,
+    note: input.note?.trim() || null,
+  };
 }
 
 // ─── Create ─────────────────────────────────────────────────────────────────
 
 export async function createCalendarEventAction(input: CalendarEventInput) {
   const user = await requireRole("SUPER_ADMIN");
+  const data = await validateCalendarEventInput(input);
 
   await prisma.calendarEvent.create({
     data: {
-      type: input.type,
-      title: input.title.trim(),
-      startDate: parseDate(input.startDate),
-      endDate: parseDate(input.endDate),
-      studioId: input.type === "NATIONAL_HOLIDAY" ? null : (input.studioId || null),
-      isReplacementRequired: input.isReplacementRequired ?? false,
-      replacementDate: input.replacementDate ? parseDate(input.replacementDate) : null,
-      isFinalHoliday: input.isFinalHoliday ?? false,
-      note: input.note?.trim() || null,
+      ...data,
       createdById: user.id,
     },
   });
@@ -51,20 +126,12 @@ export async function createCalendarEventAction(input: CalendarEventInput) {
 
 export async function updateCalendarEventAction(id: string, input: CalendarEventInput) {
   await requireRole("SUPER_ADMIN");
+  if (typeof id !== "string" || !id) throw new Error("Event tidak valid.");
+  const data = await validateCalendarEventInput(input);
 
   await prisma.calendarEvent.update({
     where: { id },
-    data: {
-      type: input.type,
-      title: input.title.trim(),
-      startDate: parseDate(input.startDate),
-      endDate: parseDate(input.endDate),
-      studioId: input.type === "NATIONAL_HOLIDAY" ? null : (input.studioId || null),
-      isReplacementRequired: input.isReplacementRequired ?? false,
-      replacementDate: input.replacementDate ? parseDate(input.replacementDate) : null,
-      isFinalHoliday: input.isFinalHoliday ?? false,
-      note: input.note?.trim() || null,
-    },
+    data,
   });
 
   revalidatePath("/calendar");
@@ -76,6 +143,7 @@ export async function updateCalendarEventAction(id: string, input: CalendarEvent
 
 export async function deleteCalendarEventAction(id: string) {
   await requireRole("SUPER_ADMIN");
+  if (typeof id !== "string" || !id) throw new Error("Event tidak valid.");
 
   await prisma.calendarEvent.delete({ where: { id } });
 
@@ -93,35 +161,51 @@ export async function swapHolidayAction(input: {
   newDate: string;      // "YYYY-MM-DD"
 }) {
   const user = await requireRole("SUPER_ADMIN");
+  if (!input || typeof input !== "object") throw new Error("Data penukaran libur tidak valid.");
+  if (
+    typeof input.holidayName !== "string" ||
+    typeof input.originalDate !== "string" ||
+    typeof input.newDate !== "string" ||
+    (input.studioId != null && typeof input.studioId !== "string")
+  ) {
+    throw new Error("Data penukaran libur tidak valid.");
+  }
+  const holidayName = input.holidayName.trim();
+  if (!holidayName || holidayName.length > 120) throw new Error("Nama libur wajib diisi dan maksimal 120 karakter.");
+  const originalDate = parseDate(input.originalDate, "Tanggal libur asal");
+  const newDate = parseDate(input.newDate, "Tanggal libur baru");
+  if (originalDate.getTime() === newDate.getTime()) throw new Error("Tanggal asal dan tanggal baru tidak boleh sama.");
+  if (input.studioId) {
+    const studio = await prisma.studio.findFirst({ where: { id: input.studioId, isActive: true }, select: { id: true } });
+    if (!studio) throw new Error("Studio tidak ditemukan atau sudah tidak aktif.");
+  }
 
-  // Create REPLACEMENT_WORKDAY on originalDate
-  await prisma.calendarEvent.create({
-    data: {
-      type: "REPLACEMENT_WORKDAY",
-      title: `Kerja Pengganti: ${input.holidayName.trim()}`,
-      startDate: parseDate(input.originalDate),
-      endDate: parseDate(input.originalDate),
-      studioId: input.studioId || null,
-      createdById: user.id,
-      note: `Pengalihan hari libur ${input.holidayName} ke tanggal ${input.newDate}`,
-    },
-  });
-
-  // Create COMPANY_LEAVE on newDate
-  await prisma.calendarEvent.create({
-    data: {
-      type: "COMPANY_LEAVE",
-      title: `Libur Pengganti: ${input.holidayName.trim()}`,
-      startDate: parseDate(input.newDate),
-      endDate: parseDate(input.newDate),
-      studioId: input.studioId || null,
-      createdById: user.id,
-      note: `Pengalihan hari libur ${input.holidayName} dari tanggal ${input.originalDate}`,
-    },
-  });
+  await prisma.$transaction([
+    prisma.calendarEvent.create({
+      data: {
+        type: "REPLACEMENT_WORKDAY",
+        title: `Kerja Pengganti: ${holidayName}`,
+        startDate: originalDate,
+        endDate: originalDate,
+        studioId: input.studioId || null,
+        createdById: user.id,
+        note: `Pengalihan hari libur ${holidayName} ke tanggal ${input.newDate}`,
+      },
+    }),
+    prisma.calendarEvent.create({
+      data: {
+        type: "COMPANY_LEAVE",
+        title: `Libur Pengganti: ${holidayName}`,
+        startDate: newDate,
+        endDate: newDate,
+        studioId: input.studioId || null,
+        createdById: user.id,
+        note: `Pengalihan hari libur ${holidayName} dari tanggal ${input.originalDate}`,
+      },
+    }),
+  ]);
 
   revalidatePath("/calendar");
   revalidatePath("/schedules");
   revalidatePath("/settings");
 }
-

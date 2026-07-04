@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
-import { Bell, Check, Loader2, Mail } from "lucide-react";
+import { Bell, Check, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -38,16 +38,10 @@ export function NotificationBellClient({ initialNotifications, initialUnreadCoun
       try {
         const count = await getUnreadCountAction();
         setUnreadCount(count);
-      } catch (_) {}
+      } catch {}
     }, 30000);
     return () => clearInterval(interval);
   }, []);
-
-  // Update state when initial values change
-  useEffect(() => {
-    setNotifications(initialNotifications);
-    setUnreadCount(initialUnreadCount);
-  }, [initialNotifications, initialUnreadCount]);
 
   function handleMarkRead(id: string) {
     startTransition(async () => {
@@ -57,7 +51,7 @@ export function NotificationBellClient({ initialNotifications, initialUnreadCoun
           prev.map((n) => (n.id === id ? { ...n, readAt: new Date().toISOString() } : n))
         );
         setUnreadCount((c) => Math.max(0, c - 1));
-      } catch (_) {}
+      } catch {}
     });
   }
 
@@ -67,7 +61,7 @@ export function NotificationBellClient({ initialNotifications, initialUnreadCoun
         await markAllNotificationsReadAction();
         setNotifications((prev) => prev.map((n) => ({ ...n, readAt: new Date().toISOString() })));
         setUnreadCount(0);
-      } catch (_) {}
+      } catch {}
     });
   }
 

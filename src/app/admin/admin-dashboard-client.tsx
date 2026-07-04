@@ -46,8 +46,19 @@ type Props = {
       wfh: number;
     };
     pendingRequests: number;
-    recentAttendance: any[];
-    picketToday: any[];
+    recentAttendance: Array<{
+      id: string;
+      workMode: string;
+      status: string;
+      checkInAt: Date | null;
+      checkOutAt: Date | null;
+      user: { name: string; email: string };
+      locationStudio: { name: string } | null;
+    }>;
+    picketToday: Array<{
+      id: string;
+      user: { name: string };
+    }>;
     monthLabel: string;
     selectedMonth: { year: number; monthIndex: number };
     personalSummary: {
@@ -57,7 +68,11 @@ type Props = {
       alpha: number;
       wfh: number;
     };
-    personalSchedules: any[];
+    personalSchedules: Array<{
+      workDate: Date;
+      workMode: string;
+      note: string | null;
+    }>;
     qrCredential: { qrUid: string; issuedAt: Date } | null;
     todayRecord: {
       checkInAt: Date | null;
@@ -118,15 +133,6 @@ function formatTime(date: Date | null | string) {
   }).format(new Date(date));
 }
 
-function formatDate(date: Date | string) {
-  return new Intl.DateTimeFormat("id-ID", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    timeZone: "Asia/Jakarta",
-  }).format(new Date(date));
-}
-
 function formatFullDate(date: Date) {
   return new Intl.DateTimeFormat("id-ID", {
     dateStyle: "full",
@@ -135,7 +141,6 @@ function formatFullDate(date: Date) {
 }
 
 export function AdminDashboardClient({
-  currentUser,
   data,
   qrSvg,
   days,

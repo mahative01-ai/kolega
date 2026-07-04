@@ -1,7 +1,6 @@
 import {
   CalendarDays,
   Clock,
-  Settings2,
   XCircle,
   Plus,
   Trash2,
