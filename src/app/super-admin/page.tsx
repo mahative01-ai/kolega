@@ -29,6 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { RecentAttendanceTableClient } from "./recent-attendance-table-client";
 import {
   formatMonthLabel,
   getMonthRange,
@@ -268,6 +269,18 @@ export default async function SuperAdminDashboardPage() {
     },
   ];
 
+  const serializedRecentAttendance = data.recentAttendance.map((item) => ({
+    id: item.id,
+    attendanceDate: item.attendanceDate.toISOString(),
+    workMode: item.workMode,
+    status: item.status,
+    wfhPlan: item.wfhPlan,
+    wfhReport: item.wfhReport,
+    user: item.user,
+    ownerStudio: item.ownerStudio,
+    locationStudio: item.locationStudio,
+  }));
+
   return (
     <DashboardShell
       user={currentUser}
@@ -481,37 +494,11 @@ export default async function SuperAdminDashboardPage() {
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
-                {data.recentAttendance.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center text-sm text-zinc-500">
-                      Belum ada data presensi.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  data.recentAttendance.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium">
-                        <div className="text-zinc-900 dark:text-zinc-100">{item.user.name}</div>
-                        <div className="text-xs text-zinc-500 dark:text-zinc-400">{item.user.email}</div>
-                      </TableCell>
-                      <TableCell>{formatDate(item.attendanceDate)}</TableCell>
-                      <TableCell>{item.ownerStudio.name}</TableCell>
-                      <TableCell>{item.locationStudio?.name ?? "Tidak perlu lokasi"}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-300">
-                          {item.workMode}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className={statusColor[item.status]}>
-                          {statusLabel[item.status] ?? item.status}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
+              <RecentAttendanceTableClient
+                records={serializedRecentAttendance}
+                statusColor={statusColor}
+                statusLabel={statusLabel}
+              />
             </Table>
           </CardContent>
         </Card>
