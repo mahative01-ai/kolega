@@ -116,7 +116,7 @@ export async function loginAndAttendWithQrAction(qrUid: string) {
   }
 
   // 3. Ambil data jadwal, aturan libur, pengajuan, dan status kehadiran hari ini
-  const [personalSchedule, weeklyRule, holiday, approvedRequest, existingRecord, policy] = await Promise.all([
+  const [personalSchedule, weeklyRule, holiday, replacementWorkday, approvedRequest, existingRecord, policy] = await Promise.all([
     prisma.personalWorkSchedule.findUnique({
       where: {
         userId_workDate: {
@@ -140,7 +140,16 @@ export async function loginAndAttendWithQrAction(qrUid: string) {
     prisma.calendarEvent.findFirst({
       where: {
         OR: [{ studioId: null }, { studioId: user.defaultStudioId }],
-        type: { in: ["NATIONAL_HOLIDAY", "COMPANY_LEAVE"] },
+        type: { in: ["NATIONAL_HOLIDAY", "COMPANY_LEAVE", "REGULAR_OFF_DAY", "STUDIO_EVENT"] },
+        startDate: { lte: attendanceDate },
+        endDate: { gte: attendanceDate },
+      },
+      select: { id: true },
+    }),
+    prisma.calendarEvent.findFirst({
+      where: {
+        studioId: user.defaultStudioId,
+        type: "REPLACEMENT_WORKDAY",
         startDate: { lte: attendanceDate },
         endDate: { gte: attendanceDate },
       },
@@ -207,8 +216,8 @@ export async function loginAndAttendWithQrAction(qrUid: string) {
     };
   }
 
-  // C. Jika hari ini adalah Hari Libur Nasional / Cuti Bersama atau Libur Mingguan (dan tidak ada jadwal WFO khusus)
-  const isWeekendOrHoliday = holiday || (weeklyRule?.isWorkday === false && personalSchedule?.workMode !== "WFO");
+  // C. Jika hari ini adalah Hari Libur Nasional / Cuti Bersama atau Libur Mingguan (dan tidak ada jadwal WFO khusus / Hari Pengganti)
+  const isWeekendOrHoliday = (holiday && !replacementWorkday) || (weeklyRule?.isWorkday === false && personalSchedule?.workMode !== "WFO" && !replacementWorkday);
   if (isWeekendOrHoliday) {
     return {
       success: true,

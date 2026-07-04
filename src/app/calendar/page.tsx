@@ -25,6 +25,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { CalendarEventFormClient } from "./calendar-event-form-client";
+import { HolidaySwapFormClient } from "./holiday-swap-form-client";
 
 export const dynamic = "force-dynamic";
 
@@ -273,10 +274,16 @@ export default async function CalendarPage({
         {/* ── Event List + Form ── */}
         <div className="space-y-4">
           {isSuperAdmin && (
-            <CalendarEventFormClient
-              studios={studios}
-              monthKey={`${year}-${String(month).padStart(2, "0")}`}
-            />
+            <div className="grid gap-2">
+              <CalendarEventFormClient
+                studios={studios}
+                monthKey={`${year}-${String(month).padStart(2, "0")}`}
+              />
+              <HolidaySwapFormClient
+                studios={studios}
+                monthKey={`${year}-${String(month).padStart(2, "0")}`}
+              />
+            </div>
           )}
 
           <Card>

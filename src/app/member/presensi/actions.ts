@@ -110,7 +110,7 @@ export async function submitWfoAttendanceAction(formData: FormData) {
   const attendanceDate = dateOnlyFromKey(todayKey);
   const dayOfWeek = getDayOfWeek(todayKey);
 
-  const [policy, personalSchedule, weeklyRule, holiday, existingRecord] =
+  const [policy, personalSchedule, weeklyRule, holiday, replacementWorkday, existingRecord] =
     await Promise.all([
     prisma.attendancePolicy.findFirst({
       where: {
@@ -149,7 +149,16 @@ export async function submitWfoAttendanceAction(formData: FormData) {
     prisma.calendarEvent.findFirst({
       where: {
         OR: [{ studioId: null }, { studioId: currentUser.defaultStudioId }],
-        type: { in: ["NATIONAL_HOLIDAY", "COMPANY_LEAVE"] },
+        type: { in: ["NATIONAL_HOLIDAY", "COMPANY_LEAVE", "REGULAR_OFF_DAY", "STUDIO_EVENT"] },
+        startDate: { lte: attendanceDate },
+        endDate: { gte: attendanceDate },
+      },
+      select: { id: true },
+    }),
+    prisma.calendarEvent.findFirst({
+      where: {
+        studioId: currentUser.defaultStudioId,
+        type: "REPLACEMENT_WORKDAY",
         startDate: { lte: attendanceDate },
         endDate: { gte: attendanceDate },
       },
@@ -172,10 +181,11 @@ export async function submitWfoAttendanceAction(formData: FormData) {
     }),
   ]);
 
+  const isWeekendOrHoliday = (holiday && !replacementWorkday) || (weeklyRule?.isWorkday === false && personalSchedule?.workMode !== "WFO" && !replacementWorkday);
+
   if (
     personalSchedule?.workMode === "WFH" ||
-    holiday ||
-    (weeklyRule?.isWorkday === false && personalSchedule?.workMode !== "WFO")
+    isWeekendOrHoliday
   ) {
     redirect("/member/presensi?error=mode");
   }

@@ -83,3 +83,45 @@ export async function deleteCalendarEventAction(id: string) {
   revalidatePath("/schedules");
   revalidatePath("/settings");
 }
+
+// ─── Swap Holiday ────────────────────────────────────────────────────────────
+
+export async function swapHolidayAction(input: {
+  studioId: string | null;
+  holidayName: string;
+  originalDate: string; // "YYYY-MM-DD"
+  newDate: string;      // "YYYY-MM-DD"
+}) {
+  const user = await requireRole("SUPER_ADMIN");
+
+  // Create REPLACEMENT_WORKDAY on originalDate
+  await prisma.calendarEvent.create({
+    data: {
+      type: "REPLACEMENT_WORKDAY",
+      title: `Kerja Pengganti: ${input.holidayName.trim()}`,
+      startDate: parseDate(input.originalDate),
+      endDate: parseDate(input.originalDate),
+      studioId: input.studioId || null,
+      createdById: user.id,
+      note: `Pengalihan hari libur ${input.holidayName} ke tanggal ${input.newDate}`,
+    },
+  });
+
+  // Create COMPANY_LEAVE on newDate
+  await prisma.calendarEvent.create({
+    data: {
+      type: "COMPANY_LEAVE",
+      title: `Libur Pengganti: ${input.holidayName.trim()}`,
+      startDate: parseDate(input.newDate),
+      endDate: parseDate(input.newDate),
+      studioId: input.studioId || null,
+      createdById: user.id,
+      note: `Pengalihan hari libur ${input.holidayName} dari tanggal ${input.originalDate}`,
+    },
+  });
+
+  revalidatePath("/calendar");
+  revalidatePath("/schedules");
+  revalidatePath("/settings");
+}
+
