@@ -97,6 +97,7 @@ model Studio {
   latitude             Float?
   longitude            Float?
   radiusMeters         Int                @default(100)
+  weekStartDay         Int                @default(1)
   isActive             Boolean            @default(true)
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
@@ -230,6 +231,7 @@ model WeeklyWorkRule {
   studio         Studio   @relation(fields: [studioId], references: [id])
   dayOfWeek      Int
   isWorkday      Boolean  @default(true)
+  isOptional     Boolean  @default(false)
   workStartTime  String   @default("08:00")
   workEndTime    String   @default("16:00")
   breakStartTime String?

@@ -203,7 +203,7 @@ async function getScheduleData({
   });
   const selectedUser =
     users.find((user) => user.id === selectedUserId) ?? users[0] ?? null;
-  const [schedules, wfhCount] = selectedUser
+  const [schedules, wfhCount, calendarEvents] = selectedUser
     ? await Promise.all([
         prisma.personalWorkSchedule.findMany({
           where: {
@@ -229,14 +229,32 @@ async function getScheduleData({
             workMode: "WFH",
           },
         }),
+        prisma.calendarEvent.findMany({
+          where: {
+            startDate: { lte: monthEnd },
+            endDate: { gte: monthStart },
+            OR: [
+              { studioId: null },
+              { studioId: actor.defaultStudioId ?? "__none__" },
+            ],
+          },
+          select: {
+            id: true,
+            title: true,
+            type: true,
+            startDate: true,
+            endDate: true,
+          },
+        }),
       ])
-    : [[], 0];
+    : [[], 0, []];
 
   return {
     users,
     selectedUser,
     schedules,
     wfhCount,
+    calendarEvents,
   };
 }
 
@@ -268,6 +286,29 @@ export default async function WorkSchedulesPage({
   );
   const todayKey = formatDateKey(dateOnly());
   const wfoCount = days.length - data.wfhCount;
+
+  // Build holiday map: dateKey → list of events
+  const holidayMap = new Map<string, { title: string; type: string }[]>();
+  const EVENT_COLORS: Record<string, string> = {
+    NATIONAL_HOLIDAY: "bg-red-100 text-red-700",
+    COMPANY_LEAVE: "bg-orange-100 text-orange-700",
+    REGULAR_OFF_DAY: "bg-zinc-200 text-zinc-600",
+    REPLACEMENT_WORKDAY: "bg-emerald-100 text-emerald-700",
+    STUDIO_EVENT: "bg-blue-100 text-blue-700",
+  };
+  for (const ev of data.calendarEvents) {
+    const start = ev.startDate.getTime();
+    const end = ev.endDate.getTime();
+    for (const day of days) {
+      const [y, m, d] = day.dateKey.split("-").map(Number);
+      const dayTs = Date.UTC(y, m - 1, d);
+      if (dayTs >= start && dayTs <= end) {
+        const existing = holidayMap.get(day.dateKey) ?? [];
+        existing.push({ title: ev.title, type: ev.type });
+        holidayMap.set(day.dateKey, existing);
+      }
+    }
+  }
 
   return (
     <DashboardShell
@@ -433,11 +474,24 @@ export default async function WorkSchedulesPage({
                     </Badge>
                   </div>
 
-                  <p className="mt-3 min-h-8 text-xs text-zinc-500">
+                  <p className="mt-2 min-h-6 text-xs text-zinc-500">
                     {isWfh
                       ? schedule?.note ?? "WFH dari jadwal bulanan"
                       : "Default WFO"}
                   </p>
+
+                  {/* ── Holiday badges ── */}
+                  {(holidayMap.get(day.dateKey) ?? []).map((ev, i) => (
+                    <div
+                      key={i}
+                      className={`mt-1 truncate rounded px-1.5 py-0.5 text-[10px] font-medium leading-tight ${
+                        EVENT_COLORS[ev.type] ?? "bg-zinc-100 text-zinc-600"
+                      }`}
+                      title={ev.title}
+                    >
+                      {ev.title}
+                    </div>
+                  ))}
 
                   {canManage && data.selectedUser ? (
                     <div className="mt-3 grid gap-2">

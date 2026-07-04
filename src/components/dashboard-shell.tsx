@@ -85,7 +85,7 @@ function getMenuGroups(role: DashboardUser["role"]) {
           { label: "Studio & Lokasi", icon: Building2, badge: "Next" },
           { label: "Placement", icon: BriefcaseBusiness, badge: "Next" },
           { label: "Jadwal WFO/WFH", href: "/schedules", icon: CalendarDays },
-          { label: "Cuti & Kalender", icon: ClipboardList, badge: "Next" },
+          { label: "Cuti & Kalender", href: "/calendar", icon: ClipboardList },
         ],
       },
       {
@@ -99,7 +99,7 @@ function getMenuGroups(role: DashboardUser["role"]) {
           { label: "Approval Izin", href: "/admin/requests", icon: ClipboardCheck },
           { label: "Approval Koreksi", href: "/admin/corrections", icon: Archive },
           { label: "Arsip Akun", icon: Archive, badge: "Next" },
-          { label: "Pengaturan", icon: Settings, badge: "Next" },
+          { label: "Pengaturan", href: "/settings", icon: Settings },
         ],
       },
     ];
