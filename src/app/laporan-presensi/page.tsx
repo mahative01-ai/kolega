@@ -26,6 +26,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { AttendanceReportExportClient } from "./export-client";
 import {
   ATTENDANCE_STATUS_COLOR,
   ATTENDANCE_STATUS_LABEL,
@@ -184,6 +185,20 @@ export default async function AttendanceReportPage({
     },
   ];
 
+  // Serialize records to match the export component expectations
+  const serializedRecords = records.map(r => ({
+    id: r.id,
+    attendanceDate: r.attendanceDate.toISOString(),
+    workMode: r.workMode,
+    status: r.status,
+    checkInAt: r.checkInAt ? r.checkInAt.toISOString() : null,
+    checkOutAt: r.checkOutAt ? r.checkOutAt.toISOString() : null,
+    lateMinutes: r.lateMinutes,
+    user: r.user,
+    ownerStudio: r.ownerStudio,
+    locationStudio: r.locationStudio,
+  }));
+
   return (
     <DashboardShell
       user={currentUser}
@@ -196,7 +211,37 @@ export default async function AttendanceReportPage({
           : `Scope dikunci ke ${currentUser.defaultStudio?.name ?? "studio Admin"}.`
       }`}
     >
-      <form className="flex flex-wrap items-end gap-3 rounded-md border border-zinc-200 bg-white p-4">
+      {/* CSS @media print helper to hide shell UI */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print {
+          aside, header, form, button, .no-print, [data-slot="dialog-portal"] {
+            display: none !important;
+          }
+          main, div, body {
+            background: white !important;
+            color: black !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+          }
+          .print-full-width {
+            width: 100% !important;
+            max-width: 100% !important;
+          }
+        }
+      `}} />
+
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between gap-4">
+          <div />
+          <AttendanceReportExportClient
+            records={serializedRecords}
+            monthLabel={formatMonthLabel(month)}
+          />
+        </div>
+
+        <form className="flex flex-wrap items-end gap-3 rounded-md border border-zinc-200 bg-white p-4">
         <div className="grid gap-1.5">
           <label htmlFor="report-month" className="text-sm font-medium">
             Bulan
@@ -347,6 +392,7 @@ export default async function AttendanceReportPage({
           </Table>
         </CardContent>
       </Card>
+      </div>
     </DashboardShell>
   );
 }

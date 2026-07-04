@@ -30,6 +30,7 @@ import {
   getDayOfWeek,
   getJakartaDateKey,
 } from "@/lib/attendance-time";
+import { NotificationBellClient } from "@/app/notifications/notification-bell-client";
 
 type DashboardUser = {
   id: string;
@@ -86,6 +87,7 @@ function getMenuGroups(role: DashboardUser["role"]) {
           { label: "Placement", icon: BriefcaseBusiness, badge: "Next" },
           { label: "Jadwal WFO/WFH", href: "/schedules", icon: CalendarDays },
           { label: "Cuti & Kalender", href: "/calendar", icon: ClipboardList },
+          { label: "Jadwal Piket", href: "/piket", icon: ClipboardList },
         ],
       },
       {
@@ -98,6 +100,7 @@ function getMenuGroups(role: DashboardUser["role"]) {
           },
           { label: "Approval Izin", href: "/admin/requests", icon: ClipboardCheck },
           { label: "Approval Koreksi", href: "/admin/corrections", icon: Archive },
+          { label: "Audit Trail", href: "/super-admin/audit-logs", icon: ShieldCheck },
           { label: "Arsip Akun", icon: Archive, badge: "Next" },
           { label: "Pengaturan", href: "/settings", icon: Settings },
         ],
@@ -141,7 +144,7 @@ function getMenuGroups(role: DashboardUser["role"]) {
           },
           { label: "Izin/Sakit/Cuti", href: "/admin/requests", icon: ClipboardList },
           { label: "Koreksi Presensi", href: "/admin/corrections", icon: Archive },
-          { label: "Piket & Pengingat", icon: CalendarDays, badge: "Next" },
+          { label: "Piket & Pengingat", href: "/piket", icon: CalendarDays },
         ],
       },
     ];
@@ -160,6 +163,7 @@ function getMenuGroups(role: DashboardUser["role"]) {
         },
         { label: "Izin/Sakit/Cuti", href: "/member/requests", icon: ClipboardList },
         { label: "Koreksi Presensi", href: "/member/corrections", icon: Archive },
+        { label: "Jadwal Piket Saya", href: "/piket", icon: ClipboardList },
         { label: "Laporan WFH", icon: Home, badge: "Next" },
       ],
     },
@@ -349,6 +353,26 @@ export async function DashboardShell({
   description: string;
   children: React.ReactNode;
 }) {
+  // Fetch unread notifications for bell
+  const [unreadNotificationsList, unreadCount] = await Promise.all([
+    prisma.notification.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    }),
+    prisma.notification.count({
+      where: { userId: user.id, readAt: null },
+    }),
+  ]);
+
+  const unreadNotifications = unreadNotificationsList.map((n) => ({
+    id: n.id,
+    title: n.title,
+    message: n.message,
+    readAt: n.readAt ? n.readAt.toISOString() : null,
+    createdAt: n.createdAt.toISOString(),
+  }));
+
   // Gatekeeper check: Super Admin is always allowed
   if (user.role === "ADMIN" || user.role === "MEMBER") {
     const cookieStore = await cookies();
@@ -419,16 +443,24 @@ export async function DashboardShell({
         <SidebarNav user={user} currentPath={currentPath} />
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="border-b border-zinc-200 bg-zinc-50/90 px-6 py-5 backdrop-blur lg:px-8">
-            <div className="mx-auto flex w-full max-w-7xl flex-col gap-4">
-              <MobileNav user={user} currentPath={currentPath} />
-              <div>
-                <Badge variant="outline" className="mb-3 bg-white">
-                  {badge}
-                </Badge>
-                <h1 className="text-2xl font-semibold">{title}</h1>
-                <p className="mt-2 max-w-2xl text-sm text-zinc-600">
-                  {description}
-                </p>
+            <div className="mx-auto flex w-full max-w-7xl items-start justify-between gap-4">
+              <div className="min-w-0 flex-1">
+                <MobileNav user={user} currentPath={currentPath} />
+                <div className="mt-1">
+                  <Badge variant="outline" className="mb-3 bg-white">
+                    {badge}
+                  </Badge>
+                  <h1 className="text-2xl font-semibold">{title}</h1>
+                  <p className="mt-2 max-w-2xl text-sm text-zinc-600">
+                    {description}
+                  </p>
+                </div>
+              </div>
+              <div className="shrink-0 flex items-center gap-2 mt-1">
+                <NotificationBellClient
+                  initialNotifications={unreadNotifications}
+                  initialUnreadCount={unreadCount}
+                />
               </div>
             </div>
           </header>
