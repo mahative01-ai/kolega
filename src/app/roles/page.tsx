@@ -6,21 +6,35 @@ import { RolesClient } from "./roles-client";
 export const dynamic = "force-dynamic";
 
 async function getRoleData(actor: Awaited<ReturnType<typeof requireAnyRole>>) {
-  const isSuperAdmin = actor.role === "SUPER_ADMIN";
+  const isGlobalSuperAdmin = actor.role === "SUPER_ADMIN" && actor.defaultStudioId === null;
+  const isOwner = actor.role === "SUPER_ADMIN" && actor.defaultStudioId !== null;
   
-  const scopedWhere = isSuperAdmin
+  const scopedWhere = isGlobalSuperAdmin
     ? {
         role: {
           not: "SUPER_ADMIN" as const,
         },
       }
-    : {
-        accountStatus: "ACTIVE" as const,
-        defaultStudioId: actor.defaultStudioId ?? "__NO_STUDIO__",
-        role: {
-          not: "SUPER_ADMIN" as const,
-        },
-      };
+    : isOwner
+      ? {
+          role: {
+            not: "SUPER_ADMIN" as const,
+          },
+          OR: [
+            { defaultStudioId: actor.defaultStudioId ?? "__NO_STUDIO__" },
+            { placements: { some: { studioId: actor.defaultStudioId ?? "__NO_STUDIO__", status: "ACTIVE" as const } } }
+          ]
+        }
+      : {
+          accountStatus: "ACTIVE" as const,
+          role: {
+            not: "SUPER_ADMIN" as const,
+          },
+          OR: [
+            { defaultStudioId: actor.defaultStudioId ?? "__NO_STUDIO__" },
+            { placements: { some: { studioId: actor.defaultStudioId ?? "__NO_STUDIO__", status: "ACTIVE" as const } } }
+          ]
+        };
 
   const [users, studios, mentors] = await Promise.all([
     prisma.user.findMany({
@@ -71,14 +85,19 @@ async function getRoleData(actor: Awaited<ReturnType<typeof requireAnyRole>>) {
         },
       },
     }),
-    isSuperAdmin
+    isGlobalSuperAdmin
       ? prisma.studio.findMany({
           where: { isActive: true },
           orderBy: { name: "asc" },
           select: { id: true, name: true },
         })
-      : Promise.resolve([]),
-    isSuperAdmin
+      : actor.defaultStudioId
+        ? prisma.studio.findMany({
+            where: { id: actor.defaultStudioId, isActive: true },
+            select: { id: true, name: true },
+          })
+        : Promise.resolve([]),
+    isGlobalSuperAdmin
       ? prisma.user.findMany({
           where: {
             role: { in: ["ADMIN", "SUPER_ADMIN"] },
@@ -87,7 +106,17 @@ async function getRoleData(actor: Awaited<ReturnType<typeof requireAnyRole>>) {
           select: { id: true, name: true },
           orderBy: { name: "asc" },
         })
-      : Promise.resolve([]),
+      : actor.defaultStudioId
+        ? prisma.user.findMany({
+            where: {
+              role: { in: ["ADMIN", "SUPER_ADMIN"] },
+              accountStatus: "ACTIVE",
+              defaultStudioId: actor.defaultStudioId,
+            },
+            select: { id: true, name: true },
+            orderBy: { name: "asc" },
+          })
+        : Promise.resolve([]),
   ]);
 
   return {

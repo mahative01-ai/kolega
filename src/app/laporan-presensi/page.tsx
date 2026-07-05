@@ -55,8 +55,11 @@ export default async function AttendanceReportPage({
   const month = normalizeReportMonth(params.month);
   const status = normalizeStatus(params.status);
   const { start, endExclusive } = getMonthRange(month);
+
+  const isGlobalSuperAdmin = currentUser.role === "SUPER_ADMIN" && currentUser.defaultStudioId === null;
+
   const availableStudios =
-    currentUser.role === "SUPER_ADMIN"
+    isGlobalSuperAdmin
       ? await prisma.studio.findMany({
           where: { isActive: true },
           orderBy: { name: "asc" },
@@ -70,16 +73,28 @@ export default async function AttendanceReportPage({
             },
           ]
         : [];
+
   const selectedStudioId =
-    currentUser.role === "ADMIN"
+    !isGlobalSuperAdmin
       ? (currentUser.defaultStudioId ?? "__unassigned__")
       : availableStudios.some((studio) => studio.id === params.studio)
         ? params.studio
         : undefined;
+
   const baseWhere: Prisma.AttendanceRecordWhereInput = {
     attendanceDate: { gte: start, lt: endExclusive },
-    ...(selectedStudioId ? { ownerStudioId: selectedStudioId } : {}),
+    ...(!isGlobalSuperAdmin
+      ? {
+          OR: [
+            { ownerStudioId: selectedStudioId },
+            { locationStudioId: selectedStudioId }
+          ]
+        }
+      : selectedStudioId
+        ? { ownerStudioId: selectedStudioId }
+        : {}),
   };
+
   const detailWhere: Prisma.AttendanceRecordWhereInput = {
     ...baseWhere,
     ...(status !== "ALL" ? { status } : {}),
@@ -177,7 +192,7 @@ export default async function AttendanceReportPage({
       badge="Data PostgreSQL"
       title="Laporan Presensi"
       description={`${formatMonthLabel(month)}. ${
-        currentUser.role === "SUPER_ADMIN"
+        isGlobalSuperAdmin
           ? "Scope dapat mencakup seluruh studio."
           : `Scope dikunci ke ${currentUser.defaultStudio?.name ?? "studio Admin"}.`
       }`}
@@ -225,7 +240,7 @@ export default async function AttendanceReportPage({
             className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 px-3 text-sm focus:outline-none"
           />
         </div>
-        {currentUser.role === "SUPER_ADMIN" ? (
+        {isGlobalSuperAdmin ? (
           <div className="grid gap-1.5">
             <label htmlFor="report-studio" className="text-sm font-medium">
               Default Studio

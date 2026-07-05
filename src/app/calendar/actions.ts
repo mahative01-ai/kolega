@@ -110,6 +110,16 @@ export async function createCalendarEventAction(input: CalendarEventInput) {
   const user = await requireRole("SUPER_ADMIN");
   const data = await validateCalendarEventInput(input);
 
+  const isGlobalSuperAdmin = user.role === "SUPER_ADMIN" && user.defaultStudioId === null;
+  if (!isGlobalSuperAdmin) {
+    if (data.type === "NATIONAL_HOLIDAY") {
+      throw new Error("Anda tidak diperbolehkan membuat event libur nasional.");
+    }
+    if (data.studioId !== user.defaultStudioId) {
+      throw new Error("Anda hanya diperbolehkan membuat event untuk studio Anda sendiri.");
+    }
+  }
+
   await prisma.calendarEvent.create({
     data: {
       ...data,
@@ -125,9 +135,31 @@ export async function createCalendarEventAction(input: CalendarEventInput) {
 // ─── Update ─────────────────────────────────────────────────────────────────
 
 export async function updateCalendarEventAction(id: string, input: CalendarEventInput) {
-  await requireRole("SUPER_ADMIN");
+  const user = await requireRole("SUPER_ADMIN");
   if (typeof id !== "string" || !id) throw new Error("Event tidak valid.");
+
+  const existingEvent = await prisma.calendarEvent.findUnique({
+    where: { id },
+    select: { studioId: true, type: true }
+  });
+  if (!existingEvent) throw new Error("Event tidak ditemukan.");
+
+  const isGlobalSuperAdmin = user.role === "SUPER_ADMIN" && user.defaultStudioId === null;
+  if (!isGlobalSuperAdmin) {
+    if (existingEvent.studioId !== user.defaultStudioId) {
+      throw new Error("Anda hanya diperbolehkan mengubah event untuk studio Anda sendiri.");
+    }
+  }
+
   const data = await validateCalendarEventInput(input);
+  if (!isGlobalSuperAdmin) {
+    if (data.type === "NATIONAL_HOLIDAY") {
+      throw new Error("Anda tidak diperbolehkan membuat event libur nasional.");
+    }
+    if (data.studioId !== user.defaultStudioId) {
+      throw new Error("Anda hanya diperbolehkan mengubah event untuk studio Anda sendiri.");
+    }
+  }
 
   await prisma.calendarEvent.update({
     where: { id },
@@ -142,8 +174,21 @@ export async function updateCalendarEventAction(id: string, input: CalendarEvent
 // ─── Delete ─────────────────────────────────────────────────────────────────
 
 export async function deleteCalendarEventAction(id: string) {
-  await requireRole("SUPER_ADMIN");
+  const user = await requireRole("SUPER_ADMIN");
   if (typeof id !== "string" || !id) throw new Error("Event tidak valid.");
+
+  const existingEvent = await prisma.calendarEvent.findUnique({
+    where: { id },
+    select: { studioId: true }
+  });
+  if (!existingEvent) throw new Error("Event tidak ditemukan.");
+
+  const isGlobalSuperAdmin = user.role === "SUPER_ADMIN" && user.defaultStudioId === null;
+  if (!isGlobalSuperAdmin) {
+    if (existingEvent.studioId !== user.defaultStudioId) {
+      throw new Error("Anda hanya diperbolehkan menghapus event untuk studio Anda sendiri.");
+    }
+  }
 
   await prisma.calendarEvent.delete({ where: { id } });
 

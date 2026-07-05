@@ -67,6 +67,14 @@ async function setWfhScheduleAction(formData: FormData) {
     throw new Error("User tidak ditemukan atau tidak aktif.");
   }
 
+  if (actor.defaultStudioId) {
+    const isMemberInStudio = targetUser.defaultStudioId === actor.defaultStudioId || 
+                             targetUser.placements.some(p => p.studioId === actor.defaultStudioId);
+    if (!isMemberInStudio) {
+      throw new Error("Anda hanya diperbolehkan mengatur jadwal untuk anggota studio Anda sendiri.");
+    }
+  }
+
   const workDate = parseDateKey(workDateKey);
   const studioId = targetUser.placements[0]?.studioId ?? targetUser.defaultStudioId;
 
@@ -114,8 +122,36 @@ async function resetWfoScheduleAction(formData: FormData) {
   const userId = String(formData.get("userId") ?? "");
   const workDateKey = String(formData.get("workDate") ?? "");
 
-  if (!userId || !workDateKey.match(/^\d{4}-\d{2}-\d{2}$/)) {
-    throw new Error("Data jadwal tidak lengkap.");
+  const targetUser = await prisma.user.findFirst({
+    where: {
+      id: userId,
+      accountStatus: "ACTIVE",
+      role: {
+        not: "SUPER_ADMIN",
+      },
+    },
+    select: {
+      id: true,
+      defaultStudioId: true,
+      placements: {
+        where: { status: "ACTIVE" },
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        select: { studioId: true }
+      }
+    }
+  });
+
+  if (!targetUser) {
+    throw new Error("User tidak ditemukan atau tidak aktif.");
+  }
+
+  if (actor.defaultStudioId) {
+    const isMemberInStudio = targetUser.defaultStudioId === actor.defaultStudioId || 
+                             targetUser.placements.some(p => p.studioId === actor.defaultStudioId);
+    if (!isMemberInStudio) {
+      throw new Error("Anda hanya diperbolehkan mengatur jadwal untuk anggota studio Anda sendiri.");
+    }
   }
 
   const workDate = parseDateKey(workDateKey);
@@ -153,8 +189,9 @@ async function getScheduleData({
   const { year, monthIndex } = parseMonthKey(monthKey);
   const monthStart = dateOnly(new Date(year, monthIndex, 1));
   const monthEnd = dateOnly(new Date(year, monthIndex + 1, 0));
+  const isGlobalSuperAdmin = actor.role === "SUPER_ADMIN" && actor.defaultStudioId === null;
   const scopedUserWhere =
-    actor.role === "SUPER_ADMIN"
+    isGlobalSuperAdmin
       ? {
           accountStatus: "ACTIVE" as const,
           role: {
@@ -163,10 +200,13 @@ async function getScheduleData({
         }
       : {
           accountStatus: "ACTIVE" as const,
-          defaultStudioId: actor.defaultStudioId ?? "__NO_STUDIO__",
           role: {
             not: "SUPER_ADMIN" as const,
           },
+          OR: [
+            { defaultStudioId: actor.defaultStudioId ?? "__NO_STUDIO__" },
+            { placements: { some: { studioId: actor.defaultStudioId ?? "__NO_STUDIO__", status: "ACTIVE" as const } } }
+          ]
         };
 
   const users = await prisma.user.findMany({
@@ -233,10 +273,14 @@ async function getScheduleData({
           where: {
             startDate: { lte: monthEnd },
             endDate: { gte: monthStart },
-            OR: [
-              { studioId: null },
-              { studioId: actor.defaultStudioId ?? "__none__" },
-            ],
+            ...(isGlobalSuperAdmin
+              ? {}
+              : {
+                  OR: [
+                    { studioId: null },
+                    { studioId: actor.defaultStudioId ?? "__none__" },
+                  ],
+                }),
           },
           select: {
             id: true,

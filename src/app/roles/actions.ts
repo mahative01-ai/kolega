@@ -241,11 +241,31 @@ export async function updateUserAction(formData: FormData) {
       email: true,
       username: true,
       accountStatus: true,
+      defaultStudioId: true,
     },
   });
 
   if (!target || target.role === "SUPER_ADMIN") {
     throw new Error("User tidak ditemukan atau tidak dapat diubah.");
+  }
+
+  if (actor.defaultStudioId) {
+    if (target.defaultStudioId !== actor.defaultStudioId) {
+      throw new Error("Anda hanya diperbolehkan mengubah user dari studio Anda sendiri.");
+    }
+    if (defaultStudioId !== actor.defaultStudioId) {
+      throw new Error("Anda hanya diperbolehkan mengubah default studio ke studio Anda sendiri.");
+    }
+    const mentorId = memberStatus === "INTERN" ? String(formData.get("mentorId") ?? "") || null : null;
+    if (mentorId) {
+      const mentor = await prisma.user.findFirst({
+        where: { id: mentorId, defaultStudioId: actor.defaultStudioId },
+        select: { id: true }
+      });
+      if (!mentor) {
+        throw new Error("Mentor yang dipilih harus berasal dari studio yang sama.");
+      }
+    }
   }
 
   // Check unique constraints if changed

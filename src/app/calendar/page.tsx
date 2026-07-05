@@ -105,22 +105,30 @@ export default async function CalendarPage({
   if (user.role !== "SUPER_ADMIN" && user.role !== "ADMIN") redirect("/member");
 
   const isSuperAdmin = user.role === "SUPER_ADMIN";
+  const isGlobalSuperAdmin = user.role === "SUPER_ADMIN" && user.defaultStudioId === null;
 
   const { year, month } = parseMonthKey(params.month);
   const startDate = dateOnly(new Date(Date.UTC(year, month - 1, 1)));
   const endDate = dateOnly(new Date(Date.UTC(year, month, 0)));
 
   const [studios, events] = await Promise.all([
-    prisma.studio.findMany({
-      where: { isActive: true },
-      select: { id: true, name: true },
-      orderBy: { name: "asc" },
-    }),
+    isGlobalSuperAdmin
+      ? prisma.studio.findMany({
+          where: { isActive: true },
+          select: { id: true, name: true },
+          orderBy: { name: "asc" },
+        })
+      : user.defaultStudioId
+        ? prisma.studio.findMany({
+            where: { id: user.defaultStudioId, isActive: true },
+            select: { id: true, name: true },
+          })
+        : Promise.resolve([]),
     prisma.calendarEvent.findMany({
       where: {
         AND: [
           { startDate: { lte: endDate }, endDate: { gte: startDate } },
-          ...(isSuperAdmin
+          ...(isGlobalSuperAdmin
             ? []
             : [{
               OR: [
