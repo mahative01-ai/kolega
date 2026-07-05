@@ -157,13 +157,21 @@ export async function DashboardShell({
   }
 
   // Generate breadcrumb list dynamically
+  const dashboardBase = user.role === "SUPER_ADMIN" ? "super-admin" : user.role === "ADMIN" ? "admin" : "member";
   const pathSegments = currentPath.split("/").filter(Boolean);
-  const breadcrumbs = pathSegments.map((segment, index) => {
-    const href = "/" + pathSegments.slice(0, index + 1).join("/");
+  const filteredSegments = pathSegments.filter((segment, index) => {
+    return !(index === 0 && segment === dashboardBase);
+  });
+
+  const breadcrumbs = filteredSegments.map((segment, index) => {
+    const originalIndex = pathSegments.indexOf(segment);
+    const href = "/" + pathSegments.slice(0, originalIndex + 1).join("/");
     const label = BREADCRUMB_MAP[segment] || segment.charAt(0).toUpperCase() + segment.slice(1);
-    const isLast = index === pathSegments.length - 1;
+    const isLast = index === filteredSegments.length - 1;
     return { href, label, isLast };
   });
+
+  const hasSubpages = breadcrumbs.length > 0;
 
   return (
     <SidebarProvider>
@@ -178,11 +186,15 @@ export async function DashboardShell({
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href={user.role === "SUPER_ADMIN" ? "/super-admin" : user.role === "ADMIN" ? "/admin" : "/member"}>
-                    Kolega
-                  </BreadcrumbLink>
+                  {hasSubpages ? (
+                    <BreadcrumbLink href={user.role === "SUPER_ADMIN" ? "/super-admin" : user.role === "ADMIN" ? "/admin" : "/member"}>
+                      Kolega
+                    </BreadcrumbLink>
+                  ) : (
+                    <BreadcrumbPage>Kolega</BreadcrumbPage>
+                  )}
                 </BreadcrumbItem>
-                {breadcrumbs.map((item, index) => (
+                {breadcrumbs.map((item) => (
                   <React.Fragment key={item.href}>
                     <BreadcrumbSeparator className="hidden md:block" />
                     <BreadcrumbItem>
