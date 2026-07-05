@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
-  const sessionCookie = request.cookies.get("mahateams_session");
+  const sessionCookie = request.cookies.get("kolega_session");
   const { pathname } = request.nextUrl;
 
   const protectedPrefixes = [
@@ -46,7 +46,7 @@ function redirectToLogin(request: NextRequest) {
   const response = NextResponse.redirect(loginUrl);
   
   // Bersihkan cookie yang tidak valid/kadaluwarsa
-  response.cookies.delete("mahateams_session");
+  response.cookies.delete("kolega_session");
   return response;
 }
 

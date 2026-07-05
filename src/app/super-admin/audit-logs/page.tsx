@@ -198,7 +198,7 @@ export default async function AuditLogsPage({
                           </td>
                           <td className="p-3">
                             <div className="font-semibold text-zinc-900 dark:text-zinc-100">{log.actor?.name || "Sistem"}</div>
-                            <div className="text-xs text-zinc-500 dark:text-zinc-400">{log.actor?.email || "system@mahateams.com"}</div>
+                            <div className="text-xs text-zinc-500 dark:text-zinc-400">{log.actor?.email || "system@kolega.com"}</div>
                             {log.actor?.role && (
                               <Badge className="mt-1 text-[9px] px-1 py-0 border-0 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-medium">
                                 {log.actor.role}

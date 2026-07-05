@@ -87,7 +87,7 @@ export async function GET(request: Request) {
           await sendEmail({
             to: member.email,
             subject: `[Reminder] ${reminder.title}`,
-            text: `Halo ${member.name},\n\nIni adalah pengingat untuk Anda:\n${reminder.message}\n\nSilakan lakukan check-in segera di MahaTeams.`,
+            text: `Halo ${member.name},\n\nIni adalah pengingat untuk Anda:\n${reminder.message}\n\nSilakan lakukan check-in segera di Kolega.`,
           });
           emailsSent++;
         }
@@ -113,7 +113,7 @@ export async function GET(request: Request) {
           await sendEmail({
             to: member.email,
             subject: `[Reminder] ${reminder.title}`,
-            text: `Halo ${member.name},\n\nIni adalah pengingat untuk Anda:\n${reminder.message}\n\nJangan lupa untuk melakukan check-out di MahaTeams setelah menyelesaikan jam kerja.`,
+            text: `Halo ${member.name},\n\nIni adalah pengingat untuk Anda:\n${reminder.message}\n\nJangan lupa untuk melakukan check-out di Kolega setelah menyelesaikan jam kerja.`,
           });
           emailsSent++;
         }

@@ -5,7 +5,7 @@ export const ROLE_LABEL = {
 } as const;
 
 export const REGISTRATION_DEFAULT_ROLE = "MEMBER" as const;
-export const LOCAL_ACTING_ADMIN_EMAIL = "admin.mahative@mahateams.local";
+export const LOCAL_ACTING_ADMIN_EMAIL = "admin.mahative@kolega.local";
 
 export function canManageTargetRole(actorRole: string, targetRole: string) {
   if (targetRole === "SUPER_ADMIN") {

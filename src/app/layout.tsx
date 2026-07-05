@@ -6,8 +6,8 @@ import NextTopLoader from "nextjs-toploader";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "MahaTeams New Gen",
-  description: "Aplikasi presensi web untuk Mahative Studio dan Kipa.",
+  title: "Kolega New Gen",
+  description: "Aplikasi presensi web untuk Kipa Studio dan Mahative.",
 };
 
 export default function RootLayout({

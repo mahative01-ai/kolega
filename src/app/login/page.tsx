@@ -1,13 +1,6 @@
 import { redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getCurrentUser } from "@/lib/auth";
@@ -15,6 +8,13 @@ import { prisma } from "@/lib/prisma";
 import { getJakartaDateKey, dateOnlyFromKey } from "@/lib/attendance-time";
 import { loginAction, unlockRequestsAction } from "./actions";
 import { QrLoginScanner } from "./qr-login-scanner";
+import { Terminal } from "lucide-react";
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 
 export const dynamic = "force-dynamic";
 
@@ -41,7 +41,7 @@ export default async function LoginPage({
   const errorMessage = params.error ? errorMessages[params.error] : null;
 
   let statusText = "Belum Check-in WFO";
-  let statusColor = "bg-zinc-100 text-zinc-500 border-zinc-200";
+  let statusColor = "bg-zinc-100 text-zinc-500 border-zinc-200 dark:bg-zinc-950 dark:border-zinc-800 dark:text-zinc-400";
 
   if (currentUser) {
     const todayKey = getJakartaDateKey();
@@ -66,16 +66,16 @@ export default async function LoginPage({
     if (attendance) {
       if (attendance.status === "SICK") {
         statusText = "Sakit (Izin)";
-        statusColor = "bg-red-50 text-red-700 border-red-200";
+        statusColor = "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-900/50";
       } else if (attendance.status === "LEAVE") {
         statusText = "Cuti (Izin)";
-        statusColor = "bg-blue-50 text-blue-700 border-blue-200";
+        statusColor = "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900/50";
       } else if (attendance.status === "PERMISSION") {
         statusText = "Izin Khusus";
-        statusColor = "bg-amber-50 text-amber-700 border-amber-200";
+        statusColor = "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/50";
       } else if (attendance.status === "ALPHA") {
         statusText = "Alpha";
-        statusColor = "bg-red-50 text-red-700 border-red-200";
+        statusColor = "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-900/50";
       } else if (attendance.checkInAt) {
         const checkInTime = new Intl.DateTimeFormat("id-ID", {
           hour: "2-digit",
@@ -90,14 +90,14 @@ export default async function LoginPage({
             timeZone: "Asia/Jakarta",
           }).format(new Date(attendance.checkOutAt));
           statusText = `WFO: Check-in ${checkInTime} & Check-out ${checkOutTime}`;
-          statusColor = "bg-emerald-50 text-emerald-700 border-emerald-200";
+          statusColor = "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/50";
         } else {
           if (attendance.status === "LATE") {
             statusText = `WFO: Check-in ${checkInTime} (Terlambat ${attendance.lateMinutes}m)`;
-            statusColor = "bg-amber-50 text-amber-700 border-amber-200";
+            statusColor = "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/50";
           } else {
             statusText = `WFO: Check-in ${checkInTime} (Tepat Waktu)`;
-            statusColor = "bg-emerald-50 text-emerald-700 border-emerald-200";
+            statusColor = "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/50";
           }
         }
       }
@@ -114,131 +114,138 @@ export default async function LoginPage({
 
       if (personalSchedule?.workMode === "WFH") {
         statusText = "Jadwal WFH (Belum Check-in)";
-        statusColor = "bg-blue-50 text-blue-700 border-blue-200";
+        statusColor = "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900/50";
       }
     }
   }
 
   return (
-    <main className="grid min-h-screen place-items-center bg-zinc-50 px-6 py-10 text-zinc-950">
-      <Card className="w-full max-w-md shadow-lg border border-zinc-200">
-        <CardHeader className="pb-3">
-          <Badge variant="outline" className="w-fit bg-white">
-            MahaTeams New Gen
-          </Badge>
-          <CardTitle className="text-xl font-bold">
-            {currentUser ? "Sesi Presensi Aktif" : "Login Dashboard"}
-          </CardTitle>
-          <CardDescription>
+    <main className="flex min-h-svh flex-col items-center justify-center gap-6 bg-zinc-50 dark:bg-zinc-950 p-6 md:p-10 text-zinc-950 dark:text-zinc-50 transition-colors duration-200">
+      <div className="w-full max-w-sm flex flex-col gap-6 bg-white dark:bg-zinc-900/40 p-8 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-md">
+        
+        {/* Logo and Brand Header */}
+        <div className="flex flex-col items-center gap-2 text-center">
+          <div className="flex size-9 items-center justify-center rounded-lg bg-zinc-950 dark:bg-zinc-100 text-zinc-50 dark:text-zinc-950">
+            <Terminal className="size-5" />
+          </div>
+          <h1 className="text-xl font-bold tracking-tight">Kolega New Gen</h1>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
             {currentUser
-              ? "Pindai QR Card Anda untuk mencatatkan kehadiran atau mengajukan izin hari ini."
+              ? "Pindai QR Card Anda untuk mencatatkan kehadiran."
               : "Pilih cara masuk untuk membuka dasbor Anda."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {errorMessage ? (
-            <p className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 border border-red-100">
-              {errorMessage}
-            </p>
-          ) : null}
+          </p>
+        </div>
 
-          {isRegistered ? (
-            <p className="mb-4 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700 border border-emerald-100">
-              Registrasi berhasil. Silakan login.
-            </p>
-          ) : null}
+        {/* Action Messages */}
+        {errorMessage && (
+          <p className="rounded-lg bg-red-50 dark:bg-red-950/20 px-3 py-2 text-xs text-red-700 dark:text-red-400 border border-red-100 dark:border-red-900/50">
+            {errorMessage}
+          </p>
+        )}
 
-          {currentUser ? (
-            <div className="grid gap-2">
-              <QrLoginScanner
-                autoStart={true}
-                action={params.action}
-                currentUser={{
-                  name: currentUser.name,
-                  role: currentUser.role,
-                  studioName: currentUser.defaultStudio?.name || "Mahative/Kipa",
-                  statusText,
-                  statusColor,
-                }}
-              />
-              <form action={unlockRequestsAction} className="mt-2">
-                <Button type="submit" variant="secondary" className="w-full">
-                  🤒 / ✈️ Saya Sedang Sakit / Cuti
-                </Button>
-              </form>
-            </div>
-          ) : (
-            <Tabs defaultValue="credentials" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-4">
-                <TabsTrigger value="credentials">Kredensial</TabsTrigger>
-                <TabsTrigger value="qr">Scan QR Card</TabsTrigger>
-              </TabsList>
+        {isRegistered && (
+          <p className="rounded-lg bg-emerald-50 dark:bg-emerald-950/20 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/50">
+            Registrasi berhasil. Silakan login.
+          </p>
+        )}
 
-              <TabsContent value="credentials">
-                <form action={loginAction} className="flex flex-col gap-4">
-                  <div className="flex flex-col gap-2">
-                    <label htmlFor="email" className="text-sm font-medium">
-                      Email
-                    </label>
+        {/* Content Tabs / Scanner */}
+        {currentUser ? (
+          <div className="grid gap-4">
+            <QrLoginScanner
+              autoStart={true}
+              action={params.action}
+              currentUser={{
+                name: currentUser.name,
+                role: currentUser.role,
+                studioName: currentUser.defaultStudio?.name || "Mahative/Kipa",
+                statusText,
+                statusColor,
+              }}
+            />
+            <form action={unlockRequestsAction}>
+              <Button type="submit" variant="secondary" className="w-full text-xs">
+                🤒 / ✈️ Saya Sedang Sakit / Cuti
+              </Button>
+            </form>
+          </div>
+        ) : (
+          <Tabs defaultValue="credentials" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-4 bg-zinc-100 dark:bg-zinc-800">
+              <TabsTrigger value="credentials" className="text-xs">Kredensial</TabsTrigger>
+              <TabsTrigger value="qr" className="text-xs">Scan QR Card</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="credentials">
+              <form action={loginAction}>
+                <FieldGroup>
+                  <Field>
+                    <FieldLabel htmlFor="email">Email</FieldLabel>
                     <Input
                       id="email"
                       name="email"
                       type="email"
                       placeholder="nama@email.com"
                       required
+                      className="dark:bg-zinc-950 dark:border-zinc-800"
                     />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label htmlFor="password" className="text-sm font-medium">
-                      Password
-                    </label>
+                  </Field>
+                  
+                  <Field>
+                    <FieldLabel htmlFor="password">Password</FieldLabel>
                     <Input
                       id="password"
                       name="password"
                       type="password"
                       placeholder="Masukkan password"
                       required
+                      className="dark:bg-zinc-950 dark:border-zinc-800"
                     />
-                  </div>
-                  <div className="flex items-center gap-2 py-1">
+                  </Field>
+
+                  <Field className="flex flex-row items-center gap-2">
                     <input
                       type="checkbox"
                       id="rememberMe"
                       name="rememberMe"
-                      className="size-4 rounded border-zinc-300 text-zinc-950 focus:ring-zinc-950"
+                      className="size-4 rounded border-zinc-300 dark:border-zinc-800 text-zinc-950 focus:ring-zinc-950 dark:bg-zinc-950 dark:checked:bg-zinc-50"
                     />
                     <label
                       htmlFor="rememberMe"
-                      className="text-sm text-zinc-600 cursor-pointer select-none"
+                      className="text-xs text-zinc-500 dark:text-zinc-400 cursor-pointer select-none"
                     >
                       Ingat saya (30 hari)
                     </label>
-                  </div>
-                  <Button
-                    type="submit"
-                    className="w-full bg-zinc-950 text-white hover:bg-zinc-900"
-                  >
-                    Masuk dengan Kredensial
-                  </Button>
-                </form>
-              </TabsContent>
+                  </Field>
 
-              <TabsContent value="qr">
-                <QrLoginScanner action={params.action} />
-              </TabsContent>
-            </Tabs>
-          )}
+                  <Field className="mt-1">
+                    <Button
+                      type="submit"
+                      className="w-full bg-zinc-950 hover:bg-zinc-900 text-white dark:bg-zinc-50 dark:hover:bg-zinc-200 dark:text-zinc-950 font-medium"
+                    >
+                      Masuk dengan Kredensial
+                    </Button>
+                  </Field>
+                </FieldGroup>
+              </form>
+            </TabsContent>
 
-          {!currentUser ? (
-            <div className="mt-6 rounded-md bg-zinc-100 p-3 text-[11px] text-zinc-500 space-y-1">
-              <p className="font-semibold text-zinc-700">Info Akun Preview:</p>
-              <p>Super Admin: owner@mahateams.local / owner123</p>
-              <p>Admin: admin.mahative@mahateams.local / admin123</p>
-              <p>Member: member@mahateams.local / member123</p>
-            </div>
-          ) : null}
-        </CardContent>
-      </Card>
+            <TabsContent value="qr">
+              <QrLoginScanner action={params.action} />
+            </TabsContent>
+          </Tabs>
+        )}
+
+        {/* Demo Credentials Info Help */}
+        {!currentUser && (
+          <div className="rounded-lg bg-zinc-50 dark:bg-zinc-900/60 p-3 text-[10px] text-zinc-500 dark:text-zinc-400 space-y-1 border border-zinc-100 dark:border-zinc-800/50">
+            <p className="font-semibold text-zinc-700 dark:text-zinc-300">Info Akun Preview:</p>
+            <p>Super Admin: owner@kolega.local / owner123</p>
+            <p>Admin: admin.mahative@kolega.local / admin123</p>
+            <p>Member: member@kolega.local / member123</p>
+          </div>
+        )}
+      </div>
     </main>
   );
 }

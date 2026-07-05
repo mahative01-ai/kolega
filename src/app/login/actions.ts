@@ -325,7 +325,7 @@ export async function loginAndAttendWithQrAction(qrUid: string, action?: string)
 
 export async function unlockRequestsAction() {
   const cookieStore = await cookies();
-  cookieStore.set("mahateams_unlocked_requests", "1", {
+  cookieStore.set("kolega_unlocked_requests", "1", {
     maxAge: 15 * 60, // 15 minutes
     path: "/",
     httpOnly: true,

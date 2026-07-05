@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 
-const SESSION_COOKIE = "mahateams_session";
+const SESSION_COOKIE = "kolega_session";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 
 export type AppRole = "SUPER_ADMIN" | "ADMIN" | "MEMBER";

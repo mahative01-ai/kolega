@@ -1,30 +1,10 @@
-import type { LucideIcon } from "lucide-react";
-import {
-  Archive,
-  BarChart3,
-  BriefcaseBusiness,
-  Building2,
-  CalendarDays,
-  ClipboardCheck,
-  ClipboardList,
-  Home,
-  LogOut,
-  MapPin,
-  Settings,
-  ShieldCheck,
-  UserCog,
-  UserRound,
-  UsersRound,
-} from "lucide-react";
-import Link from "next/link";
+import React from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ROLE_LABEL } from "@/lib/roles";
 import { prisma } from "@/lib/prisma";
-import { logoutAction } from "@/app/login/actions";
 import {
   dateOnlyFromKey,
   getDayOfWeek,
@@ -32,6 +12,21 @@ import {
 } from "@/lib/attendance-time";
 import { NotificationBellClient } from "@/app/notifications/notification-bell-client";
 import { ThemeToggle } from "@/components/theme-toggle";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
+import { AppSidebar } from "@/components/app-sidebar";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 type DashboardUser = {
   id: string;
@@ -44,307 +39,23 @@ type DashboardUser = {
   } | null;
 };
 
-type MenuItem = {
-  label: string;
-  href?: string;
-  icon: LucideIcon;
-  badge?: string;
+const BREADCRUMB_MAP: Record<string, string> = {
+  member: "Member",
+  admin: "Admin",
+  "super-admin": "Super Admin",
+  roles: "User & Role",
+  schedules: "Jadwal",
+  calendar: "Cuti & Kalender",
+  piket: "Jadwal Piket",
+  "laporan-presensi": "Laporan Presensi",
+  requests: "Izin & Sakit",
+  corrections: "Koreksi Presensi",
+  "audit-logs": "Audit Trail",
+  settings: "Pengaturan",
+  presensi: "Presensi",
+  riwayat: "Riwayat",
+  "laporan-wfh": "Laporan WFH",
 };
-
-function getPrimaryDashboard(role: DashboardUser["role"]) {
-  if (role === "SUPER_ADMIN") {
-    return "/super-admin";
-  }
-
-  if (role === "ADMIN") {
-    return "/admin";
-  }
-
-  return "/member";
-}
-
-function getMenuGroups(role: DashboardUser["role"]) {
-  const main: MenuItem[] = [
-    {
-      label: "Dashboard",
-      href: getPrimaryDashboard(role),
-      icon:
-        role === "SUPER_ADMIN"
-          ? ShieldCheck
-          : role === "ADMIN"
-            ? UserCog
-            : UserRound,
-    },
-  ];
-
-  if (role === "SUPER_ADMIN") {
-    return [
-      { label: "Utama", items: main },
-      {
-        label: "Manajemen",
-        items: [
-          { label: "User & Role", href: "/roles", icon: UsersRound },
-          { label: "Studio & Lokasi", icon: Building2, badge: "Next" },
-          { label: "Placement", icon: BriefcaseBusiness, badge: "Next" },
-          { label: "Jadwal WFO/WFH", href: "/schedules", icon: CalendarDays },
-          { label: "Cuti & Kalender", href: "/calendar", icon: ClipboardList },
-          { label: "Jadwal Piket", href: "/piket", icon: ClipboardList },
-        ],
-      },
-      {
-        label: "Monitoring",
-        items: [
-          {
-            label: "Laporan Presensi",
-            href: "/laporan-presensi",
-            icon: BarChart3,
-          },
-          { label: "Approval Izin", href: "/admin/requests", icon: ClipboardCheck },
-          { label: "Approval Koreksi", href: "/admin/corrections", icon: Archive },
-          { label: "Audit Trail", href: "/super-admin/audit-logs", icon: ShieldCheck },
-          { label: "Arsip Akun", icon: Archive, badge: "Next" },
-          { label: "Pengaturan", href: "/settings", icon: Settings },
-        ],
-      },
-    ];
-  }
-
-  if (role === "ADMIN") {
-    return [
-      { label: "Utama", items: main },
-      {
-        label: "Presensi Saya",
-        items: [
-          {
-            label: "Riwayat Saya",
-            href: "/member/presensi/riwayat",
-            icon: ClipboardCheck,
-          },
-          {
-            label: "Ajukan Izin Saya",
-            href: "/member/requests",
-            icon: ClipboardList,
-          },
-          {
-            label: "Koreksi Presensi Saya",
-            href: "/member/corrections",
-            icon: Archive,
-          },
-          {
-            label: "Laporan WFH Saya",
-            href: "/member/laporan-wfh",
-            icon: Home,
-          },
-        ],
-      },
-      {
-        label: "Operasional",
-        items: [
-          { label: "User Studio", href: "/roles", icon: UsersRound },
-          { label: "Presensi Tim", icon: ClipboardCheck, badge: "Next" },
-          { label: "Jadwal Tim", href: "/schedules", icon: CalendarDays },
-          {
-            label: "Laporan Presensi",
-            href: "/laporan-presensi",
-            icon: BarChart3,
-          },
-          { label: "Izin/Sakit/Cuti", href: "/admin/requests", icon: ClipboardList },
-          { label: "Koreksi Presensi", href: "/admin/corrections", icon: Archive },
-          { label: "Piket & Pengingat", href: "/piket", icon: CalendarDays },
-        ],
-      },
-    ];
-  }
-
-  return [
-    { label: "Utama", items: main },
-    {
-      label: "Presensi",
-      items: [
-        { label: "Jadwal Saya", icon: CalendarDays, badge: "Next" },
-        {
-          label: "Riwayat Saya",
-          href: "/member/presensi/riwayat",
-          icon: ClipboardCheck,
-        },
-        { label: "Izin/Sakit/Cuti", href: "/member/requests", icon: ClipboardList },
-        { label: "Koreksi Presensi", href: "/member/corrections", icon: Archive },
-        { label: "Jadwal Piket Saya", href: "/piket", icon: ClipboardList },
-        { label: "Laporan WFH", href: "/member/laporan-wfh", icon: Home },
-      ],
-    },
-  ];
-}
-
-function MenuLink({
-  item,
-  currentPath,
-}: {
-  item: MenuItem;
-  currentPath: string;
-}) {
-  const Icon = item.icon;
-  const isActive = item.href === currentPath;
-  const className = cn(
-    "flex h-9 w-full items-center gap-2 rounded-md px-2.5 text-sm transition",
-    isActive
-      ? "bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 shadow-sm"
-      : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-950 dark:hover:text-white",
-    !item.href && "cursor-not-allowed opacity-55 hover:bg-transparent"
-  );
-
-  const content = (
-    <>
-      <Icon className="size-4 shrink-0" aria-hidden="true" />
-      <span className="min-w-0 flex-1 truncate">{item.label}</span>
-      {item.badge ? (
-        <Badge
-          variant="outline"
-          className={cn(
-            "h-5 shrink-0 px-1.5 text-[10px]",
-            isActive
-              ? "border-white/40 dark:border-zinc-800 text-white dark:text-zinc-950"
-              : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300"
-          )}
-        >
-          {item.badge}
-        </Badge>
-      ) : null}
-    </>
-  );
-
-  if (!item.href) {
-    return (
-      <div className={className} aria-disabled="true">
-        {content}
-      </div>
-    );
-  }
-
-  return (
-    <Link href={item.href} className={className}>
-      {content}
-    </Link>
-  );
-}
-
-function SidebarNav({
-  user,
-  currentPath,
-}: {
-  user: DashboardUser;
-  currentPath: string;
-}) {
-  const groups = getMenuGroups(user.role);
-
-  return (
-    <aside className="hidden h-screen w-72 shrink-0 border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 lg:sticky lg:top-0 lg:flex lg:flex-col">
-      <div className="flex h-full flex-col">
-        <div className="border-b border-zinc-200 dark:border-zinc-800 p-5">
-          <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-md bg-zinc-950 dark:bg-zinc-100 text-sm font-semibold text-white dark:text-zinc-950">
-              MT
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold">MahaTeams</p>
-              <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">New Gen</p>
-            </div>
-          </div>
-        </div>
-
-        <nav className="flex-1 space-y-4 overflow-y-auto p-3">
-          {groups.map((group) => (
-            <div key={group.label}>
-              <p className="px-2.5 py-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                {group.label}
-              </p>
-              <div className="space-y-1">
-                {group.items.map((item) => (
-                  <MenuLink
-                    key={item.label}
-                    item={item}
-                    currentPath={currentPath}
-                  />
-                ))}
-              </div>
-            </div>
-          ))}
-        </nav>
-
-        <div className="border-t border-zinc-200 dark:border-zinc-800 p-3">
-          <div className="mb-3 rounded-md bg-zinc-50 dark:bg-zinc-900 p-3">
-            <div className="flex items-center gap-2">
-              <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-zinc-200 dark:bg-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                {user.name.slice(0, 1).toUpperCase()}
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium">{user.name}</p>
-                <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">{user.email}</p>
-              </div>
-            </div>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              <Badge variant="secondary">{ROLE_LABEL[user.role]}</Badge>
-              {user.defaultStudio?.name ? (
-                <Badge variant="outline" className="bg-white dark:bg-zinc-950 text-zinc-700 dark:text-zinc-300">
-                  <MapPin className="size-3" aria-hidden="true" />
-                  {user.defaultStudio.name}
-                </Badge>
-              ) : null}
-            </div>
-          </div>
-
-          <form action={logoutAction}>
-            <Button
-              type="submit"
-              variant="ghost"
-              className="w-full justify-start hover:bg-zinc-100 dark:hover:bg-zinc-900"
-            >
-              <LogOut aria-hidden="true" />
-              Logout
-            </Button>
-          </form>
-        </div>
-      </div>
-    </aside>
-  );
-}
-
-function MobileNav({
-  user,
-  currentPath,
-}: {
-  user: DashboardUser;
-  currentPath: string;
-}) {
-  const groups = getMenuGroups(user.role);
-  const items = groups.flatMap((group) => group.items).filter((item) => item.href);
-
-  return (
-    <nav className="flex gap-2 overflow-x-auto pb-2 lg:hidden">
-      {items.map((item) => {
-        const Icon = item.icon;
-        const isActive = item.href === currentPath;
-
-        return (
-          <Link
-            key={item.label}
-            href={item.href ?? "/"}
-            className={cn(
-              "flex h-9 shrink-0 items-center gap-2 rounded-md border px-3 text-sm",
-              isActive
-                ? "border-zinc-950 bg-zinc-950 text-white"
-                : "border-zinc-200 bg-white text-zinc-700"
-            )}
-          >
-            <Icon className="size-4" aria-hidden="true" />
-            {item.label}
-          </Link>
-        );
-      })}
-
-    </nav>
-  );
-}
 
 export async function DashboardShell({
   user,
@@ -384,7 +95,7 @@ export async function DashboardShell({
   // Gatekeeper check: Super Admin is always allowed
   if (user.role === "ADMIN" || user.role === "MEMBER") {
     const cookieStore = await cookies();
-    const isUnlockedForRequests = cookieStore.get("mahateams_unlocked_requests")?.value === "1";
+    const isUnlockedForRequests = cookieStore.get("kolega_unlocked_requests")?.value === "1";
 
     const todayKey = getJakartaDateKey();
     const todayDate = dateOnlyFromKey(todayKey);
@@ -445,40 +156,79 @@ export async function DashboardShell({
     }
   }
 
+  // Generate breadcrumb list dynamically
+  const pathSegments = currentPath.split("/").filter(Boolean);
+  const breadcrumbs = pathSegments.map((segment, index) => {
+    const href = "/" + pathSegments.slice(0, index + 1).join("/");
+    const label = BREADCRUMB_MAP[segment] || segment.charAt(0).toUpperCase() + segment.slice(1);
+    const isLast = index === pathSegments.length - 1;
+    return { href, label, isLast };
+  });
+
   return (
-    <main className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 transition-colors duration-200">
-      <div className="flex min-h-screen">
-        <SidebarNav user={user} currentPath={currentPath} />
-        <div className="flex min-w-0 flex-1 flex-col">
-          <header className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/90 dark:bg-zinc-950/90 px-6 py-5 backdrop-blur lg:px-8">
-            <div className="mx-auto flex w-full max-w-7xl items-start justify-between gap-4">
-              <div className="min-w-0 flex-1">
-                <MobileNav user={user} currentPath={currentPath} />
-                <div className="mt-1">
-                  <Badge variant="outline" className="mb-3 bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 border-zinc-200 dark:border-zinc-800">
-                    {badge}
-                  </Badge>
-                  <h1 className="text-2xl font-semibold">{title}</h1>
-                  <p className="mt-2 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
-                    {description}
-                  </p>
-                </div>
-              </div>
-              <div className="shrink-0 flex items-center gap-3 mt-1">
-                <ThemeToggle />
-                <NotificationBellClient
-                  key={`${unreadCount}:${unreadNotifications.map((item) => `${item.id}:${item.readAt ?? "unread"}`).join("|")}`}
-                  initialNotifications={unreadNotifications}
-                  initialUnreadCount={unreadCount}
-                />
-              </div>
+    <SidebarProvider>
+      <AppSidebar user={user} />
+      <SidebarInset className="flex flex-col bg-zinc-50 dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50">
+        {/* Navbar */}
+        <header className="flex h-16 shrink-0 items-center justify-between border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-4 sticky top-0 z-10 transition-colors">
+          <div className="flex items-center gap-2">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem className="hidden md:block">
+                  <BreadcrumbLink href={user.role === "SUPER_ADMIN" ? "/super-admin" : user.role === "ADMIN" ? "/admin" : "/member"}>
+                    Kolega
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                {breadcrumbs.map((item, index) => (
+                  <React.Fragment key={item.href}>
+                    <BreadcrumbSeparator className="hidden md:block" />
+                    <BreadcrumbItem>
+                      {item.isLast ? (
+                        <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                      ) : (
+                        <BreadcrumbLink href={item.href} className="hidden md:block">
+                          {item.label}
+                        </BreadcrumbLink>
+                      )}
+                    </BreadcrumbItem>
+                  </React.Fragment>
+                ))}
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <NotificationBellClient
+              key={`${unreadCount}:${unreadNotifications.map((item) => `${item.id}:${item.readAt ?? "unread"}`).join("|")}`}
+              initialNotifications={unreadNotifications}
+              initialUnreadCount={unreadCount}
+            />
+          </div>
+        </header>
+
+        {/* Main Content Area */}
+        <div className="flex-1 p-6 lg:p-8">
+          <div className="mx-auto w-full max-w-7xl">
+            {/* Page Header */}
+            <div className="mb-6">
+              <Badge variant="outline" className="mb-2 bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 border-zinc-200 dark:border-zinc-800">
+                {badge}
+              </Badge>
+              <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+              <p className="mt-1.5 text-sm text-zinc-500 dark:text-zinc-400">
+                {description}
+              </p>
             </div>
-          </header>
-          <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-6 py-6 lg:px-8">
+            
+            {/* Child content page */}
             {children}
           </div>
         </div>
-      </div>
-    </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
