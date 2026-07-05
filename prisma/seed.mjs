@@ -87,26 +87,44 @@ async function main() {
     });
 
     const superAdminId = await upsertUser(client, {
-      name: "Owner Studio",
-      email: "owner@mahateams.local",
+      name: "Owner Mahative",
+      email: "owner.mahative@kolega.local",
       role: "SUPER_ADMIN",
       memberStatus: "TEAM",
       defaultStudioId: mahativeId,
       passwordHash: hashPassword("owner123", "owner-preview-salt"),
     });
 
+    const ownerKipaId = await upsertUser(client, {
+      name: "Owner Kipa",
+      email: "owner.kipa@kolega.local",
+      role: "SUPER_ADMIN",
+      memberStatus: "TEAM",
+      defaultStudioId: kipaId,
+      passwordHash: hashPassword("owner123", "owner-preview-salt"),
+    });
+
     const adminId = await upsertUser(client, {
       name: "Admin Mahative",
-      email: "admin.mahative@mahateams.local",
+      email: "admin.mahative@kolega.local",
       role: "ADMIN",
       memberStatus: "TEAM",
       defaultStudioId: mahativeId,
       passwordHash: hashPassword("admin123", "admin-preview-salt"),
     });
 
+    const adminKipaId = await upsertUser(client, {
+      name: "Admin Kipa",
+      email: "admin.kipa@kolega.local",
+      role: "ADMIN",
+      memberStatus: "TEAM",
+      defaultStudioId: kipaId,
+      passwordHash: hashPassword("admin123", "admin-preview-salt"),
+    });
+
     const memberId = await upsertUser(client, {
       name: "Member Preview",
-      email: "member@mahateams.local",
+      email: "member@kolega.local",
       role: "MEMBER",
       memberStatus: "INTERN",
       defaultStudioId: mahativeId,
