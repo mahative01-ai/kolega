@@ -105,7 +105,9 @@ export function HolidaySwapFormClient({ studios, monthKey }: Props) {
               <Label>Studio</Label>
               <Select value={studioId || "__global__"} onValueChange={(v) => setStudioId(v === "__global__" || !v ? "" : v)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Pilih studio atau biarkan global" />
+                  <SelectValue placeholder="Pilih studio atau biarkan global">
+                    {(val) => val === "__global__" || !val ? "🌐 Semua Studio (Global)" : (studios.find((s) => s.id === val)?.name || val)}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__global__">🌐 Semua Studio (Global)</SelectItem>

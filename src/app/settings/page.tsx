@@ -37,6 +37,7 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { WorkdaySettingsClient } from "./workday-settings-client";
+import { GeofenceSettingsClient } from "./geofence-settings-client";
 import { createCalendarEventAction, deleteCalendarEventAction } from "../calendar/actions";
 import { ProfileSettingsClient } from "./profile-settings-client";
 import Link from "next/link";
@@ -119,6 +120,9 @@ export default async function SettingsPage({
           select: {
             id: true,
             name: true,
+            latitude: true,
+            longitude: true,
+            radiusMeters: true,
             weekStartDay: true,
             weeklyWorkRules: {
               select: {
@@ -248,7 +252,7 @@ export default async function SettingsPage({
           <>
             {/* ── Tab: Hari Kerja ────────────────────────────────────────────── */}
             <TabsContent value="workday" className="mt-0">
-              <Card className="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm">
+              <Card className="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-none">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
                     <Clock className="size-5 text-blue-700" />
@@ -268,7 +272,7 @@ export default async function SettingsPage({
             <TabsContent value="daysoff" className="mt-0">
               <div className="grid gap-6">
                 {/* Add Day Off */}
-                <Card className="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm">
+                <Card className="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-none">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
                       <Plus className="size-5 text-red-600" />
@@ -299,7 +303,9 @@ export default async function SettingsPage({
                         <Label htmlFor="doff-studio" className="text-zinc-700 dark:text-zinc-300">Studio</Label>
                         <Select name="studioId">
                           <SelectTrigger id="doff-studio">
-                            <SelectValue placeholder="Pilih Studio" />
+                            <SelectValue placeholder="Pilih Studio">
+                              {(val) => studios.find((s) => s.id === val)?.name || (val === "" ? "🌐 Semua Studio (Global)" : val)}
+                            </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
                             {isGlobalSuperAdmin ? (
@@ -322,7 +328,7 @@ export default async function SettingsPage({
                 </Card>
 
                 {/* Days Off List by Month */}
-                <Card className="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm">
+                <Card className="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-none">
                   <CardHeader className="flex-row items-center justify-between gap-2 pb-3">
                     <div>
                       <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
@@ -416,7 +422,7 @@ export default async function SettingsPage({
 
             {/* ── Tab: Lokasi ────────────────────────────────────────────────── */}
             <TabsContent value="locations" className="mt-0">
-              <Card className="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm">
+              <Card className="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-none">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
                     <MapPin className="size-5 text-emerald-700" />
@@ -427,16 +433,7 @@ export default async function SettingsPage({
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="rounded-xl border border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950/50 p-8 text-center">
-                    <MapPin className="size-8 text-zinc-400 dark:text-zinc-600 mx-auto mb-3" />
-                    <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Pengaturan Geofence</p>
-                    <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1 mb-4">
-                      Fitur Studio & Lokasi akan tersedia segera. (P1: Geofence)
-                    </p>
-                    <Link href="/calendar" className={buttonVariants({ variant: "outline", size: "sm" })}>
-                      Kelola Kalender Studio
-                    </Link>
-                  </div>
+                  <GeofenceSettingsClient studios={studios} />
                 </CardContent>
               </Card>
             </TabsContent>

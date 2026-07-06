@@ -398,19 +398,19 @@ export function AdminDashboardClient({
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-3">
-              <div className="rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-3 shadow-sm">
+              <div className="rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-3 shadow-none">
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Check-in</p>
                 <p className="mt-1 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
                   {formatTime(data.todayRecord?.checkInAt ?? null)}
                 </p>
               </div>
-              <div className="rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-3 shadow-sm">
+              <div className="rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-3 shadow-none">
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Check-out</p>
                 <p className="mt-1 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
                   {formatTime(data.todayRecord?.checkOutAt ?? null)}
                 </p>
               </div>
-              <div className="rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-3 shadow-sm">
+              <div className="rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-3 shadow-none">
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Status</p>
                 <div className="mt-1">
                   {data.todayRecord ? (

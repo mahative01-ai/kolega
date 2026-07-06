@@ -198,7 +198,7 @@ export function WorkdaySettingsClient({ studios }: Props) {
       )}
 
       {/* 1. Grace Period & Presence Time Policy Form */}
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm">
+      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-none">
         <div className="mb-4">
           <p className="text-base font-semibold text-zinc-900 dark:text-zinc-50">Kebijakan Jam & Toleransi Presensi (Grace Period)</p>
           <p className="text-sm text-zinc-500">
@@ -264,7 +264,7 @@ export function WorkdaySettingsClient({ studios }: Props) {
       </div>
 
       {/* 2. Work Days */}
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm">
+      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-none">
         <div className="mb-4">
           <div className="flex items-center gap-2 mb-0.5">
             <span className="text-base font-semibold text-zinc-900 dark:text-zinc-50">Hari Kerja Mingguan</span>
@@ -332,7 +332,7 @@ export function WorkdaySettingsClient({ studios }: Props) {
       {/* Week Starts On + Monthly Count */}
       <div className="grid gap-4 sm:grid-cols-2">
         {/* Week Starts On */}
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm">
+        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-none">
           <div className="mb-4">
             <p className="text-base font-semibold text-zinc-900 dark:text-zinc-50">Minggu Dimulai</p>
             <p className="text-sm text-zinc-500">Digunakan untuk laporan mingguan</p>
@@ -357,7 +357,7 @@ export function WorkdaySettingsClient({ studios }: Props) {
         </div>
 
         {/* Monthly Count */}
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-sm">
+        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-none">
           <div className="mb-4">
             <p className="text-base font-semibold text-zinc-900 dark:text-zinc-50">Jumlah Hari Kerja Bulanan</p>
             <p className="text-sm text-zinc-500">Cara hitung total hari kerja per bulan</p>

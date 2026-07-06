@@ -94,8 +94,21 @@ export default async function AuditLogsPage({
       description="Pantau riwayat aksi penting yang dilakukan oleh Admin dan Super Admin."
     >
       <div className="space-y-6">
+        {/* Info Banner */}
+        <div className="rounded-xl border border-primary/20 bg-primary/5 dark:bg-primary/10 p-4 text-sm text-zinc-900 dark:text-zinc-100 flex items-start gap-3">
+          <Clock className="size-5 text-primary mt-0.5 shrink-0" />
+          <div>
+            <p className="font-semibold text-zinc-900 dark:text-zinc-50 mb-1">
+              Apa itu Audit Trail?
+            </p>
+            <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              Jejak audit (Audit Trail) otomatis merekam setiap aksi krusial yang dilakukan oleh Owner/Super Admin dan Admin (seperti perubahan jadwal kerja studio, persetujuan izin/sakit, pembuatan akun baru, atau penugasan piket). Sistem ini menjamin transparansi penuh, kepatuhan kebijakan, dan keamanan data presensi Kolega.
+            </p>
+          </div>
+        </div>
+
         {/* Filters */}
-        <Card>
+        <Card className="shadow-none">
           <CardContent className="pt-6">
             <form className="grid gap-4 sm:grid-cols-4 items-end">
               <div className="grid gap-1.5">
@@ -161,7 +174,7 @@ export default async function AuditLogsPage({
         </Card>
 
         {/* Logs Table */}
-        <Card>
+        <Card className="shadow-none">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <Clock className="size-5 text-blue-700" />

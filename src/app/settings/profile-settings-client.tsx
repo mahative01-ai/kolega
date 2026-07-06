@@ -44,7 +44,7 @@ export function ProfileSettingsClient({ initialUser }: Props) {
   }
 
   return (
-    <Card className="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm">
+    <Card className="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-none">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
           <User className="size-5 text-blue-700" />

@@ -194,3 +194,39 @@ export async function updateStudioPolicyAction(
   revalidatePath("/calendar");
   revalidatePath("/schedules");
 }
+
+// ─── Update Studio Geofence & Location ───────────────────────────────────────
+
+export async function updateStudioGeofenceAction(
+  studioId: string,
+  geofenceData: {
+    latitude: number | null;
+    longitude: number | null;
+    radiusMeters: number;
+  }
+) {
+  const user = await requireRole("SUPER_ADMIN");
+
+  const isGlobalSuperAdmin = user.role === "SUPER_ADMIN" && user.defaultStudioId === null;
+  if (!isGlobalSuperAdmin && studioId !== user.defaultStudioId) {
+    throw new Error("Anda hanya diperbolehkan mengubah geofence untuk studio Anda sendiri.");
+  }
+
+  // Verify studio exists
+  const studio = await prisma.studio.findUnique({
+    where: { id: studioId },
+    select: { id: true },
+  });
+  if (!studio) throw new Error("Studio tidak ditemukan.");
+
+  await prisma.studio.update({
+    where: { id: studioId },
+    data: {
+      latitude: geofenceData.latitude,
+      longitude: geofenceData.longitude,
+      radiusMeters: geofenceData.radiusMeters,
+    },
+  });
+
+  revalidatePath("/settings");
+}

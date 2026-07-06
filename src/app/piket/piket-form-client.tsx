@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Loader2, UserPlus } from "lucide-react";
+import { Loader2, UserPlus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -37,10 +37,10 @@ export function PicketFormClient({ members, studioId, studios, monthKey, isSuper
   const [picketDate, setPicketDate] = useState(monthKey + "-01");
   const [note, setNote] = useState("");
 
-  // Filter members based on selected studio
-  const filteredMembers = members.filter(
-    (m) => !selectedStudioId || m.defaultStudioId === selectedStudioId
-  );
+  // Filter members based on selected studio & sort alphabetically
+  const filteredMembers = members
+    .filter((m) => !selectedStudioId || m.defaultStudioId === selectedStudioId)
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   function resetForm() {
     setUserId("");
@@ -82,11 +82,11 @@ export function PicketFormClient({ members, studioId, studios, monthKey, isSuper
   }
 
   return (
-    <Card>
+    <Card className="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-none">
       <CardHeader>
-        <CardTitle className="text-base flex items-center gap-2">
-          <UserPlus className="size-4 text-blue-700" />
-          Tugaskan Piket
+        <CardTitle className="flex items-center gap-2">
+          <Plus className="size-5 text-blue-700 dark:text-blue-400" />
+          Tambah Jadwal Piket
         </CardTitle>
         <CardDescription>Pilih anggota dan tanggal piket.</CardDescription>
       </CardHeader>
@@ -103,7 +103,9 @@ export function PicketFormClient({ members, studioId, studios, monthKey, isSuper
               }}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Pilih Studio" />
+                <SelectValue placeholder="Pilih Studio">
+                  {(val) => studios.find((s) => s.id === val)?.name || val}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {studios.map((s) => (
@@ -121,7 +123,9 @@ export function PicketFormClient({ members, studioId, studios, monthKey, isSuper
           <Label>Petugas Piket</Label>
           <Select value={userId} onValueChange={(val) => setUserId(val || "")}>
             <SelectTrigger>
-              <SelectValue placeholder={filteredMembers.length === 0 ? "Tidak ada anggota aktif" : "Pilih Anggota"} />
+              <SelectValue placeholder={filteredMembers.length === 0 ? "Tidak ada anggota aktif" : "Pilih Anggota"}>
+                {(val) => filteredMembers.find((m) => m.id === val)?.name || val}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {filteredMembers.map((m) => (
