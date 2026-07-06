@@ -145,3 +145,52 @@ export async function updateProfileAction(formData: FormData) {
 
   revalidatePath("/settings");
 }
+
+// ─── Update Studio Attendance Policy ─────────────────────────────────────────
+
+export async function updateStudioPolicyAction(
+  studioId: string,
+  policyData: {
+    checkInTime: string;
+    checkOutTime: string;
+    graceMinutes: number;
+    alphaCutoffTime: string;
+  }
+) {
+  const user = await requireRole("SUPER_ADMIN");
+
+  const isGlobalSuperAdmin = user.role === "SUPER_ADMIN" && user.defaultStudioId === null;
+  if (!isGlobalSuperAdmin && studioId !== user.defaultStudioId) {
+    throw new Error("Anda hanya diperbolehkan mengubah kebijakan untuk studio Anda sendiri.");
+  }
+
+  // Verify studio exists
+  const studio = await prisma.studio.findUnique({
+    where: { id: studioId },
+    select: { id: true },
+  });
+  if (!studio) throw new Error("Studio tidak ditemukan.");
+
+  // Deactivate old active policies for this studio
+  await prisma.attendancePolicy.updateMany({
+    where: { studioId, isActive: true },
+    data: { isActive: false },
+  });
+
+  // Create new active policy
+  await prisma.attendancePolicy.create({
+    data: {
+      studioId,
+      checkInTime: policyData.checkInTime,
+      checkOutTime: policyData.checkOutTime,
+      graceMinutes: policyData.graceMinutes,
+      alphaCutoffTime: policyData.alphaCutoffTime,
+      isActive: true,
+      createdById: user.id,
+    },
+  });
+
+  revalidatePath("/settings");
+  revalidatePath("/calendar");
+  revalidatePath("/schedules");
+}

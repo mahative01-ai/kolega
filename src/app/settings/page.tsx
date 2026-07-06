@@ -130,6 +130,16 @@ export default async function SettingsPage({
               },
               orderBy: { dayOfWeek: "asc" },
             },
+            policies: {
+              where: { isActive: true },
+              select: {
+                checkInTime: true,
+                checkOutTime: true,
+                graceMinutes: true,
+                alphaCutoffTime: true,
+              },
+              take: 1,
+            },
           },
         }),
         prisma.calendarEvent.findMany({

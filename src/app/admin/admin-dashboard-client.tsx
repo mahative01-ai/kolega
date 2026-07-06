@@ -27,6 +27,8 @@ import {
 import { cn } from "@/lib/utils";
 import { createPersonalQrCredentialAction } from "@/app/member/presensi/actions";
 import { WfhForm } from "@/app/member/presensi/wfh-form";
+import { DashboardCharts } from "@/components/dashboard-charts";
+import { AttendanceSummary } from "@/lib/attendance-report";
 
 type Props = {
   currentUser: {
@@ -39,13 +41,7 @@ type Props = {
   data: {
     studio: { name: string; address: string | null } | null;
     activeMembers: number;
-    summary: {
-      total: number;
-      sick: number;
-      late: number;
-      alpha: number;
-      wfh: number;
-    };
+    summary: AttendanceSummary;
     pendingRequests: number;
     recentAttendance: Array<{
       id: string;
@@ -62,13 +58,7 @@ type Props = {
     }>;
     monthLabel: string;
     selectedMonth: { year: number; monthIndex: number };
-    personalSummary: {
-      total: number;
-      sick: number;
-      late: number;
-      alpha: number;
-      wfh: number;
-    };
+    personalSummary: AttendanceSummary;
     personalSchedules: Array<{
       workDate: Date;
       workMode: string;
@@ -86,6 +76,7 @@ type Props = {
     todaySchedule?: {
       workMode: string;
     } | null;
+    dailyTrend?: Array<{ dateLabel: string; count: number }>;
   };
   qrSvg: string | null;
   days: { date: Date; dateKey: string; dayNumber: number }[];
@@ -519,6 +510,11 @@ export function AdminDashboardClient({
                 </Card>
               );
             })}
+          </section>
+
+          {/* Visual Charts */}
+          <section className="animate-in fade-in-50 duration-200 delay-75">
+            <DashboardCharts summary={data.summary} dailyTrend={data.dailyTrend} />
           </section>
 
           {/* Pending Alerts Card */}

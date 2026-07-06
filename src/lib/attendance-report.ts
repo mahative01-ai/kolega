@@ -33,6 +33,8 @@ export type AttendanceSummary = {
   onTime: number;
   alpha: number;
   wfh: number;
+  permission: number;
+  leave: number;
 };
 
 export function summarizeAttendanceStatuses(
@@ -49,6 +51,8 @@ export function summarizeAttendanceStatuses(
     onTime: (counts.ON_TIME ?? 0) + (counts.PRESENT ?? 0),
     alpha: counts.ALPHA ?? 0,
     wfh: counts.WFH ?? 0,
+    permission: counts.PERMISSION ?? 0,
+    leave: counts.LEAVE ?? 0,
   };
 }
 

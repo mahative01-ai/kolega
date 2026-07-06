@@ -32,6 +32,11 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
   const todayKey = getJakartaDateKey();
   const todayDate = dateOnlyFromKey(todayKey);
 
+  // Last 7 days for daily trend chart
+  const trendStart = new Date();
+  trendStart.setDate(trendStart.getDate() - 6);
+  trendStart.setHours(0, 0, 0, 0);
+
   const [
     studio,
     activeMembers,
@@ -44,6 +49,7 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
     qrCredential,
     todayRecord,
     todaySchedule,
+    rawDailyTrend,
   ] = await Promise.all([
     defaultStudioId
       ? prisma.studio.findUnique({
@@ -171,7 +177,38 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
         workMode: true,
       },
     }),
+    prisma.attendanceRecord.groupBy({
+      by: ["attendanceDate"],
+      where: {
+        ...studioFilter,
+        attendanceDate: { gte: trendStart },
+      },
+      _count: { _all: true },
+      orderBy: { attendanceDate: "asc" },
+    }),
   ]);
+
+  const dailyTrend: { dateLabel: string; count: number }[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    d.setHours(0, 0, 0, 0);
+
+    const match = rawDailyTrend.find(
+      (t) => t.attendanceDate.getTime() === d.getTime()
+    );
+
+    const dateLabel = new Intl.DateTimeFormat("id-ID", {
+      weekday: "short",
+      day: "2-digit",
+      month: "2-digit",
+    }).format(d);
+
+    dailyTrend.push({
+      dateLabel,
+      count: match?._count._all ?? 0,
+    });
+  }
 
   return {
     studio,
@@ -184,7 +221,8 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
     personalSchedules,
     qrCredential,
     todayRecord,
-    todaySchedule: todaySchedule,
+    todaySchedule,
+    dailyTrend,
     monthLabel: formatMonthLabel(reportMonth),
     selectedMonth: month,
   };

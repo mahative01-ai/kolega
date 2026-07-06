@@ -39,6 +39,7 @@ import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getJakartaDateKey, dateOnlyFromKey } from "@/lib/attendance-time";
 import { cn } from "@/lib/utils";
+import { DashboardCharts } from "@/components/dashboard-charts";
 
 export const dynamic = "force-dynamic";
 
@@ -68,12 +69,24 @@ const statusColor: Record<string, string> = {
   OFF_DAY: "bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-300 dark:border-zinc-700",
 };
 
-async function getSuperAdminDashboardData() {
+type TrendPoint = {
+  dateLabel: string;
+  count: number;
+};
+
+async function getSuperAdminDashboardData(actor: { id: string; role: string; defaultStudioId: string | null }) {
   const month = normalizeReportMonth();
   const { start: monthStart, endExclusive: monthEnd } = getMonthRange(month);
 
   const todayKey = getJakartaDateKey();
   const todayDate = dateOnlyFromKey(todayKey);
+
+  const isGlobalSuperAdmin = actor.role === "SUPER_ADMIN" && actor.defaultStudioId === null;
+
+  // Last 7 days for daily trend chart
+  const trendStart = new Date();
+  trendStart.setDate(trendStart.getDate() - 6);
+  trendStart.setHours(0, 0, 0, 0);
 
   const [
     studios,
@@ -82,9 +95,13 @@ async function getSuperAdminDashboardData() {
     pendingRequests,
     recentAttendance,
     picketToday,
+    rawDailyTrend,
   ] = await Promise.all([
     prisma.studio.findMany({
-      where: { isActive: true },
+      where: {
+        isActive: true,
+        ...(isGlobalSuperAdmin ? {} : { id: actor.defaultStudioId ?? "__none__" }),
+      },
       orderBy: { name: "asc" },
       select: {
         id: true,
@@ -96,19 +113,59 @@ async function getSuperAdminDashboardData() {
     }),
     prisma.attendanceRecord.groupBy({
       by: ["status"],
-      where: { attendanceDate: { gte: monthStart, lt: monthEnd } },
+      where: {
+        attendanceDate: { gte: monthStart, lt: monthEnd },
+        ...(isGlobalSuperAdmin
+          ? {}
+          : {
+              OR: [
+                { ownerStudioId: actor.defaultStudioId ?? "__none__" },
+                { locationStudioId: actor.defaultStudioId ?? "__none__" },
+              ],
+            }),
+      },
       _count: { _all: true },
     }),
     prisma.attendanceRecord.count({
       where: {
         attendanceDate: { gte: monthStart, lt: monthEnd },
         locationValidationStatus: "OUTSIDE_RADIUS",
+        ...(isGlobalSuperAdmin
+          ? {}
+          : {
+              OR: [
+                { ownerStudioId: actor.defaultStudioId ?? "__none__" },
+                { locationStudioId: actor.defaultStudioId ?? "__none__" },
+              ],
+            }),
       },
     }),
-    prisma.request.count({ where: { status: "PENDING" } }),
+    prisma.request.count({
+      where: {
+        status: "PENDING",
+        ...(isGlobalSuperAdmin
+          ? {}
+          : {
+              user: {
+                OR: [
+                  { defaultStudioId: actor.defaultStudioId ?? "__none__" },
+                  { placements: { some: { studioId: actor.defaultStudioId ?? "__none__", status: "ACTIVE" as const } } },
+                ],
+              },
+            }),
+      },
+    }),
     prisma.attendanceRecord.findMany({
       where: {
         attendanceDate: todayDate,
+        ...(isGlobalSuperAdmin
+          ? {}
+          : {
+              OR: [
+                { ownerStudioId: actor.defaultStudioId ?? "__none__" },
+                { locationStudioId: actor.defaultStudioId ?? "__none__" },
+              ],
+            }),
       },
       orderBy: [{ checkInAt: "desc" }, { createdAt: "desc" }],
       include: {
@@ -134,6 +191,7 @@ async function getSuperAdminDashboardData() {
     prisma.picketSchedule.findMany({
       where: {
         picketDate: todayDate,
+        ...(isGlobalSuperAdmin ? {} : { studioId: actor.defaultStudioId ?? "__none__" }),
       },
       include: {
         user: {
@@ -148,7 +206,45 @@ async function getSuperAdminDashboardData() {
         },
       },
     }),
+    prisma.attendanceRecord.groupBy({
+      by: ["attendanceDate"],
+      where: {
+        attendanceDate: { gte: trendStart },
+        ...(isGlobalSuperAdmin
+          ? {}
+          : {
+              OR: [
+                { ownerStudioId: actor.defaultStudioId ?? "__none__" },
+                { locationStudioId: actor.defaultStudioId ?? "__none__" },
+              ],
+            }),
+      },
+      _count: { _all: true },
+      orderBy: { attendanceDate: "asc" },
+    }),
   ]);
+
+  const dailyTrend: TrendPoint[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    d.setHours(0, 0, 0, 0);
+
+    const match = rawDailyTrend.find(
+      (t) => t.attendanceDate.getTime() === d.getTime()
+    );
+
+    const dateLabel = new Intl.DateTimeFormat("id-ID", {
+      weekday: "short",
+      day: "2-digit",
+      month: "2-digit",
+    }).format(d);
+
+    dailyTrend.push({
+      dateLabel,
+      count: match?._count._all ?? 0,
+    });
+  }
 
   const studioRows = await Promise.all(
     studios.map(async (studio) => {
@@ -220,6 +316,7 @@ async function getSuperAdminDashboardData() {
     recentAttendance,
     studioRows,
     picketToday,
+    dailyTrend,
     monthLabel: formatMonthLabel(month),
   };
 }
@@ -227,7 +324,7 @@ async function getSuperAdminDashboardData() {
 export default async function SuperAdminDashboardPage() {
   const currentUser = await requireRole("SUPER_ADMIN");
 
-  const data = await getSuperAdminDashboardData();
+  const data = await getSuperAdminDashboardData(currentUser);
   const metrics = [
     {
       label: `Jumlah Presensi ${data.monthLabel}`,
@@ -305,6 +402,11 @@ export default async function SuperAdminDashboardPage() {
               </Card>
             );
           })}
+        </section>
+
+        {/* Visual Charts */}
+        <section className="animate-in fade-in-50 duration-200 delay-75">
+          <DashboardCharts summary={data.attendanceSummary} dailyTrend={data.dailyTrend} />
         </section>
 
         {/* Studio Summary & Live Operations Panel */}
