@@ -70,19 +70,26 @@ export async function quickAssignPicketAction(userId: string, dateStr: string) {
   }
 
   // Upsert picket schedule
-  await prisma.picketSchedule.upsert({
-    where: { userId_picketDate: { userId, picketDate } },
-    create: {
-      userId,
-      studioId,
-      picketDate,
-      note: "Ditugaskan cepat dari Dasbor",
-    },
-    update: {
-      studioId,
-      note: "Ditugaskan cepat dari Dasbor",
-    },
-  });
+  try {
+    await prisma.picketSchedule.upsert({
+      where: { userId_picketDate: { userId, picketDate } },
+      create: {
+        userId,
+        studioId,
+        picketDate,
+        note: "Ditugaskan cepat dari Dasbor",
+      },
+      update: {
+        studioId,
+        note: "Ditugaskan cepat dari Dasbor",
+      },
+    });
+  } catch (err: any) {
+    if (err && typeof err === "object" && "code" in err && err.code === "P2002") {
+      throw new Error("Staf ini sudah memiliki jadwal piket pada tanggal tersebut.");
+    }
+    throw err;
+  }
 
   revalidatePath("/admin");
   revalidatePath("/piket");

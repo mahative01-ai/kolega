@@ -37,11 +37,18 @@ export async function reviewRequestAction(formData: FormData) {
     redirect("/admin/requests?error=already-reviewed");
   }
 
-  // Scope check: Admin can only review requests from their own studio
-  if (
-    reviewer.role === "ADMIN" &&
-    request.user.defaultStudioId !== reviewer.defaultStudioId
-  ) {
+  // Scope check: Admin can only review requests from their own studio or if they are receiving placement
+  const activePlacement = await prisma.placement.findFirst({
+    where: {
+      userId: request.userId,
+      studioId: reviewer.defaultStudioId ?? "__none__",
+      status: "ACTIVE",
+    },
+    select: { id: true },
+  });
+  const isAuthorized = request.user.defaultStudioId === reviewer.defaultStudioId || !!activePlacement;
+
+  if (reviewer.role === "ADMIN" && !isAuthorized) {
     redirect("/admin/requests?error=unauthorized-studio");
   }
 
@@ -197,11 +204,18 @@ export async function quickReviewRequestAction(requestId: string, approve: boole
     throw new Error("Pengajuan sudah diproses sebelumnya.");
   }
 
-  // Scope check: Admin can only review requests from their own studio
-  if (
-    reviewer.role === "ADMIN" &&
-    request.user.defaultStudioId !== reviewer.defaultStudioId
-  ) {
+  // Scope check: Admin can only review requests from their own studio or if they are receiving placement
+  const activePlacement = await prisma.placement.findFirst({
+    where: {
+      userId: request.userId,
+      studioId: reviewer.defaultStudioId ?? "__none__",
+      status: "ACTIVE",
+    },
+    select: { id: true },
+  });
+  const isAuthorized = request.user.defaultStudioId === reviewer.defaultStudioId || !!activePlacement;
+
+  if (reviewer.role === "ADMIN" && !isAuthorized) {
     throw new Error("Anda tidak memiliki akses ke studio ini.");
   }
 

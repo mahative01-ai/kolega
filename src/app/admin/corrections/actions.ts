@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { requireAnyRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+// ─── Review Correction (Redirecting Action) ─────────────────────────────────
+
 export async function reviewCorrectionAction(formData: FormData) {
   const reviewer = await requireAnyRole(["SUPER_ADMIN", "ADMIN"]);
 
@@ -23,6 +25,7 @@ export async function reviewCorrectionAction(formData: FormData) {
         select: {
           id: true,
           ownerStudioId: true,
+          locationStudioId: true,
           userId: true,
           user: {
             select: {
@@ -42,11 +45,22 @@ export async function reviewCorrectionAction(formData: FormData) {
     redirect("/admin/corrections?error=already-reviewed");
   }
 
-  // Scope check: Admin can only review corrections from their own studio
-  if (
-    reviewer.role === "ADMIN" &&
-    correction.attendanceRecord.ownerStudioId !== reviewer.defaultStudioId
-  ) {
+  // Scope check: Admin can only review corrections from their own studio or if they have placement active
+  const activePlacement = await prisma.placement.findFirst({
+    where: {
+      userId: correction.requestedById,
+      studioId: reviewer.defaultStudioId ?? "__none__",
+      status: "ACTIVE",
+    },
+    select: { id: true },
+  });
+
+  const isAuthorized =
+    correction.attendanceRecord.ownerStudioId === reviewer.defaultStudioId ||
+    correction.attendanceRecord.locationStudioId === reviewer.defaultStudioId ||
+    !!activePlacement;
+
+  if (reviewer.role === "ADMIN" && !isAuthorized) {
     redirect("/admin/corrections?error=unauthorized-studio");
   }
 
@@ -124,6 +138,7 @@ export async function quickReviewCorrectionAction(correctionId: string, approve:
         select: {
           id: true,
           ownerStudioId: true,
+          locationStudioId: true,
           userId: true,
           user: {
             select: {
@@ -143,11 +158,22 @@ export async function quickReviewCorrectionAction(correctionId: string, approve:
     throw new Error("Koreksi sudah diproses sebelumnya.");
   }
 
-  // Scope check: Admin can only review corrections from their own studio
-  if (
-    reviewer.role === "ADMIN" &&
-    correction.attendanceRecord.ownerStudioId !== reviewer.defaultStudioId
-  ) {
+  // Scope check: Admin can only review corrections from their own studio or if they have placement active
+  const activePlacement = await prisma.placement.findFirst({
+    where: {
+      userId: correction.requestedById,
+      studioId: reviewer.defaultStudioId ?? "__none__",
+      status: "ACTIVE",
+    },
+    select: { id: true },
+  });
+
+  const isAuthorized =
+    correction.attendanceRecord.ownerStudioId === reviewer.defaultStudioId ||
+    correction.attendanceRecord.locationStudioId === reviewer.defaultStudioId ||
+    !!activePlacement;
+
+  if (reviewer.role === "ADMIN" && !isAuthorized) {
     throw new Error("Anda tidak memiliki akses ke studio ini.");
   }
 

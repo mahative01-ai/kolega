@@ -58,6 +58,8 @@ function formatDate(date: Date) {
   }).format(date);
 }
 
+// ─── Login and Attend via Office QR Scanner ────────────────────────────────
+
 export async function loginAndAttendWithQrAction(qrUid: string, action?: string) {
   const cleanQrUid = qrUid.trim();
 
@@ -85,7 +87,19 @@ export async function loginAndAttendWithQrAction(qrUid: string, action?: string)
   // 1. Set login session (Remember Me diset true default untuk QR Scan)
   await setSession(user.id, true);
 
-  if (!user.defaultStudioId) {
+  // Check active placement
+  const activePlacement = await prisma.placement.findFirst({
+    where: {
+      userId: user.id,
+      status: "ACTIVE",
+    },
+    select: {
+      studioId: true,
+    },
+  });
+  const currentStudioId = activePlacement?.studioId ?? user.defaultStudioId;
+
+  if (!currentStudioId) {
     return { success: true, redirectUrl: getDashboardPath(user.role) };
   }
 
@@ -131,7 +145,7 @@ export async function loginAndAttendWithQrAction(qrUid: string, action?: string)
     prisma.weeklyWorkRule.findUnique({
       where: {
         studioId_dayOfWeek: {
-          studioId: user.defaultStudioId,
+          studioId: currentStudioId,
           dayOfWeek,
         },
       },
@@ -139,7 +153,7 @@ export async function loginAndAttendWithQrAction(qrUid: string, action?: string)
     }),
     prisma.calendarEvent.findFirst({
       where: {
-        OR: [{ studioId: null }, { studioId: user.defaultStudioId }],
+        OR: [{ studioId: null }, { studioId: currentStudioId }],
         type: { in: ["NATIONAL_HOLIDAY", "COMPANY_LEAVE", "REGULAR_OFF_DAY", "STUDIO_EVENT"] },
         startDate: { lte: attendanceDate },
         endDate: { gte: attendanceDate },
@@ -148,7 +162,7 @@ export async function loginAndAttendWithQrAction(qrUid: string, action?: string)
     }),
     prisma.calendarEvent.findFirst({
       where: {
-        studioId: user.defaultStudioId,
+        studioId: currentStudioId,
         type: "REPLACEMENT_WORKDAY",
         startDate: { lte: attendanceDate },
         endDate: { gte: attendanceDate },
@@ -183,7 +197,7 @@ export async function loginAndAttendWithQrAction(qrUid: string, action?: string)
     }),
     prisma.attendancePolicy.findFirst({
       where: {
-        studioId: user.defaultStudioId,
+        studioId: currentStudioId,
         isActive: true,
       },
       orderBy: {
@@ -197,11 +211,11 @@ export async function loginAndAttendWithQrAction(qrUid: string, action?: string)
     }),
   ]);
 
-  // A. Jika jadwal hari ini diset WFH (baik dari jadwal Super Admin atau pengajuan yang diacc)
-  if (personalSchedule?.workMode === "WFH" || existingRecord?.workMode === "WFH") {
+  // A. Jika sudah melakukan check-in WFH hari ini, blok WFO scan
+  if (existingRecord?.workMode === "WFH" && existingRecord.checkInAt) {
     return {
       success: true,
-      info: "Jadwal Anda hari ini adalah WFH. Anda harus masuk ke dashboard untuk mengisi rencana kerja.",
+      info: "Anda sudah melakukan check-in WFH hari ini. Silakan masuk ke dashboard untuk mengisi laporan.",
       redirectUrl: getDashboardPath(user.role),
     };
   }
@@ -239,7 +253,8 @@ export async function loginAndAttendWithQrAction(qrUid: string, action?: string)
         data: {
           userId: user.id,
           attendanceDate,
-          ownerStudioId: user.defaultStudioId,
+          ownerStudioId: user.defaultStudioId ?? currentStudioId,
+          locationStudioId: currentStudioId,
           workMode: "WFO",
           status: "ALPHA",
           locationValidationStatus: "NOT_REQUIRED",
@@ -262,8 +277,8 @@ export async function loginAndAttendWithQrAction(qrUid: string, action?: string)
       data: {
         userId: user.id,
         attendanceDate,
-        ownerStudioId: user.defaultStudioId,
-        locationStudioId: user.defaultStudioId,
+        ownerStudioId: user.defaultStudioId ?? currentStudioId,
+        locationStudioId: currentStudioId,
         workMode: "WFO",
         status,
         checkInAt: now,

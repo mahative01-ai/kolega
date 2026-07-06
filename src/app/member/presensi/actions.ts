@@ -73,6 +73,8 @@ export async function createPersonalQrCredentialAction() {
   redirect(`${dashboardPath}?success=qr-created`);
 }
 
+// ─── WFO Attendance Submission (Camera/QR scan at office) ──────────────────
+
 export async function submitWfoAttendanceAction(formData: FormData) {
   const currentUser = await requireAnyRole(["ADMIN", "MEMBER"]);
   const qrUid = String(formData.get("qrUid") ?? "").trim();
@@ -81,7 +83,19 @@ export async function submitWfoAttendanceAction(formData: FormData) {
     redirect("/member/presensi?error=qr");
   }
 
-  if (!currentUser.defaultStudioId) {
+  // Check active placement
+  const activePlacement = await prisma.placement.findFirst({
+    where: {
+      userId: currentUser.id,
+      status: "ACTIVE",
+    },
+    select: {
+      studioId: true,
+    },
+  });
+  const currentStudioId = activePlacement?.studioId ?? currentUser.defaultStudioId;
+
+  if (!currentStudioId) {
     redirect("/member/presensi?error=studio");
   }
 
@@ -115,7 +129,7 @@ export async function submitWfoAttendanceAction(formData: FormData) {
     await Promise.all([
     prisma.attendancePolicy.findFirst({
       where: {
-        studioId: currentUser.defaultStudioId,
+        studioId: currentStudioId,
         isActive: true,
       },
       orderBy: {
@@ -141,7 +155,7 @@ export async function submitWfoAttendanceAction(formData: FormData) {
     prisma.weeklyWorkRule.findUnique({
       where: {
         studioId_dayOfWeek: {
-          studioId: currentUser.defaultStudioId,
+          studioId: currentStudioId,
           dayOfWeek,
         },
       },
@@ -149,7 +163,7 @@ export async function submitWfoAttendanceAction(formData: FormData) {
     }),
     prisma.calendarEvent.findFirst({
       where: {
-        OR: [{ studioId: null }, { studioId: currentUser.defaultStudioId }],
+        OR: [{ studioId: null }, { studioId: currentStudioId }],
         type: { in: ["NATIONAL_HOLIDAY", "COMPANY_LEAVE", "REGULAR_OFF_DAY", "STUDIO_EVENT"] },
         startDate: { lte: attendanceDate },
         endDate: { gte: attendanceDate },
@@ -158,7 +172,7 @@ export async function submitWfoAttendanceAction(formData: FormData) {
     }),
     prisma.calendarEvent.findFirst({
       where: {
-        studioId: currentUser.defaultStudioId,
+        studioId: currentStudioId,
         type: "REPLACEMENT_WORKDAY",
         startDate: { lte: attendanceDate },
         endDate: { gte: attendanceDate },
@@ -184,10 +198,12 @@ export async function submitWfoAttendanceAction(formData: FormData) {
 
   const isWeekendOrHoliday = (holiday && !replacementWorkday) || (weeklyRule?.isWorkday === false && personalSchedule?.workMode !== "WFO" && !replacementWorkday);
 
-  if (
-    personalSchedule?.workMode === "WFH" ||
-    isWeekendOrHoliday
-  ) {
+  // WFO override WFH: Block WFO scan only if they already checked in WFH
+  if (existingRecord?.workMode === "WFH" && existingRecord.checkInAt) {
+    redirect("/member/presensi?error=mode");
+  }
+
+  if (isWeekendOrHoliday) {
     redirect("/member/presensi?error=mode");
   }
 
@@ -254,7 +270,8 @@ export async function submitWfoAttendanceAction(formData: FormData) {
         data: {
           userId: currentUser.id,
           attendanceDate,
-          ownerStudioId: currentUser.defaultStudioId,
+          ownerStudioId: currentUser.defaultStudioId ?? currentStudioId,
+          locationStudioId: currentStudioId,
           workMode: "WFO",
           status: "ALPHA",
           locationValidationStatus: "NOT_REQUIRED",
@@ -289,8 +306,8 @@ export async function submitWfoAttendanceAction(formData: FormData) {
         workMode: "WFO",
         status,
         checkInAt: now,
-        ownerStudioId: currentUser.defaultStudioId,
-        locationStudioId: currentUser.defaultStudioId,
+        ownerStudioId: currentUser.defaultStudioId ?? currentStudioId,
+        locationStudioId: currentStudioId,
         locationValidationStatus: "NOT_REQUIRED",
         lateMinutes,
       },
@@ -301,8 +318,8 @@ export async function submitWfoAttendanceAction(formData: FormData) {
         data: {
           userId: currentUser.id,
           attendanceDate,
-          ownerStudioId: currentUser.defaultStudioId,
-          locationStudioId: currentUser.defaultStudioId,
+          ownerStudioId: currentUser.defaultStudioId ?? currentStudioId,
+          locationStudioId: currentStudioId,
           workMode: "WFO",
           status,
           checkInAt: now,
@@ -324,10 +341,24 @@ export async function submitWfoAttendanceAction(formData: FormData) {
   redirect("/member/presensi?success=checkin");
 }
 
+// ─── WFH Attendance Submission (Work plans & reports) ──────────────────────
+
 export async function submitWfhAttendanceAction(formData: FormData) {
   const currentUser = await requireAnyRole(["ADMIN", "MEMBER"]);
 
-  if (!currentUser.defaultStudioId) {
+  // Check active placement
+  const activePlacement = await prisma.placement.findFirst({
+    where: {
+      userId: currentUser.id,
+      status: "ACTIVE",
+    },
+    select: {
+      studioId: true,
+    },
+  });
+  const currentStudioId = activePlacement?.studioId ?? currentUser.defaultStudioId;
+
+  if (!currentStudioId) {
     redirect("/member/presensi?error=studio");
   }
 
@@ -394,7 +425,8 @@ export async function submitWfhAttendanceAction(formData: FormData) {
         data: {
           userId: currentUser.id,
           attendanceDate,
-          ownerStudioId: currentUser.defaultStudioId,
+          ownerStudioId: currentUser.defaultStudioId ?? currentStudioId,
+          locationStudioId: currentStudioId,
           workMode: "WFH",
           status: "WFH",
           checkInAt: now,
