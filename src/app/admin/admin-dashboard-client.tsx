@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   AlertTriangle,
   ClipboardCheck,
@@ -22,13 +25,24 @@ import {
   Users,
   Settings,
   FolderLock,
-  Brush
+  Brush,
+  Megaphone,
+  Check,
+  X,
+  Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createPersonalQrCredentialAction } from "@/app/member/presensi/actions";
 import { WfhForm } from "@/app/member/presensi/wfh-form";
 import { DashboardCharts } from "@/components/dashboard-charts";
 import { AttendanceSummary } from "@/lib/attendance-report";
+import {
+  broadcastAnnouncementAction,
+  quickAssignPicketAction,
+  quickRemovePicketAction
+} from "./actions";
+import { quickReviewRequestAction } from "./requests/actions";
+import { quickReviewCorrectionAction } from "./corrections/actions";
 
 type Props = {
   currentUser: {
@@ -77,6 +91,26 @@ type Props = {
       workMode: string;
     } | null;
     dailyTrend?: Array<{ dateLabel: string; count: number }>;
+    pendingRequestList?: Array<{
+      id: string;
+      userId: string;
+      type: string;
+      startDate: Date;
+      endDate: Date;
+      reason: string;
+      user: { name: string; email: string };
+    }>;
+    pendingCorrectionList?: Array<{
+      id: string;
+      attendanceRecordId: string;
+      newStatus: string | null;
+      reason: string;
+      requestedBy: { name: string; email: string };
+    }>;
+    studioMembers?: Array<{
+      id: string;
+      name: string;
+    }>;
   };
   qrSvg: string | null;
   days: { date: Date; dateKey: string; dayNumber: number }[];
@@ -148,6 +182,17 @@ export function AdminDashboardClient({
   const [activeTab, setActiveTab] = useState<"personal" | "studio">("personal");
   const isWfhMode = data.todaySchedule?.workMode === "WFH" || data.todayRecord?.workMode === "WFH";
 
+  // Category 4 - State & Transitions
+  const [isPending, startTransition] = useTransition();
+  const [announcementMsg, setAnnouncementMsg] = useState("");
+  const [broadcastErr, setBroadcastErr] = useState("");
+  const [broadcastSucc, setBroadcastSucc] = useState("");
+
+  const [picketUserId, setPicketUserId] = useState("");
+  const [removingPickets, setRemovingPickets] = useState<Record<string, boolean>>({});
+  const [reviewingRequests, setReviewingRequests] = useState<Record<string, boolean>>({});
+  const [reviewingCorrections, setReviewingCorrections] = useState<Record<string, boolean>>({});
+
   const personalMetrics = [
     {
       label: `Kehadiran Saya ${data.monthLabel}`,
@@ -214,19 +259,89 @@ export function AdminDashboardClient({
     },
   ];
 
-  const dayLabels = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
+  // ── Handlers ───────────────────────────────────────────────────────────────
+
+  function handleBroadcast() {
+    if (!announcementMsg.trim()) return;
+    setBroadcastErr("");
+    setBroadcastSucc("");
+    startTransition(async () => {
+      try {
+        const res = await broadcastAnnouncementAction(announcementMsg);
+        if (res.success) {
+          setBroadcastSucc(res.message);
+          setAnnouncementMsg("");
+          setTimeout(() => setBroadcastSucc(""), 3000);
+        }
+      } catch (err: any) {
+        setBroadcastErr(err.message || "Gagal menyebarkan pengumuman.");
+      }
+    });
+  }
+
+  function handleQuickAssignPicket() {
+    if (!picketUserId) return;
+    startTransition(async () => {
+      try {
+        const todayStr = new Date().toISOString().split("T")[0];
+        await quickAssignPicketAction(picketUserId, todayStr);
+        setPicketUserId("");
+      } catch (err: any) {
+        alert(err.message || "Gagal menunjuk petugas piket.");
+      }
+    });
+  }
+
+  function handleQuickRemovePicket(picketId: string) {
+    setRemovingPickets((prev) => ({ ...prev, [picketId]: true }));
+    startTransition(async () => {
+      try {
+        await quickRemovePicketAction(picketId);
+      } catch (err: any) {
+        alert(err.message || "Gagal menghapus piket.");
+      } finally {
+        setRemovingPickets((prev) => ({ ...prev, [picketId]: false }));
+      }
+    });
+  }
+
+  function handleQuickReviewRequest(requestId: string, approve: boolean) {
+    setReviewingRequests((prev) => ({ ...prev, [requestId]: true }));
+    startTransition(async () => {
+      try {
+        await quickReviewRequestAction(requestId, approve);
+      } catch (err: any) {
+        alert(err.message || "Gagal memproses pengajuan.");
+      } finally {
+        setReviewingRequests((prev) => ({ ...prev, [requestId]: false }));
+      }
+    });
+  }
+
+  function handleQuickReviewCorrection(correctionId: string, approve: boolean) {
+    setReviewingCorrections((prev) => ({ ...prev, [correctionId]: true }));
+    startTransition(async () => {
+      try {
+        await quickReviewCorrectionAction(correctionId, approve);
+      } catch (err: any) {
+        alert(err.message || "Gagal memproses koreksi.");
+      } finally {
+        setReviewingCorrections((prev) => ({ ...prev, [correctionId]: false }));
+      }
+    });
+  }
 
   return (
     <div className="space-y-6">
-      {/* Navigation Tabs */}
+      {/* Tab Switcher */}
       <div className="flex border-b border-zinc-200 dark:border-zinc-800">
         <button
           onClick={() => setActiveTab("personal")}
           className={cn(
-            "flex items-center gap-2 py-3 px-5 text-sm font-semibold border-b-2 transition-colors focus:outline-none",
+            "px-4 py-2.5 text-sm font-semibold border-b-2 -mb-[2px] transition-colors flex items-center gap-1.5",
             activeTab === "personal"
-              ? "border-blue-700 text-blue-700 dark:border-blue-400 dark:text-blue-400"
-              : "border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+              ? "border-zinc-950 text-zinc-950 dark:border-zinc-100 dark:text-zinc-100"
+              : "border-transparent text-zinc-500 hover:text-zinc-800"
           )}
         >
           <User className="size-4" />
@@ -235,21 +350,21 @@ export function AdminDashboardClient({
         <button
           onClick={() => setActiveTab("studio")}
           className={cn(
-            "flex items-center gap-2 py-3 px-5 text-sm font-semibold border-b-2 transition-colors focus:outline-none",
+            "px-4 py-2.5 text-sm font-semibold border-b-2 -mb-[2px] transition-colors flex items-center gap-1.5",
             activeTab === "studio"
-              ? "border-blue-700 text-blue-700 dark:border-blue-400 dark:text-blue-400"
-              : "border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+              ? "border-zinc-950 text-zinc-950 dark:border-zinc-100 dark:text-zinc-100"
+              : "border-transparent text-zinc-500 hover:text-zinc-800"
           )}
         >
           <Users className="size-4" />
-          Manajemen Studio ({data.studio?.name ?? "Studio"})
+          Manajemen Studio
         </button>
       </div>
 
-      {/* ───── TAB 1: PERSONAL VIEW (ACTIVITAS SAYA) ───── */}
+      {/* ───── TAB 1: PERSONAL WORKSPACE (AKTIVITAS SAYA) ───── */}
       {activeTab === "personal" && (
         <div className="space-y-6 animate-in fade-in-50 duration-200">
-          {/* Personal Metrics */}
+          {/* Metrics */}
           <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {personalMetrics.map((metric) => {
               const Icon = metric.icon;
@@ -271,7 +386,7 @@ export function AdminDashboardClient({
             })}
           </section>
 
-          {/* Personal Attendance Status Card */}
+          {/* Today's Record */}
           <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
@@ -320,17 +435,13 @@ export function AdminDashboardClient({
                 <History className="size-4" />
                 Lihat Riwayat Presensi Saya
               </Link>
-              
               {!isWfhMode && (!data.todayRecord || !data.todayRecord.checkOutAt) && (
                 <Link
-                  href={data.todayRecord?.checkInAt ? "/login?action=checkout" : "/login"}
-                  className={cn(
-                    buttonVariants({ variant: "default", size: "sm" }),
-                    "flex items-center gap-1.5 bg-zinc-950 dark:bg-zinc-100 hover:bg-zinc-900 dark:hover:bg-zinc-200 text-white dark:text-zinc-950"
-                  )}
+                  href="/member/presensi"
+                  className={cn(buttonVariants({ variant: "default", size: "sm" }), "flex items-center gap-1.5")}
                 >
                   <Camera className="size-4" />
-                  {data.todayRecord?.checkInAt ? "Scan Check-out WFO" : "Scan Check-in WFO"}
+                  Presensi WFO (Kamera/QR)
                 </Link>
               )}
             </CardContent>
@@ -351,9 +462,9 @@ export function AdminDashboardClient({
             )}
           </Card>
 
-          {/* Calendar & QR Card Grid */}
+          {/* QR and Calendar */}
           <div className="grid gap-6 lg:grid-cols-[0.35fr_0.65fr]">
-            {/* QR Card Saya */}
+            {/* QR Card */}
             <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
@@ -361,7 +472,7 @@ export function AdminDashboardClient({
                   QR Card Saya
                 </CardTitle>
                 <CardDescription className="text-zinc-500 dark:text-zinc-400">
-                  Kartu QR Card digital untuk melakukan presensi WFO di HP/Laptop.
+                  Kartu QR digital untuk memindai kehadiran di kantor.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -382,20 +493,14 @@ export function AdminDashboardClient({
                     <div className="grid gap-2">
                       <a
                         href="/member/presensi/qr-card?format=png"
-                        className={cn(
-                          buttonVariants({ variant: "outline", size: "sm" }),
-                          "w-full flex items-center justify-center gap-1.5"
-                        )}
+                        className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-full flex items-center justify-center gap-1.5")}
                       >
                         <Download className="size-4" />
                         Unduh PNG
                       </a>
                       <a
                         href="/member/presensi/qr-card?format=jpeg"
-                        className={cn(
-                          buttonVariants({ variant: "outline", size: "sm" }),
-                          "w-full flex items-center justify-center gap-1.5"
-                        )}
+                        className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-full flex items-center justify-center gap-1.5")}
                       >
                         <Download className="size-4" />
                         Unduh JPEG
@@ -413,40 +518,27 @@ export function AdminDashboardClient({
               </CardContent>
             </Card>
 
-            {/* Kalender Kerja Pribadi */}
+            {/* Calendar */}
             <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
-                  <CalendarDays className="size-5 text-blue-700 dark:text-blue-400" />
-                  Jadwal Kerja Saya
-                </CardTitle>
+              <CardHeader>
+                <CardTitle className="text-zinc-900 dark:text-zinc-50">Jadwal Kalender Kerja Saya</CardTitle>
                 <CardDescription className="text-zinc-500 dark:text-zinc-400">
-                  Kalender jadwal kerja personal Anda bulan ini.
+                  Mode kerja kalender pribadi Anda bulan ini.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {/* Day header */}
-                <div className="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-zinc-400 mb-2">
-                  {dayLabels.map((lbl) => (
-                    <div key={lbl} className="py-1">
-                      {lbl}
+                <div className="grid grid-cols-7 border border-zinc-200 dark:border-zinc-800 rounded overflow-hidden">
+                  {["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"].map((d) => (
+                    <div key={d} className="bg-zinc-50 dark:bg-zinc-900/50 py-1.5 text-center text-[10px] font-bold text-zinc-500 border-b border-zinc-200 dark:border-zinc-800">
+                      {d}
                     </div>
                   ))}
-                </div>
-
-                {/* Grid */}
-                <div className="grid grid-cols-7 gap-px rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-200 dark:bg-zinc-800 overflow-hidden">
-                  {/* Blanks */}
-                  {Array.from({ length: leadingBlankDays }).map((_, i) => (
-                    <div key={`blank-${i}`} className="min-h-12 bg-zinc-50 dark:bg-zinc-900/40" />
+                  {Array.from({ length: leadingBlankDays }, (_, idx) => (
+                    <div key={`blank-${idx}`} className="bg-zinc-50/50 dark:bg-zinc-900/10 border-b border-r border-zinc-100 dark:border-zinc-800 min-h-12" />
                   ))}
-
-                  {/* Days */}
                   {days.map((day) => {
-                    const dateStr = day.dateKey;
-                    const schedule = scheduleByDateMap[dateStr];
-                    const isToday = dateStr === todayKey;
-
+                    const schedule = scheduleByDateMap[day.dateKey];
+                    const isToday = day.dateKey === todayKey;
                     return (
                       <div
                         key={day.dateKey}
@@ -517,28 +609,125 @@ export function AdminDashboardClient({
             <DashboardCharts summary={data.summary} dailyTrend={data.dailyTrend} />
           </section>
 
-          {/* Pending Alerts Card */}
-          {data.pendingRequests > 0 && (
-            <div className="rounded-lg border border-amber-200 dark:border-amber-900/50 bg-amber-50/50 dark:bg-amber-950/20 p-4 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2.5">
-                <AlertTriangle className="size-5 text-amber-600 dark:text-amber-400 shrink-0" />
-                <div>
-                  <h4 className="text-sm font-bold text-amber-900 dark:text-amber-200">Menunggu Persetujuan Izin</h4>
-                  <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
-                    Ada {data.pendingRequests} pengajuan izin/sakit/cuti yang menunggu verifikasi Anda di studio.
-                  </p>
-                </div>
+          {/* Category 4: Quick Approvals (Pending Request & Corrections) */}
+          {((data.pendingRequestList && data.pendingRequestList.length > 0) ||
+            (data.pendingCorrectionList && data.pendingCorrectionList.length > 0)) ? (
+            <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+              <CardHeader className="pb-3 border-b border-zinc-100 dark:border-zinc-800">
+                <CardTitle className="text-base text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+                  <ShieldCheck className="size-5 text-blue-700 dark:text-blue-400" />
+                  Persetujuan Cepat (Pending Approvals)
+                </CardTitle>
+                <CardDescription className="text-xs text-zinc-500">
+                  Tinjau pengajuan izin magang & koreksi presensi harian anggota studio Anda di bawah ini secara cepat.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-4 space-y-4">
+                {/* 1. Requests (Sakit, Cuti, Izin) */}
+                {data.pendingRequestList && data.pendingRequestList.length > 0 && (
+                  <div className="space-y-2.5">
+                    <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Izin & Sakit</h4>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {data.pendingRequestList.map((req) => {
+                        const isReviewing = reviewingRequests[req.id] || false;
+                        return (
+                          <div key={req.id} className="rounded-lg border border-zinc-200 dark:border-zinc-800 p-3 bg-zinc-50/50 dark:bg-zinc-900/10 flex flex-col justify-between gap-3 text-xs">
+                            <div>
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="font-semibold text-zinc-800 dark:text-zinc-200">{req.user.name}</span>
+                                <Badge className="text-[10px] font-semibold">{req.type}</Badge>
+                              </div>
+                              <p className="text-[10px] text-zinc-500 font-medium">
+                                Tanggal: {new Date(req.startDate).toLocaleDateString("id-ID", { day: "numeric", month: "short" })} - {new Date(req.endDate).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
+                              </p>
+                              <p className="text-zinc-600 dark:text-zinc-400 mt-2 font-normal italic">"{req.reason}"</p>
+                            </div>
+                            <div className="flex justify-end gap-2 border-t border-zinc-100 dark:border-zinc-800 pt-2.5">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-[10px] text-red-600 border-red-200 bg-red-50/50 hover:bg-red-50"
+                                onClick={() => handleQuickReviewRequest(req.id, false)}
+                                disabled={isPending || isReviewing}
+                              >
+                                {isReviewing ? <Loader2 className="size-3 animate-spin" /> : <X className="size-3 mr-1" />}
+                                Tolak
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="default"
+                                className="h-7 text-[10px] bg-emerald-600 text-white hover:bg-emerald-700 border-0"
+                                onClick={() => handleQuickReviewRequest(req.id, true)}
+                                disabled={isPending || isReviewing}
+                              >
+                                {isReviewing ? <Loader2 className="size-3 animate-spin" /> : <Check className="size-3 mr-1" />}
+                                Setujui
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. Corrections */}
+                {data.pendingCorrectionList && data.pendingCorrectionList.length > 0 && (
+                  <div className="space-y-2.5 pt-2">
+                    <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Koreksi Presensi</h4>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {data.pendingCorrectionList.map((corr) => {
+                        const isReviewing = reviewingCorrections[corr.id] || false;
+                        return (
+                          <div key={corr.id} className="rounded-lg border border-zinc-200 dark:border-zinc-800 p-3 bg-zinc-50/50 dark:bg-zinc-900/10 flex flex-col justify-between gap-3 text-xs">
+                            <div>
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="font-semibold text-zinc-800 dark:text-zinc-200">{corr.requestedBy.name}</span>
+                                <Badge variant="outline" className="text-[10px] border-amber-300 bg-amber-50 text-amber-800 font-semibold">Koreksi: {corr.newStatus}</Badge>
+                              </div>
+                              <p className="text-zinc-600 dark:text-zinc-400 mt-2 font-normal italic">"{corr.reason}"</p>
+                            </div>
+                            <div className="flex justify-end gap-2 border-t border-zinc-100 dark:border-zinc-800 pt-2.5">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-[10px] text-red-600 border-red-200 bg-red-50/50 hover:bg-red-50"
+                                onClick={() => handleQuickReviewCorrection(corr.id, false)}
+                                disabled={isPending || isReviewing}
+                              >
+                                {isReviewing ? <Loader2 className="size-3 animate-spin" /> : <X className="size-3 mr-1" />}
+                                Tolak
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="default"
+                                className="h-7 text-[10px] bg-emerald-600 text-white hover:bg-emerald-700 border-0"
+                                onClick={() => handleQuickReviewCorrection(corr.id, true)}
+                                disabled={isPending || isReviewing}
+                              >
+                                {isReviewing ? <Loader2 className="size-3 animate-spin" /> : <Check className="size-3 mr-1" />}
+                                Setujui
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 flex flex-col items-center justify-center text-center">
+              <div className="rounded-full bg-emerald-50 dark:bg-emerald-950/20 p-2.5 text-emerald-600 mb-3">
+                <Check className="size-5" />
               </div>
-              <Link
-                href="/admin/requests"
-                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "border-amber-200 dark:border-amber-900 bg-white dark:bg-zinc-950 text-amber-800 dark:text-amber-300 hover:bg-amber-100/50")}
-              >
-                Lihat Pengajuan
-              </Link>
+              <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Semua Beres!</p>
+              <p className="text-xs text-zinc-500 mt-0.5">Tidak ada pengajuan izin atau koreksi presensi yang menanti persetujuan.</p>
             </div>
           )}
 
-          {/* Picket Duty Info & Quick Actions */}
+          {/* Picket Duty Info & Broadcast Announcement */}
           <div className="grid gap-6 md:grid-cols-3">
             {/* Picket Duty Info */}
             <Card className="md:col-span-2 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
@@ -551,58 +740,133 @@ export function AdminDashboardClient({
                   Staf yang bertanggung jawab atas ketertiban studio hari ini.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="pt-4">
+              <CardContent className="pt-4 space-y-4">
                 {data.picketToday.length === 0 ? (
                   <p className="text-center py-6 text-xs text-zinc-400 dark:text-zinc-500">
                     Belum ada petugas piket yang ditugaskan hari ini.
                   </p>
                 ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {data.picketToday.map((picket) => (
-                      <div
-                        key={picket.id}
-                        className="rounded-full border border-blue-100 dark:border-blue-900/50 bg-blue-50/50 dark:bg-blue-950/20 px-3.5 py-1 text-xs font-semibold text-blue-800 dark:text-blue-300 flex items-center gap-1.5"
-                      >
-                        <User className="size-3 text-blue-500" />
-                        {picket.user.name}
-                      </div>
-                    ))}
+                  <div className="flex flex-wrap gap-2.5">
+                    {data.picketToday.map((picket) => {
+                      const isRemoving = removingPickets[picket.id] || false;
+                      return (
+                        <div
+                          key={picket.id}
+                          className="rounded-full border border-blue-100 dark:border-blue-900/50 bg-blue-50/50 dark:bg-blue-950/20 pl-3.5 pr-2 py-1 text-xs font-semibold text-blue-800 dark:text-blue-300 flex items-center gap-1.5"
+                        >
+                          <User className="size-3 text-blue-500" />
+                          <span>{picket.user.name}</span>
+                          <button
+                            onClick={() => handleQuickRemovePicket(picket.id)}
+                            disabled={isPending || isRemoving}
+                            className="rounded-full hover:bg-blue-100 dark:hover:bg-blue-900 p-0.5 text-blue-400 hover:text-red-600 transition-colors shrink-0"
+                            title="Hapus petugas piket"
+                          >
+                            {isRemoving ? <Loader2 className="size-3 animate-spin" /> : <X className="size-3" />}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Quick Picket Switcher Selection */}
+                {data.studioMembers && data.studioMembers.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-2.5 pt-3 border-t border-dashed border-zinc-100 dark:border-zinc-800">
+                    <Label htmlFor="picket-select" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Tunjuk Petugas:</Label>
+                    <select
+                      id="picket-select"
+                      value={picketUserId}
+                      onChange={(e) => setPicketUserId(e.target.value)}
+                      className="rounded border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-2 py-1 text-xs text-zinc-700 dark:text-zinc-300 outline-none"
+                    >
+                      <option value="">-- Pilih Anggota --</option>
+                      {data.studioMembers.map((m) => (
+                        <option key={m.id} value={m.id}>{m.name}</option>
+                      ))}
+                    </select>
+                    <Button
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={handleQuickAssignPicket}
+                      disabled={isPending || !picketUserId}
+                    >
+                      Tunjuk
+                    </Button>
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            {/* Quick Actions Card */}
-            <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+            {/* Broadcast Announcement Card */}
+            <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex flex-col justify-between">
+              <div>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-bold text-zinc-900 dark:text-zinc-50 flex items-center gap-1.5">
+                    <Megaphone className="size-4 text-blue-700 dark:text-blue-400" />
+                    Broadcast Pengumuman
+                  </CardTitle>
+                  <CardDescription className="text-xs text-zinc-500">
+                    Kirim pesan cepat ke dasbor semua anggota studio Anda.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Textarea
+                    placeholder="Tulis pengumuman studio..."
+                    className="min-h-20 text-xs resize-none"
+                    value={announcementMsg}
+                    onChange={(e) => setAnnouncementMsg(e.target.value)}
+                  />
+                  {broadcastErr && <p className="text-[10px] text-red-600">{broadcastErr}</p>}
+                  {broadcastSucc && <p className="text-[10px] text-emerald-600 font-semibold">{broadcastSucc}</p>}
+                </CardContent>
+              </div>
+              <CardContent className="pt-0 flex justify-end">
+                <Button
+                  size="sm"
+                  className="w-full text-xs"
+                  onClick={handleBroadcast}
+                  disabled={isPending || !announcementMsg.trim()}
+                >
+                  {isPending ? <Loader2 className="size-3.5 animate-spin mr-1.5" /> : null}
+                  Sebarkan Pesan
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Operational Links Card */}
+          <div className="grid gap-6 md:grid-cols-3">
+            <Card className="md:col-span-2 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-bold text-zinc-900 dark:text-zinc-50">
-                  Aksi Operasional
+                  Aksi Operasional Studio
                 </CardTitle>
                 <CardDescription className="text-zinc-500 dark:text-zinc-400">
-                  Kelola staf dan aturan studio.
+                  Menu pintas untuk mengelola staf dan aturan studio secara menyeluruh.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="grid gap-2">
+              <CardContent className="grid gap-3 sm:grid-cols-3">
                 <Link
                   href="/piket"
-                  className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-full justify-start text-xs")}
+                  className={cn(buttonVariants({ variant: "outline", size: "sm" }), "justify-center text-xs w-full")}
                 >
                   <CalendarDays className="size-3.5 mr-1.5 text-zinc-500" />
-                  Atur Penjadwalan Piket
+                  Atur Kalender Piket
                 </Link>
                 <Link
                   href="/schedules"
-                  className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-full justify-start text-xs")}
+                  className={cn(buttonVariants({ variant: "outline", size: "sm" }), "justify-center text-xs w-full")}
                 >
                   <Settings className="size-3.5 mr-1.5 text-zinc-500" />
-                  Kelola Jadwal Kerja Tim
+                  Kelola Jadwal WFH/WFO
                 </Link>
                 <Link
                   href="/roles"
-                  className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-full justify-start text-xs")}
+                  className={cn(buttonVariants({ variant: "outline", size: "sm" }), "justify-center text-xs w-full")}
                 >
                   <FolderLock className="size-3.5 mr-1.5 text-zinc-500" />
-                  Manajemen Staf & Akses
+                  Manajemen Hak Akses
                 </Link>
               </CardContent>
             </Card>

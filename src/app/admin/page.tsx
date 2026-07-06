@@ -50,6 +50,9 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
     todayRecord,
     todaySchedule,
     rawDailyTrend,
+    pendingRequestList,
+    pendingCorrectionList,
+    studioMembers,
   ] = await Promise.all([
     defaultStudioId
       ? prisma.studio.findUnique({
@@ -186,6 +189,43 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
       _count: { _all: true },
       orderBy: { attendanceDate: "asc" },
     }),
+    prisma.request.findMany({
+      where: {
+        status: "PENDING",
+        user: userFilter,
+      },
+      include: {
+        user: {
+          select: { name: true, email: true },
+        },
+      },
+      orderBy: { createdAt: "asc" },
+    }),
+    prisma.attendanceCorrection.findMany({
+      where: {
+        status: "PENDING",
+        attendanceRecord: {
+          ownerStudioId: defaultStudioId ?? "__none__",
+        },
+      },
+      include: {
+        requestedBy: {
+          select: { name: true, email: true },
+        },
+      },
+      orderBy: { createdAt: "asc" },
+    }),
+    prisma.user.findMany({
+      where: {
+        ...userFilter,
+        accountStatus: "ACTIVE",
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: { name: "asc" },
+    }),
   ]);
 
   const dailyTrend: { dateLabel: string; count: number }[] = [];
@@ -223,6 +263,9 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
     todayRecord,
     todaySchedule,
     dailyTrend,
+    pendingRequestList,
+    pendingCorrectionList,
+    studioMembers,
     monthLabel: formatMonthLabel(reportMonth),
     selectedMonth: month,
   };

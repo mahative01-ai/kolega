@@ -20,6 +20,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DashboardShell } from "@/components/dashboard-shell";
 import { createPersonalQrCredentialAction } from "@/app/member/presensi/actions";
 import { WfhForm } from "@/app/member/presensi/wfh-form";
+import { AnnouncementBanner } from "@/app/member/announcement-banner";
 import {
   formatMonthLabel,
   getMonthRange,
@@ -87,7 +88,18 @@ async function getMemberDashboardData(userId: string, selectedMonthKey?: string)
   const todayKey = getJakartaDateKey();
   const todayDate = dateOnlyFromKey(todayKey);
 
-  const [groups, recentAttendance, personalSchedules, qrCredential, todayRecord, todaySchedule] = await Promise.all([
+  const [
+    groups,
+    recentAttendance,
+    personalSchedules,
+    qrCredential,
+    todayRecord,
+    todaySchedule,
+    internProfile,
+    lateMinutesSum,
+    announcement,
+    picketCalendar,
+  ] = await Promise.all([
     prisma.attendanceRecord.groupBy({
       by: ["status"],
       where: {
@@ -167,6 +179,44 @@ async function getMemberDashboardData(userId: string, selectedMonthKey?: string)
         workMode: true,
       },
     }),
+    prisma.internProfile.findUnique({
+      where: { userId },
+      include: {
+        mentor: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      },
+    }),
+    prisma.attendanceRecord.aggregate({
+      where: {
+        userId,
+        attendanceDate: { gte: start, lt: endExclusive },
+      },
+      _sum: {
+        lateMinutes: true,
+      },
+    }),
+    prisma.notification.findFirst({
+      where: {
+        userId,
+        title: { startsWith: "[PENGUMUMAN]" },
+        readAt: null,
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.picketSchedule.findMany({
+      where: {
+        userId,
+        picketDate: { gte: monthStart, lte: monthEnd },
+      },
+      select: {
+        picketDate: true,
+        note: true,
+      },
+    }),
   ]);
 
   return {
@@ -176,6 +226,10 @@ async function getMemberDashboardData(userId: string, selectedMonthKey?: string)
     qrCredential,
     todayRecord,
     todaySchedule,
+    internProfile,
+    lateMakeupMinutes: lateMinutesSum._sum.lateMinutes ?? 0,
+    announcement,
+    picketCalendar,
     monthLabel: formatMonthLabel(reportMonth),
     selectedMonth: month,
   };
@@ -213,6 +267,9 @@ export default async function MemberDashboardPage({
       schedule,
     ])
   );
+  const picketDaysSet = new Set(
+    data.picketCalendar.map((p) => formatDateKey(p.picketDate))
+  );
   const todayKey = formatDateKey(dateOnly());
 
   const metrics = [
@@ -231,6 +288,7 @@ export default async function MemberDashboardPage({
     {
       label: `Terlambat ${data.monthLabel}`,
       value: data.summary.late,
+      subValue: data.lateMakeupMinutes > 0 ? `Utang: ${data.lateMakeupMinutes} m` : "Lunas",
       icon: Clock3,
       color: "text-orange-700 dark:text-orange-400",
     },
@@ -272,9 +330,18 @@ export default async function MemberDashboardPage({
       title="Dashboard Member"
       description={`Halo ${currentUser.name}. Dashboard ini fokus ke presensi pribadi, jadwal, QR card, dan request izin.`}
     >
+      {data.announcement && (
+        <AnnouncementBanner
+          id={data.announcement.id}
+          title={data.announcement.title}
+          message={data.announcement.message}
+        />
+      )}
+
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 animate-in fade-in-50 duration-200">
         {metrics.map((metric) => {
           const Icon = metric.icon;
+          const hasSubValue = 'subValue' in metric && metric.subValue;
 
           return (
             <Card key={metric.label} className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
@@ -284,10 +351,15 @@ export default async function MemberDashboardPage({
                   {metric.label}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex items-baseline justify-between gap-2">
                 <p className={cn("text-3xl font-semibold", metric.color)}>
                   {metric.value.toLocaleString("id-ID")}
                 </p>
+                {hasSubValue && (
+                  <Badge variant="outline" className="text-[10px] bg-orange-50 dark:bg-orange-950/20 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-900 px-1.5 py-0">
+                    {metric.subValue}
+                  </Badge>
+                )}
               </CardContent>
             </Card>
           );
@@ -433,6 +505,64 @@ export default async function MemberDashboardPage({
               )}
             </CardContent>
           </Card>
+
+          {/* Mentor & Progress Magang */}
+          {data.internProfile && (
+            <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-bold text-zinc-900 dark:text-zinc-50">
+                  Bimbingan Magang
+                </CardTitle>
+                <CardDescription className="text-xs text-zinc-500">Informasi pembimbing & sisa waktu magang</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Mentor Info */}
+                <div className="rounded-md border border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-3 flex flex-col gap-1">
+                  <p className="text-[10px] uppercase tracking-wider font-bold text-zinc-400">Pembimbing / Mentor</p>
+                  <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+                    {data.internProfile.mentor?.name ?? "Belum ditentukan"}
+                  </p>
+                  {data.internProfile.mentor?.email && (
+                    <p className="text-xs text-zinc-500">{data.internProfile.mentor.email}</p>
+                  )}
+                </div>
+
+                {/* Progress Bar */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-zinc-500">Masa Magang</span>
+                    <span className="font-semibold text-zinc-700 dark:text-zinc-300">
+                      {Math.max(0, Math.ceil((new Date(data.internProfile.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} Hari Lagi
+                    </span>
+                  </div>
+                  {(() => {
+                    const start = new Date(data.internProfile.startDate).getTime();
+                    const end = new Date(data.internProfile.endDate).getTime();
+                    const today = Date.now();
+                    const totalDays = Math.max(1, end - start);
+                    const passedDays = Math.max(0, today - start);
+                    const percent = Math.min(100, Math.round((passedDays / totalDays) * 100));
+
+                    return (
+                      <div className="space-y-1">
+                        <div className="h-2 w-full rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 transition-all"
+                            style={{ width: `${percent}%` }}
+                          />
+                        </div>
+                        <div className="flex justify-between text-[9px] text-zinc-400">
+                          <span>{new Date(data.internProfile.startDate).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}</span>
+                          <span className="font-bold text-zinc-600 dark:text-zinc-400">{percent}% selesai</span>
+                          <span>{new Date(data.internProfile.endDate).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         <Card id="kalender-kerja" className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
@@ -476,6 +606,7 @@ export default async function MemberDashboardPage({
                 const schedule = scheduleByDate.get(day.dateKey);
                 const isWfh = schedule?.workMode === "WFH";
                 const isToday = day.dateKey === todayKey;
+                const isPicket = picketDaysSet.has(day.dateKey);
 
                 return (
                   <div
@@ -496,16 +627,23 @@ export default async function MemberDashboardPage({
                       >
                         {day.dayNumber}
                       </span>
-                      <span
-                        className={cn(
-                          "rounded px-1 py-0.5 text-[9px] font-medium border",
-                          isWfh
-                            ? "bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-900"
-                            : "bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800"
+                      <div className="flex items-center gap-1">
+                        {isPicket && (
+                          <span className="rounded bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900 px-1 py-0.5 text-[9px] font-bold">
+                            🧹 Piket
+                          </span>
                         )}
-                      >
-                        {isWfh ? "WFH" : "WFO"}
-                      </span>
+                        <span
+                          className={cn(
+                            "rounded px-1 py-0.5 text-[9px] font-medium border",
+                            isWfh
+                              ? "bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-900"
+                              : "bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800"
+                          )}
+                        >
+                          {isWfh ? "WFH" : "WFO"}
+                        </span>
+                      </div>
                     </div>
                     {schedule?.note ? (
                       <p className="mt-1 truncate text-[9px] text-zinc-400" title={schedule.note}>
