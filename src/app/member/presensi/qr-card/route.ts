@@ -1,3 +1,4 @@
+import path from "path";
 import QRCode from "qrcode";
 import sharp from "sharp";
 import { requireAnyRole } from "@/lib/auth";
@@ -15,6 +16,9 @@ function escapeXml(value: string) {
 }
 
 export async function GET(request: Request) {
+  // Set FONTCONFIG_PATH so Sharp can locate Windows fonts inside Next.js process
+  process.env.FONTCONFIG_PATH = path.join(process.cwd(), "fonts");
+
   const currentUser = await requireAnyRole(["ADMIN", "MEMBER"]);
   const credential = await prisma.qrCredential.findFirst({
     where: {
@@ -54,36 +58,31 @@ export async function GET(request: Request) {
   <rect width="720" height="460" rx="28" fill="#ffffff"/>
   <rect x="24" y="24" width="672" height="412" rx="24" fill="#f8fafc" stroke="#d4d4d8"/>
   <rect x="48" y="48" width="624" height="76" rx="18" fill="#09090b"/>
-  <text x="76" y="82" fill="#ffffff" font-family="Arial, sans-serif" font-size="24" font-weight="700">Kolega QR Card</text>
-  <text x="76" y="106" fill="#d4d4d8" font-family="Arial, sans-serif" font-size="14">Kartu presensi WFO personal</text>
+  <text x="76" y="82" fill="#ffffff" font-family="Arial" font-size="24" font-weight="700">Kolega QR Card</text>
+  <text x="76" y="106" fill="#d4d4d8" font-family="Arial" font-size="14">Kartu presensi WFO personal</text>
   <g transform="translate(54 150)">
     ${qrSvg.replace("<svg", '<svg x="0" y="0"')}
   </g>
-  <text x="350" y="174" fill="#71717a" font-family="Arial, sans-serif" font-size="13" font-weight="700">NAMA</text>
-  <text x="350" y="202" fill="#18181b" font-family="Arial, sans-serif" font-size="28" font-weight="700">${name}</text>
-  <text x="350" y="235" fill="#71717a" font-family="Arial, sans-serif" font-size="13" font-weight="700">EMAIL</text>
-  <text x="350" y="260" fill="#27272a" font-family="Arial, sans-serif" font-size="17">${email}</text>
-  <text x="350" y="294" fill="#71717a" font-family="Arial, sans-serif" font-size="13" font-weight="700">DEFAULT STUDIO</text>
-  <text x="350" y="320" fill="#27272a" font-family="Arial, sans-serif" font-size="18">${studio}</text>
-  <text x="350" y="354" fill="#71717a" font-family="Arial, sans-serif" font-size="13" font-weight="700">QR UID</text>
-  <text x="350" y="381" fill="#09090b" font-family="Consolas, monospace" font-size="20" font-weight="700">${qrUid}</text>
-  <text x="350" y="410" fill="#71717a" font-family="Arial, sans-serif" font-size="13">Aktif sejak ${escapeXml(issuedAt)}</text>
+  <text x="350" y="174" fill="#71717a" font-family="Arial" font-size="13" font-weight="700">NAMA</text>
+  <text x="350" y="202" fill="#18181b" font-family="Arial" font-size="28" font-weight="700">${name}</text>
+  <text x="350" y="235" fill="#71717a" font-family="Arial" font-size="13" font-weight="700">EMAIL</text>
+  <text x="350" y="260" fill="#27272a" font-family="Arial" font-size="17">${email}</text>
+  <text x="350" y="294" fill="#71717a" font-family="Arial" font-size="13" font-weight="700">DEFAULT STUDIO</text>
+  <text x="350" y="320" fill="#27272a" font-family="Arial" font-size="18">${studio}</text>
+  <text x="350" y="354" fill="#71717a" font-family="Arial" font-size="13" font-weight="700">QR UID</text>
+  <text x="350" y="381" fill="#09090b" font-family="Consolas" font-size="20" font-weight="700">${qrUid}</text>
+  <text x="350" y="410" fill="#71717a" font-family="Arial" font-size="13">Aktif sejak ${escapeXml(issuedAt)}</text>
 </svg>`;
 
-  const requestedFormat = new URL(request.url).searchParams.get("format");
-  const format = requestedFormat === "jpeg" ? "jpeg" : "png";
   const imagePipeline = sharp(Buffer.from(svg)).flatten({
     background: "#ffffff",
   });
-  const image =
-    format === "jpeg"
-      ? await imagePipeline.jpeg({ quality: 92 }).toBuffer()
-      : await imagePipeline.png({ compressionLevel: 9 }).toBuffer();
+  const image = await imagePipeline.jpeg({ quality: 92 }).toBuffer();
 
   return new Response(new Uint8Array(image), {
     headers: {
-      "Content-Type": format === "jpeg" ? "image/jpeg" : "image/png",
-      "Content-Disposition": `attachment; filename="kolega-qr-card.${format === "jpeg" ? "jpg" : "png"}"`,
+      "Content-Type": "image/jpeg",
+      "Content-Disposition": 'attachment; filename="kolega-qr-card.jpg"',
       "Cache-Control": "private, no-store",
     },
   });

@@ -474,24 +474,14 @@ export default async function MemberDashboardPage({
                   </div>
                   <div className="grid gap-2">
                     <a
-                      href="/member/presensi/qr-card?format=png"
+                      href="/member/presensi/qr-card"
                       className={cn(
                         buttonVariants({ variant: "outline", size: "sm" }),
                         "w-full flex items-center justify-center gap-1.5"
                       )}
                     >
                       <Download className="size-4" />
-                      Unduh PNG
-                    </a>
-                    <a
-                      href="/member/presensi/qr-card?format=jpeg"
-                      className={cn(
-                        buttonVariants({ variant: "outline", size: "sm" }),
-                        "w-full flex items-center justify-center gap-1.5"
-                      )}
-                    >
-                      <Download className="size-4" />
-                      Unduh JPEG
+                      Unduh QR Card (JPEG)
                     </a>
                   </div>
                 </>
