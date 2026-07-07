@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   Sidebar,
   SidebarContent,
@@ -122,7 +122,6 @@ function getMenuGroups(role: SidebarUser["role"]): MenuGroup[] {
         label: "Operasional",
         items: [
           { label: "User Studio", href: "/roles", icon: UsersRound },
-          { label: "Presensi Tim", href: "/admin?tab=studio", icon: ClipboardCheck },
           { label: "Jadwal Tim", href: "/schedules", icon: CalendarDays },
           { label: "Izin/Sakit/Cuti", href: "/admin/requests", icon: ClipboardList },
           { label: "Koreksi Presensi", href: "/admin/corrections", icon: Archive },
@@ -154,8 +153,6 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 
 export function AppSidebar({ user, ...props }: AppSidebarProps) {
   const currentPath = usePathname();
-  const searchParams = useSearchParams();
-  const currentTab = searchParams.get("tab");
   const groups = getMenuGroups(user.role);
 
   return (
@@ -185,16 +182,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
             <SidebarMenu>
               {group.items.map((item) => {
                 const Icon = item.icon;
-                let isActive = false;
-                if (item.href) {
-                  if (item.href === "/admin?tab=studio") {
-                    isActive = currentPath === "/admin" && currentTab === "studio";
-                  } else if (item.href === "/admin") {
-                    isActive = currentPath === "/admin" && currentTab !== "studio";
-                  } else {
-                    isActive = item.href === currentPath;
-                  }
-                }
+                const isActive = item.href === currentPath;
 
                 return (
                   <SidebarMenuItem key={item.label}>
