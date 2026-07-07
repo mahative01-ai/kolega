@@ -174,16 +174,16 @@ export async function DashboardShell({
   const hasSubpages = breadcrumbs.length > 0;
 
   return (
-    <SidebarProvider className="bg-zinc-100 dark:bg-zinc-950">
+    <SidebarProvider className="bg-zinc-100 dark:bg-background">
       <AppSidebar user={user} />
       <SidebarInset className="flex flex-col bg-white dark:bg-background border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-none m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2 text-zinc-950 dark:text-zinc-50">
         {/* Navbar */}
-        <header className="flex h-16 shrink-0 items-center justify-between border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-4 sticky top-0 z-10 transition-colors">
+        <header className="flex h-16 shrink-0 items-center justify-between border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-background px-4 sticky top-0 z-10 transition-colors">
           <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4 self-center bg-zinc-200 dark:bg-zinc-800" />
             
-            <Breadcrumb>
+            <Breadcrumb className="flex items-center">
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
                   {hasSubpages ? (

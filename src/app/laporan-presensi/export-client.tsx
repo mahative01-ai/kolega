@@ -92,11 +92,11 @@ export function AttendanceReportExportClient({ records, monthLabel }: Props) {
 
   return (
     <div className="flex gap-2 no-print">
-      <Button variant="outline" size="sm" onClick={handleExportExcel} disabled={exporting || records.length === 0}>
+      <Button variant="outline" onClick={handleExportExcel} disabled={exporting || records.length === 0}>
         <Download className="size-4 mr-1.5" />
         Ekspor Excel
       </Button>
-      <Button variant="outline" size="sm" onClick={handlePrintPDF} disabled={records.length === 0}>
+      <Button variant="outline" onClick={handlePrintPDF} disabled={records.length === 0}>
         <Printer className="size-4 mr-1.5" />
         Cetak PDF
       </Button>

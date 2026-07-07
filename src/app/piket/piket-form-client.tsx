@@ -102,7 +102,7 @@ export function PicketFormClient({ members, studioId, studios, monthKey, isSuper
                 setUserId("");
               }}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full h-9">
                 <SelectValue placeholder="Pilih Studio">
                   {(val) => val ? (studios.find((s) => s.id === val)?.name || val) : undefined}
                 </SelectValue>
@@ -122,7 +122,7 @@ export function PicketFormClient({ members, studioId, studios, monthKey, isSuper
         <div className="grid gap-1.5">
           <Label>Petugas Piket</Label>
           <Select value={userId} onValueChange={(val) => setUserId(val || "")}>
-            <SelectTrigger>
+            <SelectTrigger className="w-full h-9">
               <SelectValue placeholder={filteredMembers.length === 0 ? "Tidak ada anggota aktif" : "Pilih Anggota"}>
                 {(val) => val ? (filteredMembers.find((m) => m.id === val)?.name || val) : undefined}
               </SelectValue>

@@ -219,67 +219,74 @@ export default async function AttendanceReportPage({
       `}} />
 
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between gap-4">
-          <div />
-          <AttendanceReportExportClient
-            records={serializedRecords}
-            monthLabel={formatMonthLabel(month)}
-          />
-        </div>
+        <Card className="shadow-none">
+          <CardContent className="p-4 flex flex-wrap items-end justify-between gap-4">
+            <form method="GET" className="flex flex-wrap items-end gap-3 flex-1">
+              <div className="grid gap-1.5">
+                <label htmlFor="report-month" className="text-sm font-medium">
+                  Bulan
+                </label>
+                <input
+                  id="report-month"
+                  name="month"
+                  type="month"
+                  defaultValue={month}
+                  className="h-9 rounded-md border border-input bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 px-3 text-sm focus:outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                />
+              </div>
+              {isGlobalSuperAdmin ? (
+                <div className="grid gap-1.5">
+                  <label htmlFor="report-studio" className="text-sm font-medium">
+                    Default Studio
+                  </label>
+                  <select
+                    id="report-studio"
+                    name="studio"
+                    defaultValue={selectedStudioId ?? ""}
+                    className="h-9 rounded-md border border-input bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 px-3 text-sm focus:outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                  >
+                    <option value="">Semua Studio</option>
+                    {availableStudios.map((studio) => (
+                      <option key={studio.id} value={studio.id}>
+                        {studio.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : null}
+              <div className="grid gap-1.5">
+                <label htmlFor="report-status" className="text-sm font-medium">
+                  Status Detail
+                </label>
+                <select
+                  id="report-status"
+                  name="status"
+                  defaultValue={status}
+                  className="h-9 rounded-md border border-input bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 px-3 text-sm focus:outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                >
+                  <option value="ALL">Semua Status</option>
+                  {FILTERABLE_STATUSES.map((item) => (
+                    <option key={item} value={item}>
+                      {ATTENDANCE_STATUS_LABEL[item]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="grid gap-1.5">
+                <div className="h-5" />
+                <Button type="submit" className="h-9">Terapkan Filter</Button>
+              </div>
+            </form>
 
-        <form className="flex flex-wrap items-end gap-3 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
-        <div className="grid gap-1.5">
-          <label htmlFor="report-month" className="text-sm font-medium">
-            Bulan
-          </label>
-          <input
-            id="report-month"
-            name="month"
-            type="month"
-            defaultValue={month}
-            className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 px-3 text-sm focus:outline-none"
-          />
-        </div>
-        {isGlobalSuperAdmin ? (
-          <div className="grid gap-1.5">
-            <label htmlFor="report-studio" className="text-sm font-medium">
-              Default Studio
-            </label>
-            <select
-              id="report-studio"
-              name="studio"
-              defaultValue={selectedStudioId ?? ""}
-              className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 px-3 text-sm focus:outline-none"
-            >
-              <option value="">Semua Studio</option>
-              {availableStudios.map((studio) => (
-                <option key={studio.id} value={studio.id}>
-                  {studio.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        ) : null}
-        <div className="grid gap-1.5">
-          <label htmlFor="report-status" className="text-sm font-medium">
-            Status Detail
-          </label>
-          <select
-            id="report-status"
-            name="status"
-            defaultValue={status}
-            className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 px-3 text-sm focus:outline-none"
-          >
-            <option value="ALL">Semua Status</option>
-            {FILTERABLE_STATUSES.map((item) => (
-              <option key={item} value={item}>
-                {ATTENDANCE_STATUS_LABEL[item]}
-              </option>
-            ))}
-          </select>
-        </div>
-        <Button type="submit">Terapkan Filter</Button>
-      </form>
+            <div className="grid gap-1.5 justify-self-end">
+              <div className="h-5" />
+              <AttendanceReportExportClient
+                records={serializedRecords}
+                monthLabel={formatMonthLabel(month)}
+              />
+            </div>
+          </CardContent>
+        </Card>
 
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {metrics.map((metric) => {
