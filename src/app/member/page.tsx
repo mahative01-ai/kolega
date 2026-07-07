@@ -344,7 +344,7 @@ export default async function MemberDashboardPage({
           const hasSubValue = 'subValue' in metric && metric.subValue;
 
           return (
-            <Card key={metric.label} className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+            <Card key={metric.label} className="shadow-none h-full flex flex-col justify-between">
               <CardHeader className="pb-2">
                 <CardDescription className="flex items-center gap-2">
                   <Icon className={cn("size-4", metric.color)} />
@@ -366,7 +366,7 @@ export default async function MemberDashboardPage({
         })}
       </section>
 
-      <Card className="my-6 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+      <Card className="my-6 shadow-none">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
             <Clock3 className="size-5 text-blue-700 dark:text-blue-400" />
@@ -447,7 +447,7 @@ export default async function MemberDashboardPage({
 
       <div className="grid gap-6 lg:grid-cols-[0.35fr_0.65fr]">
         <div className="space-y-6">
-          <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+          <Card className="shadow-none">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
                 <QrCode className="size-5 text-zinc-700 dark:text-zinc-400" />
@@ -508,7 +508,7 @@ export default async function MemberDashboardPage({
 
           {/* Mentor & Progress Magang */}
           {data.internProfile && (
-            <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+            <Card className="shadow-none">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-bold text-zinc-900 dark:text-zinc-50">
                   Bimbingan Magang
@@ -565,7 +565,7 @@ export default async function MemberDashboardPage({
           )}
         </div>
 
-        <Card id="kalender-kerja" className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+        <Card id="kalender-kerja" className="shadow-none">
           <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <CardTitle className="text-zinc-900 dark:text-zinc-50">Kalender Kerja Saya</CardTitle>
@@ -662,7 +662,7 @@ export default async function MemberDashboardPage({
         </Card>
       </div>
 
-      <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+      <Card className="shadow-none">
         <CardHeader>
           <CardTitle className="text-zinc-900 dark:text-zinc-50">Riwayat Presensi Saya</CardTitle>
           <CardDescription className="text-zinc-500 dark:text-zinc-400">

@@ -369,7 +369,7 @@ export function AdminDashboardClient({
             {personalMetrics.map((metric) => {
               const Icon = metric.icon;
               return (
-                <Card key={metric.label} className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+                <Card key={metric.label} className="shadow-none h-full flex flex-col justify-between">
                   <CardHeader className="pb-2">
                     <CardDescription className="flex items-center gap-2">
                       <Icon className={cn("size-4", metric.color)} />
@@ -387,7 +387,7 @@ export function AdminDashboardClient({
           </section>
 
           {/* Today's Record */}
-          <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+          <Card className="shadow-none">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
                 <Clock3 className="size-5 text-blue-700 dark:text-blue-400" />
@@ -465,7 +465,7 @@ export function AdminDashboardClient({
           {/* QR and Calendar */}
           <div className="grid gap-6 lg:grid-cols-[0.35fr_0.65fr]">
             {/* QR Card */}
-            <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+            <Card className="shadow-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
                   <QrCode className="size-5 text-zinc-700 dark:text-zinc-400" />
@@ -519,7 +519,7 @@ export function AdminDashboardClient({
             </Card>
 
             {/* Calendar */}
-            <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+            <Card className="shadow-none">
               <CardHeader>
                 <CardTitle className="text-zinc-900 dark:text-zinc-50">Jadwal Kalender Kerja Saya</CardTitle>
                 <CardDescription className="text-zinc-500 dark:text-zinc-400">
@@ -587,7 +587,7 @@ export function AdminDashboardClient({
             {studioMetrics.map((metric) => {
               const Icon = metric.icon;
               return (
-                <Card key={metric.label} className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+                <Card key={metric.label} className="shadow-none h-full flex flex-col justify-between">
                   <CardHeader className="pb-2">
                     <CardDescription className="flex items-center gap-2">
                       <Icon className={cn("size-4", metric.color)} />
@@ -612,7 +612,7 @@ export function AdminDashboardClient({
           {/* Category 4: Quick Approvals (Pending Request & Corrections) */}
           {((data.pendingRequestList && data.pendingRequestList.length > 0) ||
             (data.pendingCorrectionList && data.pendingCorrectionList.length > 0)) ? (
-            <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+            <Card className="shadow-none">
               <CardHeader className="pb-3 border-b border-zinc-100 dark:border-zinc-800">
                 <CardTitle className="text-base text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
                   <ShieldCheck className="size-5 text-blue-700 dark:text-blue-400" />
@@ -730,7 +730,7 @@ export function AdminDashboardClient({
           {/* Picket Duty Info & Broadcast Announcement */}
           <div className="grid gap-6 md:grid-cols-3">
             {/* Picket Duty Info */}
-            <Card className="md:col-span-2 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+            <Card className="md:col-span-2 shadow-none">
               <CardHeader className="pb-3 border-b border-zinc-100 dark:border-zinc-800">
                 <CardTitle className="text-sm font-bold flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
                   <Brush className="size-4 text-blue-700 dark:text-blue-400" />
@@ -799,7 +799,7 @@ export function AdminDashboardClient({
             </Card>
 
             {/* Broadcast Announcement Card */}
-            <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex flex-col justify-between">
+            <Card className="shadow-none flex flex-col justify-between">
               <div>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-bold text-zinc-900 dark:text-zinc-50 flex items-center gap-1.5">
@@ -837,7 +837,7 @@ export function AdminDashboardClient({
 
           {/* Operational Links Card */}
           <div className="grid gap-6 md:grid-cols-3">
-            <Card className="md:col-span-2 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+            <Card className="md:col-span-2 shadow-none">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-bold text-zinc-900 dark:text-zinc-50">
                   Aksi Operasional Studio
@@ -873,7 +873,7 @@ export function AdminDashboardClient({
           </div>
 
           {/* Recent Attendance (Tabel Presensi Tim) */}
-          <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+          <Card className="shadow-none">
             <CardHeader>
               <CardTitle className="text-base text-zinc-900 dark:text-zinc-50">
                 Kehadiran Staf Hari Ini

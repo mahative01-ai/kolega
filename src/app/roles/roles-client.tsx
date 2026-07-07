@@ -135,10 +135,12 @@ export function RolesClient({
       const matchesStatus = isSuperAdmin
         ? user.accountStatus === statusFilter
         : user.accountStatus === "ACTIVE";
+      const activePlacement = user.placements?.[0];
+      const currentStudioId = activePlacement ? activePlacement.studioId : user.defaultStudioId;
       const matchesStudio =
         !isSuperAdmin ||
         studioFilter === "ALL" ||
-        user.defaultStudioId === studioFilter;
+        currentStudioId === studioFilter;
       const matchesMemberType =
         memberTypeFilter === "ALL" || user.memberStatus === memberTypeFilter;
       const matchesQuery =
@@ -199,7 +201,7 @@ export function RolesClient({
   return (
     <div className="grid gap-6">
       <section className="grid gap-3 sm:grid-cols-1">
-        <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+        <Card className="shadow-none">
           <CardHeader className="p-4 text-center">
             <CardDescription className="font-medium text-zinc-500 dark:text-zinc-400">
               Total Anggota

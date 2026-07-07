@@ -304,7 +304,7 @@ export default async function SettingsPage({
                         <Select name="studioId">
                           <SelectTrigger id="doff-studio">
                             <SelectValue placeholder="Pilih Studio">
-                              {(val) => studios.find((s) => s.id === val)?.name || (val === "" ? "🌐 Semua Studio (Global)" : val)}
+                              {(val) => val ? (studios.find((s) => s.id === val)?.name || val) : (val === "" ? "🌐 Semua Studio (Global)" : undefined)}
                             </SelectValue>
                           </SelectTrigger>
                           <SelectContent>

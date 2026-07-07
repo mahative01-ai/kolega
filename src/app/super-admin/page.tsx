@@ -387,7 +387,7 @@ export default async function SuperAdminDashboardPage() {
             const Icon = metric.icon;
 
             return (
-              <Card key={metric.label} className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+              <Card key={metric.label} className="shadow-none h-full flex flex-col justify-between">
                 <CardHeader className="pb-2">
                   <CardDescription className="flex items-center gap-2">
                     <Icon className={cn("size-4", metric.color)} />
@@ -412,7 +412,7 @@ export default async function SuperAdminDashboardPage() {
         {/* Studio Summary & Live Operations Panel */}
         <section className="grid gap-6 lg:grid-cols-[1.4fr_0.6fr]">
           {/* Studio Summary */}
-          <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+          <Card className="shadow-none">
             <CardHeader>
               <CardTitle className="text-zinc-900 dark:text-zinc-50">Ringkasan Studio</CardTitle>
               <CardDescription className="text-zinc-500 dark:text-zinc-400">
@@ -438,9 +438,11 @@ export default async function SuperAdminDashboardPage() {
                     <TableRow key={studio.id}>
                       <TableCell className="font-medium">
                         <div className="text-zinc-900 dark:text-zinc-100">{studio.name}</div>
-                        <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                          {studio.address ?? studio.slug}
-                        </div>
+                        {studio.address && (
+                          <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                            {studio.address}
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell>{studio.radiusMeters} m</TableCell>
                       <TableCell>{studio.defaultMembers}</TableCell>
@@ -470,7 +472,7 @@ export default async function SuperAdminDashboardPage() {
 
           {/* Live Action/Alert Center */}
           <div className="space-y-4">
-            <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+            <Card className="shadow-none">
               <CardHeader className="pb-3 border-b border-zinc-100 dark:border-zinc-800">
                 <CardTitle className="text-sm font-bold flex items-center gap-1.5 text-zinc-900 dark:text-zinc-50">
                   <ShieldAlert className="size-4 text-blue-700 dark:text-blue-400" />
@@ -524,7 +526,7 @@ export default async function SuperAdminDashboardPage() {
             </Card>
 
             {/* Picket Duty Info */}
-            <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+            <Card className="shadow-none">
               <CardHeader className="pb-3 border-b border-zinc-100 dark:border-zinc-800">
                 <CardTitle className="text-sm font-bold flex items-center gap-1.5 text-zinc-900 dark:text-zinc-50">
                   <Brush className="size-4 text-blue-700 dark:text-blue-400" />
@@ -571,7 +573,7 @@ export default async function SuperAdminDashboardPage() {
         </section>
 
         {/* Recent Attendance across all studios */}
-        <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+        <Card className="shadow-none">
           <CardHeader>
             <CardTitle className="text-zinc-900 dark:text-zinc-50">Kehadiran Tim Lintas Studio Hari Ini</CardTitle>
             <CardDescription className="text-zinc-500 dark:text-zinc-400">

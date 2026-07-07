@@ -82,7 +82,7 @@ export function PicketFormClient({ members, studioId, studios, monthKey, isSuper
   }
 
   return (
-    <Card className="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-none">
+    <Card className="shadow-none">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Plus className="size-5 text-blue-700 dark:text-blue-400" />
@@ -104,7 +104,7 @@ export function PicketFormClient({ members, studioId, studios, monthKey, isSuper
             >
               <SelectTrigger>
                 <SelectValue placeholder="Pilih Studio">
-                  {(val) => studios.find((s) => s.id === val)?.name || val}
+                  {(val) => val ? (studios.find((s) => s.id === val)?.name || val) : undefined}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -124,7 +124,7 @@ export function PicketFormClient({ members, studioId, studios, monthKey, isSuper
           <Select value={userId} onValueChange={(val) => setUserId(val || "")}>
             <SelectTrigger>
               <SelectValue placeholder={filteredMembers.length === 0 ? "Tidak ada anggota aktif" : "Pilih Anggota"}>
-                {(val) => filteredMembers.find((m) => m.id === val)?.name || val}
+                {(val) => val ? (filteredMembers.find((m) => m.id === val)?.name || val) : undefined}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>

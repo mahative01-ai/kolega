@@ -90,7 +90,7 @@ export default async function MemberLaporanWfhPage({
     >
       <div className="space-y-6">
         {/* Filter Section */}
-        <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+        <Card className="shadow-none">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
               <Calendar className="size-4 text-blue-700 dark:text-blue-400" />
@@ -118,7 +118,7 @@ export default async function MemberLaporanWfhPage({
         </Card>
 
         {/* WFH Records List */}
-        <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+        <Card className="shadow-none">
           <CardHeader className="pb-3 border-b border-zinc-100 dark:border-zinc-800">
             <CardTitle className="text-base flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
               <Home className="size-5 text-blue-700 dark:text-blue-400" />

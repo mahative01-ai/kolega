@@ -366,7 +366,8 @@ export default async function WorkSchedulesPage({
           : `Admin hanya melihat jadwal user aktif di studio ${currentUser.defaultStudio?.name ?? "yang sama"}.`
       }
     >
-      <section className="grid gap-3 sm:grid-cols-3">
+      <div className="space-y-6">
+        <section className="grid gap-3 sm:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
             <CardDescription className="flex items-center gap-2">
@@ -471,7 +472,7 @@ export default async function WorkSchedulesPage({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-7 overflow-hidden rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+          <div className="grid grid-cols-7 overflow-hidden rounded-md border border-zinc-200 dark:border-zinc-800 bg-card">
             {dayLabels.map((label) => (
               <div
                 key={label}
@@ -494,7 +495,7 @@ export default async function WorkSchedulesPage({
               return (
                 <div
                   key={day.dateKey}
-                  className="min-h-32 border-b border-r border-zinc-100 dark:border-zinc-800 p-2 bg-white dark:bg-zinc-950"
+                  className="min-h-32 border-b border-r border-zinc-100 dark:border-zinc-800 p-2 bg-transparent"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <span
@@ -592,6 +593,7 @@ export default async function WorkSchedulesPage({
           </div>
         </CardContent>
       </Card>
+      </div>
     </DashboardShell>
   );
 }

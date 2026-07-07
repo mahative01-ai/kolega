@@ -87,7 +87,7 @@ export function DashboardCharts({ summary, dailyTrend }: Props) {
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {/* 1. Donut Chart Card */}
-      <Card className="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-none flex flex-col justify-between">
+      <Card className="shadow-none flex flex-col justify-between">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-semibold flex items-center gap-1.5 text-zinc-900 dark:text-zinc-50">
             <PieChart className="size-4 text-blue-700 dark:text-blue-400" />
@@ -177,7 +177,7 @@ export function DashboardCharts({ summary, dailyTrend }: Props) {
       </Card>
 
       {/* 2. Composition Horizontal Bars Card */}
-      <Card className="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-none flex flex-col justify-between">
+      <Card className="shadow-none flex flex-col justify-between">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-semibold flex items-center gap-1.5 text-zinc-900 dark:text-zinc-50">
             <ClipboardList className="size-4 text-violet-700 dark:text-violet-400" />
@@ -212,7 +212,7 @@ export function DashboardCharts({ summary, dailyTrend }: Props) {
       </Card>
 
       {/* 3. Trend Line Chart Card */}
-      <Card className="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-none flex flex-col justify-between md:col-span-2 lg:col-span-1">
+      <Card className="shadow-none flex flex-col justify-between md:col-span-2 lg:col-span-1">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-semibold flex items-center gap-1.5 text-zinc-900 dark:text-zinc-50">
             <TrendingUp className="size-4 text-emerald-700 dark:text-emerald-400" />

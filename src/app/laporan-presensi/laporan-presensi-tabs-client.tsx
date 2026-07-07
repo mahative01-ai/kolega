@@ -72,7 +72,7 @@ export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }:
       </TabsList>
 
       <TabsContent value="attendance-log">
-        <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+        <Card className="shadow-none">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
               <FileText className="size-5 text-blue-700 dark:text-blue-400" />
@@ -108,7 +108,7 @@ export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }:
       </TabsContent>
 
       <TabsContent value="wfh-reports">
-        <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+        <Card className="shadow-none">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
               <Home className="size-5 text-sky-700 dark:text-sky-400" />

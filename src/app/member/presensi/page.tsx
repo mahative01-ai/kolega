@@ -98,7 +98,7 @@ export default async function MemberPresensiPage() {
         </Link>
 
         {/* Status Card */}
-        <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+        <Card className="shadow-none">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-bold flex items-center gap-2">
               <Clock3 className="size-4 text-blue-700 dark:text-blue-400" />
@@ -144,7 +144,7 @@ export default async function MemberPresensiPage() {
         </Card>
 
         {/* Scanner Card */}
-        <Card className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+        <Card className="shadow-none">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm font-bold">
               <QrCode className="size-4 text-emerald-600" />
