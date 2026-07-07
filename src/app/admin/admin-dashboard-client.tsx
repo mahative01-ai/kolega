@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -52,6 +52,7 @@ type Props = {
     role: string;
     defaultStudioId: string | null;
   };
+  defaultTab?: "personal" | "studio";
   data: {
     studio: { name: string; address: string | null } | null;
     activeMembers: number;
@@ -172,6 +173,7 @@ function formatFullDate(date: Date) {
 }
 
 export function AdminDashboardClient({
+  defaultTab,
   data,
   qrSvg,
   days,
@@ -179,8 +181,14 @@ export function AdminDashboardClient({
   todayKey,
   scheduleByDateMap,
 }: Props) {
-  const [activeTab, setActiveTab] = useState<"personal" | "studio">("personal");
+  const [activeTab, setActiveTab] = useState<"personal" | "studio">(defaultTab ?? "personal");
   const isWfhMode = data.todaySchedule?.workMode === "WFH" || data.todayRecord?.workMode === "WFH";
+
+  useEffect(() => {
+    if (defaultTab) {
+      setActiveTab(defaultTab);
+    }
+  }, [defaultTab]);
 
   // Category 4 - State & Transitions
   const [isPending, startTransition] = useTransition();

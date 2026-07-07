@@ -274,7 +274,7 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
 export default async function AdminDashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ month?: string }>;
+  searchParams: Promise<{ month?: string; tab?: string }>;
 }) {
   const [currentUser, params] = await Promise.all([
     requireRole("ADMIN"),
@@ -307,6 +307,7 @@ export default async function AdminDashboardPage({
   }
 
   const todayKey = formatDateKey(dateOnly());
+  const defaultTab = params.tab === "studio" ? "studio" : "personal";
 
   return (
     <DashboardShell
@@ -318,6 +319,7 @@ export default async function AdminDashboardPage({
     >
       <AdminDashboardClient
         currentUser={currentUser}
+        defaultTab={defaultTab}
         data={data}
         qrSvg={qrSvg}
         days={days}
