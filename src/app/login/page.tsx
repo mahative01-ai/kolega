@@ -203,12 +203,12 @@ export default async function LoginPage({
                     />
                   </Field>
 
-                  <Field className="flex flex-row items-center gap-2">
+                  <div className="flex items-center gap-2 mt-1">
                     <input
                       type="checkbox"
                       id="rememberMe"
                       name="rememberMe"
-                      className="size-4 rounded border-zinc-300 dark:border-zinc-800 text-zinc-950 focus:ring-zinc-950 dark:bg-zinc-950 dark:checked:bg-zinc-50"
+                      className="size-4 rounded border-zinc-300 dark:border-zinc-800 text-zinc-950 focus:ring-zinc-950 dark:bg-zinc-950 dark:checked:bg-zinc-50 cursor-pointer"
                     />
                     <label
                       htmlFor="rememberMe"
@@ -216,7 +216,7 @@ export default async function LoginPage({
                     >
                       Ingat saya (30 hari)
                     </label>
-                  </Field>
+                  </div>
 
                   <Field className="mt-1">
                     <Button

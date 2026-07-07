@@ -116,6 +116,7 @@ export function ProfileSettingsClient({ initialUser }: Props) {
                   name="newPassword"
                   type="password"
                   placeholder="Kosongkan jika tidak ingin mengubah"
+                  className="pl-9"
                   minLength={6}
                 />
               </div>
@@ -130,6 +131,7 @@ export function ProfileSettingsClient({ initialUser }: Props) {
                   id="profile-confirm-password"
                   name="confirmNewPassword"
                   type="password"
+                  className="pl-9"
                   placeholder="Ketik ulang kata sandi baru"
                 />
               </div>
