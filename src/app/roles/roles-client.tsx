@@ -132,15 +132,12 @@ export function RolesClient({
     const query = searchQuery.trim().toLowerCase();
 
     return users.filter((user) => {
-      const matchesStatus = isSuperAdmin
-        ? user.accountStatus === statusFilter
-        : user.accountStatus === "ACTIVE";
+      const matchesStatus = user.accountStatus === statusFilter;
       const activePlacement = user.placements?.[0];
       const currentStudioId = activePlacement ? activePlacement.studioId : user.defaultStudioId;
-      const matchesStudio =
-        !isSuperAdmin ||
-        studioFilter === "ALL" ||
-        currentStudioId === studioFilter;
+      const matchesStudio = isSuperAdmin
+        ? (studioFilter === "ALL" || currentStudioId === studioFilter)
+        : (currentStudioId === currentUser.defaultStudioId);
       const matchesMemberType =
         memberTypeFilter === "ALL" || user.memberStatus === memberTypeFilter;
       const matchesQuery =
@@ -160,6 +157,7 @@ export function RolesClient({
     statusFilter,
     studioFilter,
     users,
+    currentUser.defaultStudioId,
   ]);
 
   const totalMembers = filteredUsers.length;
@@ -230,53 +228,64 @@ export function RolesClient({
           </div>
         </CardHeader>
         <CardContent className="grid gap-4">
-          {isSuperAdmin ? (
-            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-900/40 p-3">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mr-1">
-                <Building2 className="size-3.5" aria-hidden="true" />
-                Studio
-              </div>
-              <div className="flex gap-1 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-0.5 shadow-sm">
+          <div className="flex flex-wrap items-center gap-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-900/40 p-3">
+            {isSuperAdmin ? (
+              <>
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mr-1">
+                  <Building2 className="size-3.5" aria-hidden="true" />
+                  Studio
+                </div>
+                <div className="flex gap-1 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-0.5 shadow-sm">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={studioFilter === "ALL" ? "default" : "ghost"}
+                    className="h-7 px-3 text-xs"
+                    onClick={() => setStudioFilter("ALL")}
+                  >
+                    Semua
+                  </Button>
+                  {studios.map((studio) => (
+                    <Button
+                      key={studio.id}
+                      type="button"
+                      size="sm"
+                      variant={studioFilter === studio.id ? "default" : "ghost"}
+                      className="h-7 px-3 text-xs"
+                      onClick={() => setStudioFilter(studio.id)}
+                    >
+                      {studio.name}
+                    </Button>
+                  ))}
+                </div>
+                <div className="mx-1 h-5 w-px bg-zinc-300 dark:bg-zinc-700" />
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-700 dark:text-zinc-300 mr-2 bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-md">
+                  <Building2 className="size-3.5 text-blue-700 dark:text-blue-400" aria-hidden="true" />
+                  Studio: {studios.find((s) => s.id === currentUser.defaultStudioId)?.name ?? "Studio Saya"}
+                </div>
+                <div className="mx-1 h-5 w-px bg-zinc-300 dark:bg-zinc-700" />
+              </>
+            )}
+
+            <div className="flex gap-1 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-0.5 shadow-sm">
+              {(["ALL", "TEAM", "INTERN"] as const).map((type) => (
                 <Button
+                  key={type}
                   type="button"
                   size="sm"
-                  variant={studioFilter === "ALL" ? "default" : "ghost"}
+                  variant={memberTypeFilter === type ? "default" : "ghost"}
                   className="h-7 px-3 text-xs"
-                  onClick={() => setStudioFilter("ALL")}
+                  onClick={() => setMemberTypeFilter(type)}
                 >
-                  Semua
+                  {type === "ALL" ? "Semua" : type === "TEAM" ? "Team" : "Intern"}
                 </Button>
-                {studios.map((studio) => (
-                  <Button
-                    key={studio.id}
-                    type="button"
-                    size="sm"
-                    variant={studioFilter === studio.id ? "default" : "ghost"}
-                    className="h-7 px-3 text-xs"
-                    onClick={() => setStudioFilter(studio.id)}
-                  >
-                    {studio.name}
-                  </Button>
-                ))}
-              </div>
+              ))}
+            </div>
 
-              <div className="mx-1 h-5 w-px bg-zinc-300 dark:bg-zinc-700" />
-
-              <div className="flex gap-1 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-0.5 shadow-sm">
-                {(["ALL", "TEAM", "INTERN"] as const).map((type) => (
-                  <Button
-                    key={type}
-                    type="button"
-                    size="sm"
-                    variant={memberTypeFilter === type ? "default" : "ghost"}
-                    className="h-7 px-3 text-xs"
-                    onClick={() => setMemberTypeFilter(type)}
-                  >
-                    {type === "ALL" ? "Semua" : type === "TEAM" ? "Team" : "Intern"}
-                  </Button>
-                ))}
-              </div>
-
+            {isSuperAdmin && (
               <div className="ml-auto">
                 <Button
                   size="sm"
@@ -289,8 +298,8 @@ export function RolesClient({
                   Tambah Anggota
                 </Button>
               </div>
-            </div>
-          ) : null}
+            )}
+          </div>
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="relative w-full sm:max-w-sm">
@@ -305,22 +314,20 @@ export function RolesClient({
                 className="pl-9"
               />
             </div>
-            {isSuperAdmin ? (
-              <div className="flex gap-1 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 p-0.5 shadow-sm">
-                {(["ACTIVE", "INACTIVE", "ARCHIVED"] as const).map((status) => (
-                  <Button
-                    key={status}
-                    type="button"
-                    size="sm"
-                    variant={statusFilter === status ? "default" : "ghost"}
-                    className="h-7 px-3 text-xs"
-                    onClick={() => setStatusFilter(status)}
-                  >
-                    {accountStatusLabel[status]}
-                  </Button>
-                ))}
-              </div>
-            ) : null}
+            <div className="flex gap-1 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 p-0.5 shadow-sm">
+              {(["ACTIVE", "INACTIVE", "ARCHIVED"] as const).map((status) => (
+                <Button
+                  key={status}
+                  type="button"
+                  size="sm"
+                  variant={statusFilter === status ? "default" : "ghost"}
+                  className="h-7 px-3 text-xs"
+                  onClick={() => setStatusFilter(status)}
+                >
+                  {accountStatusLabel[status]}
+                </Button>
+              ))}
+            </div>
           </div>
           <div className="overflow-x-auto">
             <Table>

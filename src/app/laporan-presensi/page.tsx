@@ -25,7 +25,7 @@ import {
   normalizeReportMonth,
   summarizeAttendanceStatuses,
 } from "@/lib/attendance-report";
-import { requireAnyRole } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -49,7 +49,7 @@ export default async function AttendanceReportPage({
   searchParams: Promise<{ month?: string; studio?: string; status?: string }>;
 }) {
   const [currentUser, params] = await Promise.all([
-    requireAnyRole(["SUPER_ADMIN", "ADMIN"]),
+    requireRole("SUPER_ADMIN"),
     searchParams,
   ]);
   const month = normalizeReportMonth(params.month);

@@ -835,48 +835,11 @@ export function AdminDashboardClient({
             </Card>
           </div>
 
-          {/* Operational Links Card */}
-          <div className="grid gap-6 md:grid-cols-3">
-            <Card className="md:col-span-2 shadow-none">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-bold text-zinc-900 dark:text-zinc-50">
-                  Aksi Operasional Studio
-                </CardTitle>
-                <CardDescription className="text-zinc-500 dark:text-zinc-400">
-                  Menu pintas untuk mengelola staf dan aturan studio secara menyeluruh.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-3 sm:grid-cols-3">
-                <Link
-                  href="/piket"
-                  className={cn(buttonVariants({ variant: "outline", size: "sm" }), "justify-center text-xs w-full")}
-                >
-                  <CalendarDays className="size-3.5 mr-1.5 text-zinc-500" />
-                  Atur Kalender Piket
-                </Link>
-                <Link
-                  href="/schedules"
-                  className={cn(buttonVariants({ variant: "outline", size: "sm" }), "justify-center text-xs w-full")}
-                >
-                  <Settings className="size-3.5 mr-1.5 text-zinc-500" />
-                  Kelola Jadwal WFH/WFO
-                </Link>
-                <Link
-                  href="/roles"
-                  className={cn(buttonVariants({ variant: "outline", size: "sm" }), "justify-center text-xs w-full")}
-                >
-                  <FolderLock className="size-3.5 mr-1.5 text-zinc-500" />
-                  Manajemen Hak Akses
-                </Link>
-              </CardContent>
-            </Card>
-          </div>
-
           {/* Recent Attendance (Tabel Presensi Tim) */}
           <Card className="shadow-none">
             <CardHeader>
               <CardTitle className="text-base text-zinc-900 dark:text-zinc-50">
-                Kehadiran Staf Hari Ini
+                Presensi Tim Hari Ini
               </CardTitle>
               <CardDescription className="text-zinc-500 dark:text-zinc-400">
                 Daftar kehadiran staf studio {data.studio?.name ?? ""} hari ini.
@@ -926,15 +889,6 @@ export function AdminDashboardClient({
                   )}
                 </TableBody>
               </Table>
-            </CardContent>
-            <CardContent className="pt-4 border-t border-zinc-100 dark:border-zinc-800 flex justify-end">
-              <Link
-                href="/laporan-presensi"
-                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "flex items-center gap-1.5")}
-              >
-                <History className="size-4" />
-                Lihat Semua Laporan Presensi Tim
-              </Link>
             </CardContent>
           </Card>
         </div>

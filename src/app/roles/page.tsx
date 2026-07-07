@@ -15,26 +15,15 @@ async function getRoleData(actor: Awaited<ReturnType<typeof requireAnyRole>>) {
           not: "SUPER_ADMIN" as const,
         },
       }
-    : isOwner
-      ? {
-          role: {
-            not: "SUPER_ADMIN" as const,
-          },
-          OR: [
-            { defaultStudioId: actor.defaultStudioId ?? "__NO_STUDIO__" },
-            { placements: { some: { studioId: actor.defaultStudioId ?? "__NO_STUDIO__", status: "ACTIVE" as const } } }
-          ]
-        }
-      : {
-          accountStatus: "ACTIVE" as const,
-          role: {
-            not: "SUPER_ADMIN" as const,
-          },
-          OR: [
-            { defaultStudioId: actor.defaultStudioId ?? "__NO_STUDIO__" },
-            { placements: { some: { studioId: actor.defaultStudioId ?? "__NO_STUDIO__", status: "ACTIVE" as const } } }
-          ]
-        };
+    : {
+        role: {
+          not: "SUPER_ADMIN" as const,
+        },
+        OR: [
+          { defaultStudioId: actor.defaultStudioId ?? "__NO_STUDIO__" },
+          { placements: { some: { studioId: actor.defaultStudioId ?? "__NO_STUDIO__", status: "ACTIVE" as const } } }
+        ]
+      };
 
   const [users, studios, mentors] = await Promise.all([
     prisma.user.findMany({

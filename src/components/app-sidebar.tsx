@@ -122,9 +122,8 @@ function getMenuGroups(role: SidebarUser["role"]): MenuGroup[] {
         label: "Operasional",
         items: [
           { label: "User Studio", href: "/roles", icon: UsersRound },
-          { label: "Presensi Tim", icon: ClipboardCheck, badge: "Next" },
+          { label: "Presensi Tim", href: "/admin", icon: ClipboardCheck },
           { label: "Jadwal Tim", href: "/schedules", icon: CalendarDays },
-          { label: "Laporan Presensi", href: "/laporan-presensi", icon: BarChart3 },
           { label: "Izin/Sakit/Cuti", href: "/admin/requests", icon: ClipboardList },
           { label: "Koreksi Presensi", href: "/admin/corrections", icon: Archive },
           { label: "Piket & Pengingat", href: "/piket", icon: CalendarDays },

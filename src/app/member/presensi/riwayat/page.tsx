@@ -181,106 +181,108 @@ export default async function PersonalAttendanceHistoryPage() {
       title="Riwayat Presensi Saya"
       description={`Catatan presensi milik ${currentUser.name}. Data Admin di halaman ini tetap bersifat personal.`}
     >
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {metrics.map((metric) => {
-          const Icon = metric.icon;
+      <div className="space-y-6">
+        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {metrics.map((metric) => {
+            const Icon = metric.icon;
 
-          return (
-            <Card key={metric.label}>
-              <CardHeader className="pb-2">
-                <CardDescription className="flex items-center gap-2">
-                  <Icon className={`size-4 ${metric.color}`} />
-                  {metric.label}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className={`text-3xl font-semibold ${metric.color}`}>
-                  {metric.value.toLocaleString("id-ID")}
-                </p>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </section>
+            return (
+              <Card key={metric.label}>
+                <CardHeader className="pb-2">
+                  <CardDescription className="flex items-center gap-2">
+                    <Icon className={`size-4 ${metric.color}`} />
+                    {metric.label}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className={`text-3xl font-semibold ${metric.color}`}>
+                    {metric.value.toLocaleString("id-ID")}
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </section>
 
-      <Card>
-        <CardHeader>
-          <div>
-            <CardTitle>Catatan Presensi</CardTitle>
-            <CardDescription>
-              Maksimal 60 catatan terbaru, termasuk WFO dan WFH.
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Tanggal</TableHead>
-                <TableHead>Mode</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Check-in</TableHead>
-                <TableHead>Check-out</TableHead>
-                <TableHead>Terlambat</TableHead>
-                <TableHead>Default Studio</TableHead>
-                <TableHead>Lokasi</TableHead>
-                <TableHead className="text-right">Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.records.length === 0 ? (
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>Catatan Presensi</CardTitle>
+              <CardDescription>
+                Maksimal 60 catatan terbaru, termasuk WFO dan WFH.
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell
-                    colSpan={9}
-                    className="h-24 text-center text-sm text-zinc-500"
-                  >
-                    Belum ada data presensi.
-                  </TableCell>
+                  <TableHead>Tanggal</TableHead>
+                  <TableHead>Mode</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Check-in</TableHead>
+                  <TableHead>Check-out</TableHead>
+                  <TableHead>Terlambat</TableHead>
+                  <TableHead>Default Studio</TableHead>
+                  <TableHead>Lokasi</TableHead>
+                  <TableHead className="text-right">Aksi</TableHead>
                 </TableRow>
-              ) : (
-                data.records.map((record) => (
-                  <TableRow key={record.id}>
-                    <TableCell>{formatDate(record.attendanceDate)}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{record.workMode}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="secondary"
-                        className={statusColor[record.status]}
-                      >
-                        {statusLabel[record.status] ?? record.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{formatTime(record.checkInAt)}</TableCell>
-                    <TableCell>{formatTime(record.checkOutAt)}</TableCell>
-                    <TableCell>
-                      {record.lateMinutes > 0
-                        ? `${record.lateMinutes} menit`
-                        : "-"}
-                    </TableCell>
-                    <TableCell>{record.ownerStudio.name}</TableCell>
-                    <TableCell>
-                      {record.locationStudio?.name ?? "Tidak perlu lokasi"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Link
-                        href={`/member/corrections?recordId=${record.id}`}
-                        className={cn(
-                          buttonVariants({ variant: "outline", size: "sm" }),
-                          "h-7 px-2 text-xs"
-                        )}
-                      >
-                        Koreksi
-                      </Link>
+              </TableHeader>
+              <TableBody>
+                {data.records.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={9}
+                      className="h-24 text-center text-sm text-zinc-500"
+                    >
+                      Belum ada data presensi.
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                ) : (
+                  data.records.map((record) => (
+                    <TableRow key={record.id}>
+                      <TableCell>{formatDate(record.attendanceDate)}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{record.workMode}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="secondary"
+                          className={statusColor[record.status]}
+                        >
+                          {statusLabel[record.status] ?? record.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{formatTime(record.checkInAt)}</TableCell>
+                      <TableCell>{formatTime(record.checkOutAt)}</TableCell>
+                      <TableCell>
+                        {record.lateMinutes > 0
+                          ? `${record.lateMinutes} menit`
+                          : "-"}
+                      </TableCell>
+                      <TableCell>{record.ownerStudio.name}</TableCell>
+                      <TableCell>
+                        {record.locationStudio?.name ?? "Tidak perlu lokasi"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Link
+                          href={`/member/corrections?recordId=${record.id}`}
+                          className={cn(
+                            buttonVariants({ variant: "outline", size: "sm" }),
+                            "h-7 px-2 text-xs"
+                          )}
+                        >
+                          Koreksi
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
     </DashboardShell>
   );
 }
