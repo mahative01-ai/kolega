@@ -18,8 +18,8 @@ function parseDate(str: string): Date {
 export async function assignPicketAction(input: PicketInput) {
   const actor = await requireAnyRole(["SUPER_ADMIN", "ADMIN"]);
 
-  // Validasi: Pastikan admin hanya bisa assign di studionya sendiri
-  if (actor.role === "ADMIN" && actor.defaultStudioId !== input.studioId) {
+  // Validasi: Pastikan admin/owner hanya bisa assign di studionya sendiri
+  if (actor.defaultStudioId && actor.defaultStudioId !== input.studioId) {
     throw new Error("Anda hanya dapat menugaskan piket untuk studio asal Anda.");
   }
 
@@ -95,8 +95,8 @@ export async function deletePicketAction(id: string) {
     throw new Error("Jadwal piket tidak ditemukan.");
   }
 
-  // Validasi: Pastikan admin hanya bisa delete di studionya sendiri
-  if (actor.role === "ADMIN" && actor.defaultStudioId !== picket.studioId) {
+  // Validasi: Pastikan admin/owner hanya bisa delete di studionya sendiri
+  if (actor.defaultStudioId && actor.defaultStudioId !== picket.studioId) {
     throw new Error("Anda hanya dapat menghapus piket di studio asal Anda.");
   }
 

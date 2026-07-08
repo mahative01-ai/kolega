@@ -232,11 +232,11 @@ export async function submitWfoAttendanceAction(formData: FormData) {
     });
 
     revalidatePersonalAttendance(currentUser.role);
+    const dashboardPath = currentUser.role === "ADMIN" ? "/admin" : "/member/presensi";
     if (result.count === 1) {
-      await clearSession();
-      redirect("/login?success=checkout");
+      redirect(`${dashboardPath}?success=checkout`);
     } else {
-      redirect("/login?success=done");
+      redirect(`${dashboardPath}?success=done`);
     }
   }
 
@@ -467,7 +467,7 @@ export async function submitWfhAttendanceAction(formData: FormData) {
     });
 
     revalidatePersonalAttendance(currentUser.role);
-    await clearSession();
-    redirect("/login?success=checkout");
+    const dashboardPath = currentUser.role === "ADMIN" ? "/admin" : "/member/presensi";
+    redirect(`${dashboardPath}?success=checkout`);
   }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Send, FileText } from "lucide-react";
+import { Send, FileText, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { submitWfhAttendanceAction } from "./actions";
 
@@ -86,7 +86,11 @@ export function WfhForm({
       )}
 
       <Button type="submit" disabled={loading || !text.trim()} className="w-full">
-        <Send aria-hidden="true" className="size-4" />
+        {loading ? (
+          <Loader2 className="size-4 animate-spin" />
+        ) : (
+          <Send aria-hidden="true" className="size-4" />
+        )}
         {loading ? "Memproses..." : !hasCheckedIn ? "Check-in WFH" : "Check-out WFH"}
       </Button>
     </form>

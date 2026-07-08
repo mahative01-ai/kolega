@@ -92,8 +92,8 @@ export async function DashboardShell({
     createdAt: n.createdAt.toISOString(),
   }));
 
-  // Gatekeeper check: Super Admin is always allowed
-  if (user.role === "ADMIN" || user.role === "MEMBER") {
+  // Gatekeeper check: Super Admin and Admin are always allowed
+  if (user.role === "MEMBER") {
     const cookieStore = await cookies();
     const isUnlockedForRequests = cookieStore.get("kolega_unlocked_requests")?.value === "1";
 

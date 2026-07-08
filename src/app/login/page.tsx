@@ -170,7 +170,7 @@ export default async function LoginPage({
             </form>
           </div>
         ) : (
-          <Tabs defaultValue="credentials" className="w-full">
+          <Tabs defaultValue="qr" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-4 bg-zinc-100 dark:bg-zinc-800">
               <TabsTrigger value="credentials" className="text-xs">Kredensial</TabsTrigger>
               <TabsTrigger value="qr" className="text-xs">Scan QR Card</TabsTrigger>

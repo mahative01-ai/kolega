@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { Building2, Edit, Search, UserCog, UserPlus } from "lucide-react";
+import { Building2, Edit, Search, UserCog, UserPlus, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -564,7 +564,8 @@ export function RolesClient({
               <Button type="button" variant="outline" onClick={() => setAddOpen(false)} disabled={isPending}>
                 Batal
               </Button>
-              <Button type="submit" disabled={isPending}>
+              <Button type="submit" disabled={isPending} className="flex items-center gap-1.5">
+                {isPending && <Loader2 className="size-4 animate-spin" />}
                 {isPending ? "Menyimpan..." : "Simpan Anggota"}
               </Button>
             </DialogFooter>
@@ -759,7 +760,8 @@ export function RolesClient({
                 <Button type="button" variant="outline" onClick={() => setEditOpen(false)} disabled={isPending}>
                   Batal
                 </Button>
-                <Button type="submit" disabled={isPending}>
+                <Button type="submit" disabled={isPending} className="flex items-center gap-1.5">
+                  {isPending && <Loader2 className="size-4 animate-spin" />}
                   {isPending
                     ? "Menyimpan..."
                     : editAccountStatus !== selectedUser.accountStatus

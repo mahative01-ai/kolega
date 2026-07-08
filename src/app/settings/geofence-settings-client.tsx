@@ -205,6 +205,31 @@ export function GeofenceSettingsClient({ studios }: Props) {
           </Button>
         </div>
 
+        {(() => {
+          const latNum = Number(currentGeofence.latitude);
+          const lngNum = Number(currentGeofence.longitude);
+          const hasCoordinates = !isNaN(latNum) && !isNaN(lngNum) && currentGeofence.latitude.trim() !== "" && currentGeofence.longitude.trim() !== "";
+          
+          if (!hasCoordinates) return null;
+
+          return (
+            <div className="mt-4 rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-sm bg-zinc-50 dark:bg-zinc-950/40 p-2">
+              <p className="text-xs font-semibold mb-2 text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5 px-1">
+                Visualisasi Lokasi Studio (Google Maps)
+              </p>
+              <iframe
+                src={`https://maps.google.com/maps?q=${latNum},${lngNum}&t=&z=16&ie=UTF8&iwloc=&output=embed`}
+                width="100%"
+                height="250"
+                style={{ border: 0 }}
+                className="rounded-md"
+                allowFullScreen={true}
+                loading="lazy"
+              />
+            </div>
+          );
+        })()}
+
         {/* Notices */}
         {savedMsg && (
           <div className="mt-3 flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50/50 dark:bg-emerald-950/20 p-3 text-xs text-emerald-800 dark:text-emerald-400">

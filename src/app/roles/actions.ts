@@ -249,7 +249,7 @@ export async function updateUserAction(formData: FormData) {
     throw new Error("User tidak ditemukan atau tidak dapat diubah.");
   }
 
-  if (actor.defaultStudioId) {
+  if (actor.role !== "SUPER_ADMIN" && actor.defaultStudioId) {
     if (target.defaultStudioId !== actor.defaultStudioId) {
       throw new Error("Anda hanya diperbolehkan mengubah user dari studio Anda sendiri.");
     }

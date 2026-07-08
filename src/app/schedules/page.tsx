@@ -26,156 +26,7 @@ import {
 
 export const dynamic = "force-dynamic";
 
-async function setWfhScheduleAction(formData: FormData) {
-  "use server";
-
-  const actor = await requireRole("SUPER_ADMIN");
-  const userId = String(formData.get("userId") ?? "");
-  const workDateKey = String(formData.get("workDate") ?? "");
-
-  if (!userId || !workDateKey.match(/^\d{4}-\d{2}-\d{2}$/)) {
-    throw new Error("Data jadwal tidak lengkap.");
-  }
-
-  const targetUser = await prisma.user.findFirst({
-    where: {
-      id: userId,
-      accountStatus: "ACTIVE",
-      role: {
-        not: "SUPER_ADMIN",
-      },
-    },
-    select: {
-      id: true,
-      defaultStudioId: true,
-      placements: {
-        where: {
-          status: "ACTIVE",
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-        take: 1,
-        select: {
-          studioId: true,
-        },
-      },
-    },
-  });
-
-  if (!targetUser) {
-    throw new Error("User tidak ditemukan atau tidak aktif.");
-  }
-
-  if (actor.defaultStudioId) {
-    const isMemberInStudio = targetUser.defaultStudioId === actor.defaultStudioId || 
-                             targetUser.placements.some(p => p.studioId === actor.defaultStudioId);
-    if (!isMemberInStudio) {
-      throw new Error("Anda hanya diperbolehkan mengatur jadwal untuk anggota studio Anda sendiri.");
-    }
-  }
-
-  const workDate = parseDateKey(workDateKey);
-  const studioId = targetUser.placements[0]?.studioId ?? targetUser.defaultStudioId;
-
-  await prisma.$transaction([
-    prisma.personalWorkSchedule.upsert({
-      where: {
-        userId_workDate: {
-          userId,
-          workDate,
-        },
-      },
-      update: {
-        workMode: "WFH",
-        studioId,
-        note: "WFH diatur oleh Super Admin",
-        createdById: actor.id,
-      },
-      create: {
-        userId,
-        workDate,
-        workMode: "WFH",
-        studioId,
-        note: "WFH diatur oleh Super Admin",
-        createdById: actor.id,
-      },
-    }),
-    prisma.auditLog.create({
-      data: {
-        actorId: actor.id,
-        entity: "PersonalWorkSchedule",
-        entityId: userId,
-        action: "WORK_SCHEDULE_SET_WFH",
-        metadata: { userId, workDate: workDateKey },
-      },
-    }),
-  ]);
-
-  revalidatePath("/schedules");
-}
-
-async function resetWfoScheduleAction(formData: FormData) {
-  "use server";
-
-  const actor = await requireRole("SUPER_ADMIN");
-  const userId = String(formData.get("userId") ?? "");
-  const workDateKey = String(formData.get("workDate") ?? "");
-
-  const targetUser = await prisma.user.findFirst({
-    where: {
-      id: userId,
-      accountStatus: "ACTIVE",
-      role: {
-        not: "SUPER_ADMIN",
-      },
-    },
-    select: {
-      id: true,
-      defaultStudioId: true,
-      placements: {
-        where: { status: "ACTIVE" },
-        orderBy: { createdAt: "desc" },
-        take: 1,
-        select: { studioId: true }
-      }
-    }
-  });
-
-  if (!targetUser) {
-    throw new Error("User tidak ditemukan atau tidak aktif.");
-  }
-
-  if (actor.defaultStudioId) {
-    const isMemberInStudio = targetUser.defaultStudioId === actor.defaultStudioId || 
-                             targetUser.placements.some(p => p.studioId === actor.defaultStudioId);
-    if (!isMemberInStudio) {
-      throw new Error("Anda hanya diperbolehkan mengatur jadwal untuk anggota studio Anda sendiri.");
-    }
-  }
-
-  const workDate = parseDateKey(workDateKey);
-
-  await prisma.$transaction([
-    prisma.personalWorkSchedule.deleteMany({
-      where: {
-        userId,
-        workDate,
-      },
-    }),
-    prisma.auditLog.create({
-      data: {
-        actorId: actor.id,
-        entity: "PersonalWorkSchedule",
-        entityId: userId,
-        action: "WORK_SCHEDULE_RESET_WFO",
-        metadata: { userId, workDate: workDateKey },
-      },
-    }),
-  ]);
-
-  revalidatePath("/schedules");
-}
+import { ToggleScheduleButton } from "./toggle-schedule-button";
 
 async function getScheduleData({
   actor,
@@ -189,9 +40,9 @@ async function getScheduleData({
   const { year, monthIndex } = parseMonthKey(monthKey);
   const monthStart = dateOnly(new Date(year, monthIndex, 1));
   const monthEnd = dateOnly(new Date(year, monthIndex + 1, 0));
-  const isGlobalSuperAdmin = actor.role === "SUPER_ADMIN" && actor.defaultStudioId === null;
+  const isSuperAdmin = actor.role === "SUPER_ADMIN";
   const scopedUserWhere =
-    isGlobalSuperAdmin
+    isSuperAdmin
       ? {
           accountStatus: "ACTIVE" as const,
           role: {
@@ -273,7 +124,7 @@ async function getScheduleData({
           where: {
             startDate: { lte: monthEnd },
             endDate: { gte: monthStart },
-            ...(isGlobalSuperAdmin
+            ...(isSuperAdmin
               ? {}
               : {
                   OR: [
@@ -539,52 +390,12 @@ export default async function WorkSchedulesPage({
                   ))}
 
                   {canManage && data.selectedUser ? (
-                    <div className="mt-3 grid gap-2">
-                      {isWfh ? (
-                        <form action={resetWfoScheduleAction}>
-                          <input
-                            type="hidden"
-                            name="userId"
-                            value={data.selectedUser.id}
-                          />
-                          <input
-                            type="hidden"
-                            name="workDate"
-                            value={day.dateKey}
-                          />
-                          <Button
-                            type="submit"
-                            size="sm"
-                            variant="outline"
-                            className="w-full"
-                          >
-                            <RotateCcw aria-hidden="true" />
-                            WFO
-                          </Button>
-                        </form>
-                      ) : (
-                        <form action={setWfhScheduleAction}>
-                          <input
-                            type="hidden"
-                            name="userId"
-                            value={data.selectedUser.id}
-                          />
-                          <input
-                            type="hidden"
-                            name="workDate"
-                            value={day.dateKey}
-                          />
-                          <Button
-                            type="submit"
-                            size="sm"
-                            variant="outline"
-                            className="w-full"
-                          >
-                            <Home aria-hidden="true" />
-                            WFH
-                          </Button>
-                        </form>
-                      )}
+                    <div className="mt-3">
+                      <ToggleScheduleButton
+                        userId={data.selectedUser.id}
+                        workDate={day.dateKey}
+                        isWfh={isWfh}
+                      />
                     </div>
                   ) : null}
                 </div>

@@ -82,6 +82,7 @@ const errorMessages: Record<string, string> = {
   "sick-notice": "Pengajuan Sakit hari ini harus dilakukan maksimal 1 jam sebelum jam masuk (sebelum 07:00 pagi).",
   "past-date": "Tanggal mulai pengajuan tidak boleh berada di masa lampau.",
   "intern-wfh": "Intern tidak diperbolehkan mengajukan WFH. Hanya Anggota Team dan Admin yang dapat mengajukan WFH.",
+  "overlapping-request": "Anda sudah memiliki pengajuan aktif (Menunggu/Disetujui) pada rentang tanggal tersebut.",
 };
 
 export default async function MemberRequestsPage({

@@ -34,6 +34,26 @@ export async function createRequestAction(formData: FormData) {
     redirect("/member/requests?error=date-range");
   }
 
+  // Check for duplicate/overlapping requests (PENDING or APPROVED)
+  const overlappingRequest = await prisma.request.findFirst({
+    where: {
+      userId: currentUser.id,
+      status: { in: ["PENDING", "APPROVED"] },
+      type: { in: ["SICK", "LEAVE", "WFH"] },
+      OR: [
+        {
+          startDate: { lte: endDate },
+          endDate: { gte: startDate },
+        },
+      ],
+    },
+    select: { id: true },
+  });
+
+  if (overlappingRequest) {
+    redirect("/member/requests?error=overlapping-request");
+  }
+
   // 1. Dapatkan tanggal Jakarta hari ini dan besok
   const todayKey = getJakartaDateKey(new Date());
   const todayDate = new Date(`${todayKey}T00:00:00.000Z`);

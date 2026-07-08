@@ -68,8 +68,8 @@ export default async function PicketPage({
   const isAdmin = user.role === "ADMIN";
   const isManager = isSuperAdmin || isAdmin;
 
-  // Filter studio default untuk Admin
-  const filterStudioId = isSuperAdmin
+  // Filter studio default untuk Admin/Owner
+  const filterStudioId = isSuperAdmin && user.defaultStudioId === null
     ? params.studioId || ""
     : user.defaultStudioId ?? "__none__";
 
@@ -121,8 +121,8 @@ export default async function PicketPage({
       <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
         {/* ── main Column: Jadwal Bulanan ── */}
         <div className="space-y-6">
-          {/* Studio Filter (Super Admin only) */}
-          {isSuperAdmin && (
+          {/* Studio Filter (Global Super Admin only) */}
+          {isSuperAdmin && user.defaultStudioId === null && (
             <Card>
               <CardContent className="pt-6">
                 <form className="flex flex-wrap items-center gap-3">

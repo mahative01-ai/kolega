@@ -201,43 +201,43 @@ export default async function SettingsPage({
           : "Kelola profil pribadi dan kata sandi akun Kolega Anda."
       }
     >
-      <Tabs defaultValue={activeTab}>
+      <Tabs value={activeTab}>
         {isSuperAdmin ? (
           <TabsList className="mb-6">
             <TabsTrigger
               value="profile"
               render={
-                <a href="?tab=profile">
+                <Link href="/settings?tab=profile">
                   <UserIcon className="size-4 mr-1.5" />
                   Profil Saya
-                </a>
+                </Link>
               }
             />
             <TabsTrigger
               value="workday"
               render={
-                <a href="?tab=workday">
+                <Link href="/settings?tab=workday">
                   <Clock className="size-4 mr-1.5" />
                   Hari Kerja
-                </a>
+                </Link>
               }
             />
             <TabsTrigger
               value="daysoff"
               render={
-                <a href="?tab=daysoff">
+                <Link href="/settings?tab=daysoff">
                   <CalendarDays className="size-4 mr-1.5" />
                   Days Off
-                </a>
+                </Link>
               }
             />
             <TabsTrigger
               value="locations"
               render={
-                <a href="?tab=locations">
+                <Link href="/settings?tab=locations">
                   <MapPin className="size-4 mr-1.5" />
                   Lokasi
-                </a>
+                </Link>
               }
             />
           </TabsList>
