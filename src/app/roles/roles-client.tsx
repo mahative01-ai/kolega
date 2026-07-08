@@ -168,14 +168,13 @@ export function RolesClient({
     const form = e.currentTarget;
     const formData = new FormData(form);
     startTransition(async () => {
-      try {
-        await createUserAction(formData);
+      const res = await createUserAction(formData);
+      if (!res.success) {
+        setErrorMsg(res.error || "Gagal membuat user.");
+      } else {
         setAddOpen(false);
         form.reset();
         setAddMemberStatus("TEAM");
-      } catch (err) {
-        const error = err as Error;
-        setErrorMsg(error.message || "Gagal membuat user.");
       }
     });
   };
@@ -186,12 +185,11 @@ export function RolesClient({
     const form = e.currentTarget;
     const formData = new FormData(form);
     startTransition(async () => {
-      try {
-        await updateUserAction(formData);
+      const res = await updateUserAction(formData);
+      if (!res.success) {
+        setErrorMsg(res.error || "Gagal memperbarui user.");
+      } else {
         setEditOpen(false);
-      } catch (err) {
-        const error = err as Error;
-        setErrorMsg(error.message || "Gagal memperbarui user.");
       }
     });
   };

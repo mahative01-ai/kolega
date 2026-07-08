@@ -86,336 +86,346 @@ async function validateMentor(mentorId: string | null) {
 }
 
 export async function createUserAction(formData: FormData) {
-  const actor = await requireSuperAdminActor();
+  try {
+    const actor = await requireSuperAdminActor();
 
-  const name = String(formData.get("name") ?? "").trim();
-  const username =
-    String(formData.get("username") ?? "").trim().toLowerCase() || null;
-  const email = String(formData.get("email") ?? "").trim().toLowerCase();
-  const password = String(formData.get("password") ?? "");
-  const birthDateStr = String(formData.get("birthDate") ?? "") || null;
-  const role = String(formData.get("role") ?? "") === "ADMIN" ? "ADMIN" : "MEMBER";
-  const memberStatus = String(formData.get("memberStatus") ?? "") === "INTERN" ? "INTERN" : "TEAM";
-  const defaultStudioId = String(formData.get("defaultStudioId") ?? "") || null;
-  const placementStudioId = String(formData.get("placementStudioId") ?? "") || null;
+    const name = String(formData.get("name") ?? "").trim();
+    const username =
+      String(formData.get("username") ?? "").trim().toLowerCase() || null;
+    const email = String(formData.get("email") ?? "").trim().toLowerCase();
+    const password = String(formData.get("password") ?? "");
+    const birthDateStr = String(formData.get("birthDate") ?? "") || null;
+    const role = String(formData.get("role") ?? "") === "ADMIN" ? "ADMIN" : "MEMBER";
+    const memberStatus = String(formData.get("memberStatus") ?? "") === "INTERN" ? "INTERN" : "TEAM";
+    const defaultStudioId = String(formData.get("defaultStudioId") ?? "") || null;
+    const placementStudioId = String(formData.get("placementStudioId") ?? "") || null;
 
-  if (!name || !email || password.length < 6) {
-    throw new Error("Nama, email, dan password minimal 6 karakter wajib diisi.");
-  }
-
-  if (username && !/^[a-z0-9._-]{3,30}$/.test(username)) {
-    throw new Error(
-      "Username harus 3-30 karakter dan hanya boleh berisi huruf kecil, angka, titik, garis bawah, atau tanda hubung."
-    );
-  }
-
-  await validateStudioAssignment(defaultStudioId, placementStudioId);
-
-  const existingUser = await prisma.user.findUnique({
-    where: { email },
-    select: { id: true },
-  });
-
-  if (existingUser) {
-    throw new Error("Email sudah terdaftar.");
-  }
-
-  if (username) {
-    const existingUsername = await prisma.user.findUnique({
-      where: { username },
-      select: { id: true },
-    });
-    if (existingUsername) {
-      throw new Error("Username sudah digunakan.");
-    }
-  }
-
-  const birthDate = birthDateStr ? parseDateInput(birthDateStr) : null;
-
-  if (birthDateStr && !birthDate) {
-    throw new Error("Tanggal lahir tidak valid.");
-  }
-
-  const internData =
-    memberStatus === "INTERN" ? readInternData(formData) : null;
-  await validateMentor(internData?.mentorId ?? null);
-
-  await prisma.$transaction(async (tx) => {
-    // 1. Create User
-    const user = await tx.user.create({
-      data: {
-        name,
-        email,
-        username,
-        birthDate,
-        passwordHash: hashPassword(password),
-        role,
-        memberStatus,
-        accountStatus: "ACTIVE",
-        defaultStudioId,
-      },
-      select: { id: true },
-    });
-
-    // 2. If placement studio is chosen
-    if (placementStudioId) {
-      await tx.placement.create({
-        data: {
-          userId: user.id,
-          studioId: placementStudioId,
-          startDate: dateOnly(),
-          status: "ACTIVE",
-          reason: "Placement awal dari manajemen akun",
-          createdById: actor.id,
-        },
-      });
+    if (!name || !email || password.length < 6) {
+      throw new Error("Nama, email, dan password minimal 6 karakter wajib diisi.");
     }
 
-    // 3. If Intern, create profile
-    if (memberStatus === "INTERN") {
-      await tx.internProfile.create({
-        data: {
-          userId: user.id,
-          ...internData!,
-        },
-      });
+    if (username && !/^[a-z0-9._-]{3,30}$/.test(username)) {
+      throw new Error(
+        "Username harus 3-30 karakter dan hanya boleh berisi huruf kecil, angka, titik, garis bawah, atau tanda hubung."
+      );
     }
 
-    // 4. Audit Log
-    await tx.auditLog.create({
-      data: {
-        actorId: actor.id,
-        entity: "User",
-        entityId: user.id,
-        action: "USER_CREATED_BY_SUPER_ADMIN",
-        metadata: {
-          role,
-          memberStatus,
-          defaultStudioId,
-          placementStudioId,
-          username,
-        },
-      },
-    });
-  });
+    await validateStudioAssignment(defaultStudioId, placementStudioId);
 
-  revalidatePath("/roles");
-  revalidatePath("/super-admin");
-}
-
-export async function updateUserAction(formData: FormData) {
-  const actor = await requireSuperAdminActor();
-
-  const userId = String(formData.get("userId") ?? "");
-  const name = String(formData.get("name") ?? "").trim();
-  const username =
-    String(formData.get("username") ?? "").trim().toLowerCase() || null;
-  const email = String(formData.get("email") ?? "").trim().toLowerCase();
-  const birthDateStr = String(formData.get("birthDate") ?? "") || null;
-  const role = String(formData.get("role") ?? "") === "ADMIN" ? "ADMIN" : "MEMBER";
-  const memberStatus = String(formData.get("memberStatus") ?? "") === "INTERN" ? "INTERN" : "TEAM";
-  const requestedAccountStatus = String(formData.get("accountStatus") ?? "");
-  const accountStatus = ACCOUNT_STATUSES.find(
-    (status) => status === requestedAccountStatus
-  );
-  const defaultStudioId = String(formData.get("defaultStudioId") ?? "") || null;
-  const placementStudioId = String(formData.get("placementStudioId") ?? "") || null;
-
-  if (!userId || !name || !email || !accountStatus) {
-    throw new Error("ID, Nama, dan Email wajib diisi.");
-  }
-
-  if (username && !/^[a-z0-9._-]{3,30}$/.test(username)) {
-    throw new Error(
-      "Username harus 3-30 karakter dan hanya boleh berisi huruf kecil, angka, titik, garis bawah, atau tanda hubung."
-    );
-  }
-
-  await validateStudioAssignment(defaultStudioId, placementStudioId);
-
-  const target = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
-      role: true,
-      email: true,
-      username: true,
-      accountStatus: true,
-      defaultStudioId: true,
-    },
-  });
-
-  if (!target || target.role === "SUPER_ADMIN") {
-    throw new Error("User tidak ditemukan atau tidak dapat diubah.");
-  }
-
-  if (actor.role !== "SUPER_ADMIN" && actor.defaultStudioId) {
-    if (target.defaultStudioId !== actor.defaultStudioId) {
-      throw new Error("Anda hanya diperbolehkan mengubah user dari studio Anda sendiri.");
-    }
-    if (defaultStudioId !== actor.defaultStudioId) {
-      throw new Error("Anda hanya diperbolehkan mengubah default studio ke studio Anda sendiri.");
-    }
-    const mentorId = memberStatus === "INTERN" ? String(formData.get("mentorId") ?? "") || null : null;
-    if (mentorId) {
-      const mentor = await prisma.user.findFirst({
-        where: { id: mentorId, defaultStudioId: actor.defaultStudioId },
-        select: { id: true }
-      });
-      if (!mentor) {
-        throw new Error("Mentor yang dipilih harus berasal dari studio yang sama.");
-      }
-    }
-  }
-
-  // Check unique constraints if changed
-  if (email !== target.email) {
-    const existingEmail = await prisma.user.findUnique({
+    const existingUser = await prisma.user.findUnique({
       where: { email },
       select: { id: true },
     });
-    if (existingEmail) {
+
+    if (existingUser) {
       throw new Error("Email sudah terdaftar.");
     }
-  }
 
-  if (username && username !== target.username) {
-    const existingUsername = await prisma.user.findUnique({
-      where: { username },
-      select: { id: true },
-    });
-    if (existingUsername) {
-      throw new Error("Username sudah digunakan.");
-    }
-  }
-
-  const birthDate = birthDateStr ? parseDateInput(birthDateStr) : null;
-
-  if (birthDateStr && !birthDate) {
-    throw new Error("Tanggal lahir tidak valid.");
-  }
-
-  const internData =
-    memberStatus === "INTERN" ? readInternData(formData) : null;
-  await validateMentor(internData?.mentorId ?? null);
-
-  await prisma.$transaction(async (tx) => {
-    // 1. Update User fields
-    await tx.user.update({
-      where: { id: userId },
-      data: {
-        name,
-        email,
-        username,
-        birthDate,
-        role,
-        memberStatus,
-        accountStatus,
-        defaultStudioId,
-      },
-    });
-
-    // 2. Handle InternProfile transitions
-    if (memberStatus === "INTERN") {
-      await tx.internProfile.upsert({
-        where: { userId },
-        update: {
-          ...internData!,
-        },
-        create: {
-          userId,
-          ...internData!,
-        },
+    if (username) {
+      const existingUsername = await prisma.user.findUnique({
+        where: { username },
+        select: { id: true },
       });
-    } else {
-      // If changed to TEAM, delete profile if exists
-      const existingProfile = await tx.internProfile.findUnique({
-        where: { userId },
-      });
-      if (existingProfile) {
-        await tx.internProfile.delete({
-          where: { userId },
-        });
+      if (existingUsername) {
+        throw new Error("Username sudah digunakan.");
       }
     }
 
-    // 3. Handle Placement transitions
-    const activePlacement = await tx.placement.findFirst({
-      where: {
-        userId,
-        status: "ACTIVE",
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
+    const birthDate = birthDateStr ? parseDateInput(birthDateStr) : null;
+
+    if (birthDateStr && !birthDate) {
+      throw new Error("Tanggal lahir tidak valid.");
+    }
+
+    const internData =
+      memberStatus === "INTERN" ? readInternData(formData) : null;
+    await validateMentor(internData?.mentorId ?? null);
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Create User
+      const user = await tx.user.create({
+        data: {
+          name,
+          email,
+          username,
+          birthDate,
+          passwordHash: hashPassword(password),
+          role,
+          memberStatus,
+          accountStatus: "ACTIVE",
+          defaultStudioId,
+        },
+        select: { id: true },
+      });
+
+      // 2. If placement studio is chosen
+      if (placementStudioId) {
+        await tx.placement.create({
+          data: {
+            userId: user.id,
+            studioId: placementStudioId,
+            startDate: dateOnly(),
+            status: "ACTIVE",
+            reason: "Placement awal dari manajemen akun",
+            createdById: actor.id,
+          },
+        });
+      }
+
+      // 3. If Intern, create profile
+      if (memberStatus === "INTERN") {
+        await tx.internProfile.create({
+          data: {
+            userId: user.id,
+            ...internData!,
+          },
+        });
+      }
+
+      // 4. Audit Log
+      await tx.auditLog.create({
+        data: {
+          actorId: actor.id,
+          entity: "User",
+          entityId: user.id,
+          action: "USER_CREATED_BY_SUPER_ADMIN",
+          metadata: {
+            role,
+            memberStatus,
+            defaultStudioId,
+            placementStudioId,
+            username,
+          },
+        },
+      });
+    });
+
+    revalidatePath("/roles");
+    revalidatePath("/super-admin");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Gagal membuat user." };
+  }
+}
+
+export async function updateUserAction(formData: FormData) {
+  try {
+    const actor = await requireSuperAdminActor();
+
+    const userId = String(formData.get("userId") ?? "");
+    const name = String(formData.get("name") ?? "").trim();
+    const username =
+      String(formData.get("username") ?? "").trim().toLowerCase() || null;
+    const email = String(formData.get("email") ?? "").trim().toLowerCase();
+    const birthDateStr = String(formData.get("birthDate") ?? "") || null;
+    const role = String(formData.get("role") ?? "") === "ADMIN" ? "ADMIN" : "MEMBER";
+    const memberStatus = String(formData.get("memberStatus") ?? "") === "INTERN" ? "INTERN" : "TEAM";
+    const requestedAccountStatus = String(formData.get("accountStatus") ?? "");
+    const accountStatus = ACCOUNT_STATUSES.find(
+      (status) => status === requestedAccountStatus
+    );
+    const defaultStudioId = String(formData.get("defaultStudioId") ?? "") || null;
+    const placementStudioId = String(formData.get("placementStudioId") ?? "") || null;
+
+    if (!userId || !name || !email || !accountStatus) {
+      throw new Error("ID, Nama, dan Email wajib diisi.");
+    }
+
+    if (username && !/^[a-z0-9._-]{3,30}$/.test(username)) {
+      throw new Error(
+        "Username harus 3-30 karakter dan hanya boleh berisi huruf kecil, angka, titik, garis bawah, atau tanda hubung."
+      );
+    }
+
+    await validateStudioAssignment(defaultStudioId, placementStudioId);
+
+    const target = await prisma.user.findUnique({
+      where: { id: userId },
       select: {
         id: true,
-        studioId: true,
+        role: true,
+        email: true,
+        username: true,
+        accountStatus: true,
+        defaultStudioId: true,
       },
     });
 
-    if (!placementStudioId && activePlacement) {
-      await tx.placement.update({
-        where: { id: activePlacement.id },
-        data: {
-          status: "COMPLETED",
-          endDate: dateOnly(),
-        },
-      });
+    if (!target || target.role === "SUPER_ADMIN") {
+      throw new Error("User tidak ditemukan atau tidak dapat diubah.");
     }
 
-    if (
-      placementStudioId &&
-      (!activePlacement || activePlacement.studioId !== placementStudioId)
-    ) {
-      await tx.placement.updateMany({
+    if (actor.role !== "SUPER_ADMIN" && actor.defaultStudioId) {
+      if (target.defaultStudioId !== actor.defaultStudioId) {
+        throw new Error("Anda hanya diperbolehkan mengubah user dari studio Anda sendiri.");
+      }
+      if (defaultStudioId !== actor.defaultStudioId) {
+        throw new Error("Anda hanya diperbolehkan mengubah default studio ke studio Anda sendiri.");
+      }
+      const mentorId = memberStatus === "INTERN" ? String(formData.get("mentorId") ?? "") || null : null;
+      if (mentorId) {
+        const mentor = await prisma.user.findFirst({
+          where: { id: mentorId, defaultStudioId: actor.defaultStudioId },
+          select: { id: true }
+        });
+        if (!mentor) {
+          throw new Error("Mentor yang dipilih harus berasal dari studio yang sama.");
+        }
+      }
+    }
+
+    // Check unique constraints if changed
+    if (email !== target.email) {
+      const existingEmail = await prisma.user.findUnique({
+        where: { email },
+        select: { id: true },
+      });
+      if (existingEmail) {
+        throw new Error("Email sudah terdaftar.");
+      }
+    }
+
+    if (username && username !== target.username) {
+      const existingUsername = await prisma.user.findUnique({
+        where: { username },
+        select: { id: true },
+      });
+      if (existingUsername) {
+        throw new Error("Username sudah digunakan.");
+      }
+    }
+
+    const birthDate = birthDateStr ? parseDateInput(birthDateStr) : null;
+
+    if (birthDateStr && !birthDate) {
+      throw new Error("Tanggal lahir tidak valid.");
+    }
+
+    const internData =
+      memberStatus === "INTERN" ? readInternData(formData) : null;
+    await validateMentor(internData?.mentorId ?? null);
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Update User fields
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          name,
+          email,
+          username,
+          birthDate,
+          role,
+          memberStatus,
+          accountStatus,
+          defaultStudioId,
+        },
+      });
+
+      // 2. Handle InternProfile transitions
+      if (memberStatus === "INTERN") {
+        await tx.internProfile.upsert({
+          where: { userId },
+          update: {
+            ...internData!,
+          },
+          create: {
+            userId,
+            ...internData!,
+          },
+        });
+      } else {
+        // If changed to TEAM, delete profile if exists
+        const existingProfile = await tx.internProfile.findUnique({
+          where: { userId },
+        });
+        if (existingProfile) {
+          await tx.internProfile.delete({
+            where: { userId },
+          });
+        }
+      }
+
+      // 3. Handle Placement transitions
+      const activePlacement = await tx.placement.findFirst({
         where: {
           userId,
           status: "ACTIVE",
         },
-        data: {
-          status: "COMPLETED",
-          endDate: dateOnly(),
+        orderBy: {
+          createdAt: "desc",
+        },
+        select: {
+          id: true,
+          studioId: true,
         },
       });
 
-      await tx.placement.create({
+      if (!placementStudioId && activePlacement) {
+        await tx.placement.update({
+          where: { id: activePlacement.id },
+          data: {
+            status: "COMPLETED",
+            endDate: dateOnly(),
+          },
+        });
+      }
+
+      if (
+        placementStudioId &&
+        (!activePlacement || activePlacement.studioId !== placementStudioId)
+      ) {
+        await tx.placement.updateMany({
+          where: {
+            userId,
+            status: "ACTIVE",
+          },
+          data: {
+            status: "COMPLETED",
+            endDate: dateOnly(),
+          },
+        });
+
+        await tx.placement.create({
+          data: {
+            userId,
+            studioId: placementStudioId,
+            startDate: dateOnly(),
+            status: "ACTIVE",
+            reason: "Diatur dari manajemen akun",
+            createdById: actor.id,
+          },
+        });
+      }
+
+      // 4. Audit Log
+      await tx.auditLog.create({
         data: {
-          userId,
-          studioId: placementStudioId,
-          startDate: dateOnly(),
-          status: "ACTIVE",
-          reason: "Diatur dari manajemen akun",
-          createdById: actor.id,
+          actorId: actor.id,
+          entity: "User",
+          entityId: userId,
+          action:
+            accountStatus !== target.accountStatus
+              ? "ACCOUNT_STATUS_APPROVED_BY_SUPER_ADMIN"
+              : "USER_UPDATED_BY_SUPER_ADMIN",
+          metadata: {
+            name,
+            username,
+            email,
+            role,
+            memberStatus,
+            accountStatus,
+            previousAccountStatus: target.accountStatus,
+            defaultStudioId,
+            placementStudioId,
+          },
         },
       });
-    }
-
-    // 4. Audit Log
-    await tx.auditLog.create({
-      data: {
-        actorId: actor.id,
-        entity: "User",
-        entityId: userId,
-        action:
-          accountStatus !== target.accountStatus
-            ? "ACCOUNT_STATUS_APPROVED_BY_SUPER_ADMIN"
-            : "USER_UPDATED_BY_SUPER_ADMIN",
-        metadata: {
-          name,
-          username,
-          email,
-          role,
-          memberStatus,
-          accountStatus,
-          previousAccountStatus: target.accountStatus,
-          defaultStudioId,
-          placementStudioId,
-        },
-      },
     });
-  });
 
-  revalidatePath("/roles");
-  revalidatePath("/super-admin");
+    revalidatePath("/roles");
+    revalidatePath("/super-admin");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Gagal memperbarui user." };
+  }
 }
