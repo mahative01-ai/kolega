@@ -502,19 +502,21 @@ export function RolesClient({
               </div>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold">Placement Studio Awal</label>
-              <select
-                name="placementStudioId"
-                className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2.5 text-sm outline-none"
-                defaultValue=""
-              >
-                <option value="">Tidak ada placement</option>
-                {studios.map((st) => (
-                  <option key={st.id} value={st.id}>{st.name}</option>
-                ))}
-              </select>
-            </div>
+            {addMemberStatus === "INTERN" && (
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold">Placement Studio Awal</label>
+                <select
+                  name="placementStudioId"
+                  className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2.5 text-sm outline-none"
+                  defaultValue=""
+                >
+                  <option value="">Tidak ada placement</option>
+                  {studios.map((st) => (
+                    <option key={st.id} value={st.id}>{st.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {addMemberStatus === "INTERN" && (
               <div className="rounded-lg border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/40 p-3 grid gap-2.5 mt-1">
@@ -672,19 +674,21 @@ export function RolesClient({
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold">Placement Studio Aktif</label>
-                <select
-                  name="placementStudioId"
-                  className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2.5 text-sm outline-none"
-                  defaultValue={selectedUser.placements[0]?.studioId ?? ""}
-                >
-                  <option value="">Tidak ada placement aktif</option>
-                  {studios.map((st) => (
-                    <option key={st.id} value={st.id}>{st.name}</option>
-                  ))}
-                </select>
-              </div>
+              {editMemberStatus === "INTERN" && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold">Placement Studio Aktif</label>
+                  <select
+                    name="placementStudioId"
+                    className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2.5 text-sm outline-none"
+                    defaultValue={selectedUser.placements[0]?.studioId ?? ""}
+                  >
+                    <option value="">Tidak ada placement aktif</option>
+                    {studios.map((st) => (
+                      <option key={st.id} value={st.id}>{st.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               {editMemberStatus === "INTERN" && (
                 <div className="rounded-lg border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/40 p-3 grid gap-2.5 mt-1">

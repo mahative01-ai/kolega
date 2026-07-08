@@ -6,9 +6,9 @@ import { RolesClient } from "./roles-client";
 export const dynamic = "force-dynamic";
 
 async function getRoleData(actor: Awaited<ReturnType<typeof requireAnyRole>>) {
-  const isSuperAdmin = actor.role === "SUPER_ADMIN";
+  const isGlobalSuperAdmin = actor.role === "SUPER_ADMIN" && actor.defaultStudioId === null;
   
-  const scopedWhere = isSuperAdmin
+  const scopedWhere = isGlobalSuperAdmin
     ? {
         role: {
           not: "SUPER_ADMIN" as const,
@@ -73,7 +73,7 @@ async function getRoleData(actor: Awaited<ReturnType<typeof requireAnyRole>>) {
         },
       },
     }),
-    isSuperAdmin
+    isGlobalSuperAdmin
       ? prisma.studio.findMany({
           where: { isActive: true },
           orderBy: { name: "asc" },
@@ -85,7 +85,7 @@ async function getRoleData(actor: Awaited<ReturnType<typeof requireAnyRole>>) {
             select: { id: true, name: true },
           })
         : Promise.resolve([]),
-    isSuperAdmin
+    isGlobalSuperAdmin
       ? prisma.user.findMany({
           where: {
             role: { in: ["ADMIN", "SUPER_ADMIN"] },

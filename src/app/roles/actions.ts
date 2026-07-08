@@ -98,7 +98,7 @@ export async function createUserAction(formData: FormData) {
     const role = String(formData.get("role") ?? "") === "ADMIN" ? "ADMIN" : "MEMBER";
     const memberStatus = String(formData.get("memberStatus") ?? "") === "INTERN" ? "INTERN" : "TEAM";
     const defaultStudioId = String(formData.get("defaultStudioId") ?? "") || null;
-    const placementStudioId = String(formData.get("placementStudioId") ?? "") || null;
+    const placementStudioId = memberStatus === "INTERN" ? (String(formData.get("placementStudioId") ?? "") || null) : null;
 
     if (!name || !email || password.length < 6) {
       throw new Error("Nama, email, dan password minimal 6 karakter wajib diisi.");
@@ -108,6 +108,15 @@ export async function createUserAction(formData: FormData) {
       throw new Error(
         "Username harus 3-30 karakter dan hanya boleh berisi huruf kecil, angka, titik, garis bawah, atau tanda hubung."
       );
+    }
+
+    if (actor.defaultStudioId) {
+      if (defaultStudioId !== actor.defaultStudioId) {
+        throw new Error("Anda hanya diperbolehkan membuat anggota untuk studio Anda sendiri.");
+      }
+      if (placementStudioId && placementStudioId !== actor.defaultStudioId) {
+        throw new Error("Anda hanya diperbolehkan menugaskan placement untuk studio Anda sendiri.");
+      }
     }
 
     await validateStudioAssignment(defaultStudioId, placementStudioId);
@@ -225,7 +234,7 @@ export async function updateUserAction(formData: FormData) {
       (status) => status === requestedAccountStatus
     );
     const defaultStudioId = String(formData.get("defaultStudioId") ?? "") || null;
-    const placementStudioId = String(formData.get("placementStudioId") ?? "") || null;
+    const placementStudioId = memberStatus === "INTERN" ? (String(formData.get("placementStudioId") ?? "") || null) : null;
 
     if (!userId || !name || !email || !accountStatus) {
       throw new Error("ID, Nama, dan Email wajib diisi.");
@@ -255,12 +264,15 @@ export async function updateUserAction(formData: FormData) {
       throw new Error("User tidak ditemukan atau tidak dapat diubah.");
     }
 
-    if (actor.role !== "SUPER_ADMIN" && actor.defaultStudioId) {
+    if (actor.defaultStudioId) {
       if (target.defaultStudioId !== actor.defaultStudioId) {
         throw new Error("Anda hanya diperbolehkan mengubah user dari studio Anda sendiri.");
       }
       if (defaultStudioId !== actor.defaultStudioId) {
         throw new Error("Anda hanya diperbolehkan mengubah default studio ke studio Anda sendiri.");
+      }
+      if (placementStudioId && placementStudioId !== actor.defaultStudioId) {
+        throw new Error("Anda hanya diperbolehkan menugaskan placement untuk studio Anda sendiri.");
       }
       const mentorId = memberStatus === "INTERN" ? String(formData.get("mentorId") ?? "") || null : null;
       if (mentorId) {
