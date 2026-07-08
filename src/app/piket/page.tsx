@@ -69,7 +69,7 @@ export default async function PicketPage({
   const isManager = isSuperAdmin || isAdmin;
 
   // Filter studio default untuk Admin/Owner
-  const filterStudioId = isSuperAdmin && user.defaultStudioId === null
+  const filterStudioId = isSuperAdmin
     ? params.studioId || ""
     : user.defaultStudioId ?? "__none__";
 
@@ -122,7 +122,7 @@ export default async function PicketPage({
         {/* ── main Column: Jadwal Bulanan ── */}
         <div className="space-y-6">
           {/* Studio Filter (Global Super Admin only) */}
-          {isSuperAdmin && user.defaultStudioId === null && (
+          {isSuperAdmin && (
             <Card>
               <CardContent className="pt-6">
                 <form className="flex flex-wrap items-center gap-3">

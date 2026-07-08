@@ -40,12 +40,8 @@ export async function createRequestAction(formData: FormData) {
       userId: currentUser.id,
       status: { in: ["PENDING", "APPROVED"] },
       type: { in: ["SICK", "LEAVE", "WFH"] },
-      OR: [
-        {
-          startDate: { lte: endDate },
-          endDate: { gte: startDate },
-        },
-      ],
+      startDate: { lte: endDate },
+      endDate: { gte: startDate },
     },
     select: { id: true },
   });

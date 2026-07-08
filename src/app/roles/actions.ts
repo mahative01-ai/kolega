@@ -110,7 +110,7 @@ export async function createUserAction(formData: FormData) {
       );
     }
 
-    if (actor.defaultStudioId) {
+    if (actor.role !== "SUPER_ADMIN" && actor.defaultStudioId) {
       if (defaultStudioId !== actor.defaultStudioId) {
         throw new Error("Anda hanya diperbolehkan membuat anggota untuk studio Anda sendiri.");
       }
@@ -264,7 +264,7 @@ export async function updateUserAction(formData: FormData) {
       throw new Error("User tidak ditemukan atau tidak dapat diubah.");
     }
 
-    if (actor.defaultStudioId) {
+    if (actor.role !== "SUPER_ADMIN" && actor.defaultStudioId) {
       if (target.defaultStudioId !== actor.defaultStudioId) {
         throw new Error("Anda hanya diperbolehkan mengubah user dari studio Anda sendiri.");
       }
@@ -282,6 +282,18 @@ export async function updateUserAction(formData: FormData) {
         });
         if (!mentor) {
           throw new Error("Mentor yang dipilih harus berasal dari studio yang sama.");
+        }
+      }
+    } else {
+      // For Super Admin
+      const mentorId = memberStatus === "INTERN" ? String(formData.get("mentorId") ?? "") || null : null;
+      if (mentorId) {
+        const mentor = await prisma.user.findFirst({
+          where: { id: mentorId, defaultStudioId: defaultStudioId || undefined },
+          select: { id: true }
+        });
+        if (!mentor) {
+          throw new Error("Mentor yang dipilih harus berasal dari studio yang sama dengan user.");
         }
       }
     }

@@ -24,6 +24,7 @@ export async function reviewCorrectionAction(formData: FormData) {
       attendanceRecord: {
         select: {
           id: true,
+          attendanceDate: true,
           ownerStudioId: true,
           locationStudioId: true,
           userId: true,
@@ -101,13 +102,56 @@ export async function reviewCorrectionAction(formData: FormData) {
       },
     });
 
-    // 3. If approved, update the attendance record status
+    // 3. If approved, update the attendance record status, times, and late minutes
     if (newStatus === "APPROVED" && correction.newStatus) {
+      let checkInAt: Date | null = null;
+      let checkOutAt: Date | null = null;
+      let lateMinutes = 0;
+
+      const isPhysical = correction.newStatus === "ON_TIME" || correction.newStatus === "LATE";
+      if (isPhysical && correction.proposedCheckInTime) {
+        const [h, m] = correction.proposedCheckInTime.split(":").map(Number);
+        checkInAt = new Date(correction.attendanceRecord.attendanceDate);
+        checkInAt.setUTCHours(h - 7, m, 0, 0); // Convert Jakarta time to UTC
+
+        if (correction.newStatus === "LATE") {
+          // Find active policy for this studio
+          const policy = await tx.attendancePolicy.findFirst({
+            where: { studioId: correction.attendanceRecord.ownerStudioId, isActive: true },
+            select: { checkInTime: true },
+          });
+          const policyTime = policy?.checkInTime ?? "08:00";
+          const [pH, pM] = policyTime.split(":").map(Number);
+          
+          const proposedTotalMinutes = h * 60 + m;
+          const policyTotalMinutes = pH * 60 + pM;
+          
+          lateMinutes = Math.max(0, proposedTotalMinutes - policyTotalMinutes);
+        } else {
+          lateMinutes = 0;
+        }
+
+        // Retain checkOut if it exists
+        const existingRecord = await tx.attendanceRecord.findUnique({
+          where: { id: correction.attendanceRecordId },
+          select: { checkOutAt: true },
+        });
+        checkOutAt = existingRecord?.checkOutAt ?? null;
+      } else {
+        // Non-physical presence reset
+        checkInAt = null;
+        checkOutAt = null;
+        lateMinutes = 0;
+      }
+
       await tx.attendanceRecord.update({
         where: { id: correction.attendanceRecordId },
         data: {
           status: correction.newStatus,
           isManualCorrection: true,
+          checkInAt,
+          checkOutAt,
+          lateMinutes,
           updatedAt: new Date(),
         },
       });
@@ -137,6 +181,7 @@ export async function quickReviewCorrectionAction(correctionId: string, approve:
       attendanceRecord: {
         select: {
           id: true,
+          attendanceDate: true,
           ownerStudioId: true,
           locationStudioId: true,
           userId: true,
@@ -214,13 +259,56 @@ export async function quickReviewCorrectionAction(correctionId: string, approve:
       },
     });
 
-    // 3. If approved, update the attendance record status
+    // 3. If approved, update the attendance record status, times, and late minutes
     if (newStatus === "APPROVED" && correction.newStatus) {
+      let checkInAt: Date | null = null;
+      let checkOutAt: Date | null = null;
+      let lateMinutes = 0;
+
+      const isPhysical = correction.newStatus === "ON_TIME" || correction.newStatus === "LATE";
+      if (isPhysical && correction.proposedCheckInTime) {
+        const [h, m] = correction.proposedCheckInTime.split(":").map(Number);
+        checkInAt = new Date(correction.attendanceRecord.attendanceDate);
+        checkInAt.setUTCHours(h - 7, m, 0, 0); // Convert Jakarta time to UTC
+
+        if (correction.newStatus === "LATE") {
+          // Find active policy for this studio
+          const policy = await tx.attendancePolicy.findFirst({
+            where: { studioId: correction.attendanceRecord.ownerStudioId, isActive: true },
+            select: { checkInTime: true },
+          });
+          const policyTime = policy?.checkInTime ?? "08:00";
+          const [pH, pM] = policyTime.split(":").map(Number);
+          
+          const proposedTotalMinutes = h * 60 + m;
+          const policyTotalMinutes = pH * 60 + pM;
+          
+          lateMinutes = Math.max(0, proposedTotalMinutes - policyTotalMinutes);
+        } else {
+          lateMinutes = 0;
+        }
+
+        // Retain checkOut if it exists
+        const existingRecord = await tx.attendanceRecord.findUnique({
+          where: { id: correction.attendanceRecordId },
+          select: { checkOutAt: true },
+        });
+        checkOutAt = existingRecord?.checkOutAt ?? null;
+      } else {
+        // Non-physical presence reset
+        checkInAt = null;
+        checkOutAt = null;
+        lateMinutes = 0;
+      }
+
       await tx.attendanceRecord.update({
         where: { id: correction.attendanceRecordId },
         data: {
           status: correction.newStatus,
           isManualCorrection: true,
+          checkInAt,
+          checkOutAt,
+          lateMinutes,
           updatedAt: new Date(),
         },
       });

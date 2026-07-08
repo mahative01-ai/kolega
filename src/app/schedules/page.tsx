@@ -40,9 +40,9 @@ async function getScheduleData({
   const { year, monthIndex } = parseMonthKey(monthKey);
   const monthStart = dateOnly(new Date(year, monthIndex, 1));
   const monthEnd = dateOnly(new Date(year, monthIndex + 1, 0));
-  const isGlobalSuperAdmin = actor.role === "SUPER_ADMIN" && actor.defaultStudioId === null;
+  const isSuperAdmin = actor.role === "SUPER_ADMIN";
   const scopedUserWhere =
-    isGlobalSuperAdmin
+    isSuperAdmin
       ? {
           accountStatus: "ACTIVE" as const,
           role: {
@@ -124,7 +124,7 @@ async function getScheduleData({
           where: {
             startDate: { lte: monthEnd },
             endDate: { gte: monthStart },
-            ...(isGlobalSuperAdmin
+            ...(isSuperAdmin
               ? {}
               : {
                   OR: [

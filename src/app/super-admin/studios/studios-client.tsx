@@ -370,6 +370,20 @@ export function StudiosClient({ initialStudios }: Props) {
                 />
               </div>
             </div>
+
+            {addLat && addLng && !isNaN(parseFloat(addLat)) && !isNaN(parseFloat(addLng)) && (
+              <div className="rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800 h-[150px] w-full">
+                <iframe
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  loading="lazy"
+                  allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
+                  src={`https://maps.google.com/maps?q=${parseFloat(addLat)},${parseFloat(addLng)}&z=16&output=embed`}
+                />
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label htmlFor="add-radius">Radius Absen (Meter)</Label>
@@ -478,6 +492,20 @@ export function StudiosClient({ initialStudios }: Props) {
                 />
               </div>
             </div>
+
+            {editLat && editLng && !isNaN(parseFloat(editLat)) && !isNaN(parseFloat(editLng)) && (
+              <div className="rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800 h-[150px] w-full">
+                <iframe
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  loading="lazy"
+                  allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
+                  src={`https://maps.google.com/maps?q=${parseFloat(editLat)},${parseFloat(editLng)}&z=16&output=embed`}
+                />
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label htmlFor="edit-radius">Radius Absen (Meter)</Label>

@@ -25,6 +25,8 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { requireAnyRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createCorrectionAction } from "./actions";
+import { getJakartaDateKey } from "@/lib/attendance-time";
+import { CorrectionFormClient } from "./correction-form-client";
 
 export const dynamic = "force-dynamic";
 
@@ -42,16 +44,16 @@ const statusLabel: Record<string, string> = {
 };
 
 const statusColor: Record<string, string> = {
-  PRESENT: "bg-emerald-100 text-emerald-800",
-  ON_TIME: "bg-emerald-100 text-emerald-800",
-  LATE: "bg-orange-100 text-orange-800",
-  WFH: "bg-blue-100 text-blue-800",
-  PERMISSION: "bg-amber-100 text-amber-800",
-  SICK: "bg-violet-100 text-violet-800",
-  LEAVE: "bg-sky-100 text-sky-800",
-  ALPHA: "bg-red-100 text-red-800",
-  HOLIDAY: "bg-zinc-200 text-zinc-700",
-  OFF_DAY: "bg-zinc-200 text-zinc-700",
+  PRESENT: "bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900/50",
+  ON_TIME: "bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900/50",
+  LATE: "bg-orange-100 dark:bg-orange-950/50 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-900/50",
+  WFH: "bg-blue-100 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-900/50",
+  PERMISSION: "bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-900/50",
+  SICK: "bg-violet-100 dark:bg-violet-950/50 text-violet-800 dark:text-violet-300 border-violet-200 dark:border-violet-900/50",
+  LEAVE: "bg-sky-100 dark:bg-sky-950/50 text-sky-800 dark:text-sky-300 border-sky-200 dark:border-sky-900/50",
+  ALPHA: "bg-red-100 dark:bg-red-950/50 text-red-800 dark:text-red-300 border-red-200 dark:border-red-900/50",
+  HOLIDAY: "bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-300 dark:border-zinc-700",
+  OFF_DAY: "bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-300 dark:border-zinc-700",
 };
 
 const requestStatusLabel: Record<string, string> = {
@@ -61,9 +63,9 @@ const requestStatusLabel: Record<string, string> = {
 };
 
 const requestStatusColor: Record<string, string> = {
-  PENDING: "bg-amber-100 text-amber-800 border-amber-300",
-  APPROVED: "bg-emerald-100 text-emerald-800 border-emerald-300",
-  REJECTED: "bg-red-100 text-red-800 border-red-300",
+  PENDING: "bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-900/50",
+  APPROVED: "bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-900/50",
+  REJECTED: "bg-red-100 dark:bg-red-950/50 text-red-800 dark:text-red-300 border-red-300 dark:border-red-900/50",
 };
 
 function formatDate(date: Date) {
@@ -84,6 +86,7 @@ const errorMessages: Record<string, string> = {
   "not-found": "Catatan presensi tidak ditemukan.",
   unauthorized: "Anda tidak berwenang mengoreksi data ini.",
   "already-pending": "Catatan presensi ini sedang dalam proses pengajuan koreksi pending.",
+  "out-of-range": "Pengajuan koreksi hanya dapat diajukan untuk kehadiran antara 2 hingga 7 hari yang lalu.",
 };
 
 export default async function MemberCorrectionsPage({
@@ -96,10 +99,20 @@ export default async function MemberCorrectionsPage({
 
   const recordIdParam = params.recordId ?? "";
 
-  // Fetch recent records for dropdown selection (e.g. past 30 days)
+  // Filter dropdown: only records between 2 to 7 days ago
+  const todayKey = getJakartaDateKey(new Date());
+  const todayMidnight = new Date(`${todayKey}T00:00:00.000Z`);
+  const minDate = new Date(todayMidnight.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const maxDate = new Date(todayMidnight.getTime() - 2 * 24 * 60 * 60 * 1000);
+
   const recentRecords = await prisma.attendanceRecord.findMany({
-    where: { userId: currentUser.id },
-    take: 30,
+    where: {
+      userId: currentUser.id,
+      attendanceDate: {
+        gte: minDate,
+        lte: maxDate,
+      },
+    },
     orderBy: { attendanceDate: "desc" },
     select: {
       id: true,
@@ -146,13 +159,13 @@ export default async function MemberCorrectionsPage({
       description="Gunakan modul ini untuk memperbaiki status presensi lampau, misalnya lupa absen masuk/pulang."
     >
       {params.success && successMessages[params.success] ? (
-        <div className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        <div className="rounded-md border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/20 px-4 py-3 text-sm text-emerald-800 dark:text-emerald-400">
           {successMessages[params.success]}
         </div>
       ) : null}
 
       {params.error && errorMessages[params.error] ? (
-        <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-md border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/20 px-4 py-3 text-sm text-red-700 dark:text-red-400">
           {errorMessages[params.error]}
         </div>
       ) : null}
@@ -160,8 +173,8 @@ export default async function MemberCorrectionsPage({
       <div className="grid gap-6 lg:grid-cols-[1fr_2fr]">
         <Card className="h-fit">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <PlusCircle className="size-5 text-zinc-700" />
+            <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
+              <PlusCircle className="size-5 text-zinc-700 dark:text-zinc-300" />
               Ajukan Koreksi
             </CardTitle>
             <CardDescription>
@@ -169,81 +182,13 @@ export default async function MemberCorrectionsPage({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form action={createCorrectionAction} method="POST" className="grid gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="record-select" className="text-sm font-medium">
-                  Pilih Catatan Presensi / Tanggal <span className="text-red-500">*</span>
-                </label>
-                {preselectedRecord ? (
-                  <>
-                    <input type="hidden" name="recordId" value={preselectedRecord.id} />
-                    <div className="rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-medium flex justify-between items-center">
-                      <span>{formatDate(preselectedRecord.attendanceDate)}</span>
-                      <Badge variant="secondary" className={statusColor[preselectedRecord.status]}>
-                        {statusLabel[preselectedRecord.status] ?? preselectedRecord.status}
-                      </Badge>
-                    </div>
-                    <Link
-                      href="/member/corrections"
-                      className="text-xs text-blue-600 hover:underline mt-1 self-start"
-                    >
-                      Batal pilih & cari tanggal lain
-                    </Link>
-                  </>
-                ) : (
-                  <select
-                    id="record-select"
-                    name="recordId"
-                    className="h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-3 text-sm outline-none focus:border-zinc-950 dark:focus:border-zinc-300 focus:ring-1 focus:ring-zinc-950 dark:focus:ring-zinc-300"
-                    required
-                  >
-                    <option value="">-- Pilih Tanggal --</option>
-                    {recentRecords.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {formatDate(r.attendanceDate)} ({statusLabel[r.status] ?? r.status})
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="new-status" className="text-sm font-medium">
-                  Usulan Status Baru <span className="text-red-500">*</span>
-                </label>
-                <select
-                  id="new-status"
-                  name="newStatus"
-                  className="h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-3 text-sm outline-none focus:border-zinc-950 dark:focus:border-zinc-300 focus:ring-1 focus:ring-zinc-950 dark:focus:ring-zinc-300"
-                  required
-                >
-                  <option value="ON_TIME">Tepat Waktu (WFO)</option>
-                  <option value="LATE">Terlambat (WFO)</option>
-                  <option value="WFH">WFH (Penuh)</option>
-                  <option value="PERMISSION">Izin</option>
-                  <option value="SICK">Sakit</option>
-                  <option value="LEAVE">Cuti</option>
-                </select>
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="reason" className="text-sm font-medium">
-                  Alasan Koreksi <span className="text-red-500">*</span>
-                </label>
-                <Textarea
-                  id="reason"
-                  name="reason"
-                  placeholder="Contoh: Lupa scan QR saat check-in pagi karena buru-buru, namun saya hadir tepat waktu..."
-                  required
-                  rows={4}
-                />
-              </div>
-
-              <Button type="submit" className="w-full mt-2">
-                <PlusCircle className="size-4 mr-2" />
-                Kirim Koreksi
-              </Button>
-            </form>
+            <CorrectionFormClient
+              recentRecords={recentRecords}
+              preselectedRecord={preselectedRecord}
+              statusLabel={statusLabel}
+              statusColor={statusColor}
+              action={createCorrectionAction}
+            />
           </CardContent>
         </Card>
 

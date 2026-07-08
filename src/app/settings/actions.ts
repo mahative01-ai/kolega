@@ -17,7 +17,7 @@ type DayRule = {
 export async function upsertWeeklyWorkRulesAction(studioId: string, rules: DayRule[]) {
   const user = await requireRole("SUPER_ADMIN");
 
-  const isGlobalSuperAdmin = user.role === "SUPER_ADMIN" && user.defaultStudioId === null;
+  const isGlobalSuperAdmin = user.role === "SUPER_ADMIN";
   if (!isGlobalSuperAdmin && studioId !== user.defaultStudioId) {
     throw new Error("Anda hanya diperbolehkan mengelola aturan kerja untuk studio Anda sendiri.");
   }
@@ -57,7 +57,7 @@ export async function upsertWeeklyWorkRulesAction(studioId: string, rules: DayRu
 export async function updateStudioWeekStartAction(studioId: string, weekStartDay: number) {
   const user = await requireRole("SUPER_ADMIN");
 
-  const isGlobalSuperAdmin = user.role === "SUPER_ADMIN" && user.defaultStudioId === null;
+  const isGlobalSuperAdmin = user.role === "SUPER_ADMIN";
   if (!isGlobalSuperAdmin && studioId !== user.defaultStudioId) {
     throw new Error("Anda hanya diperbolehkan mengubah hari awal kerja untuk studio Anda sendiri.");
   }
@@ -159,7 +159,7 @@ export async function updateStudioPolicyAction(
 ) {
   const user = await requireRole("SUPER_ADMIN");
 
-  const isGlobalSuperAdmin = user.role === "SUPER_ADMIN" && user.defaultStudioId === null;
+  const isGlobalSuperAdmin = user.role === "SUPER_ADMIN";
   if (!isGlobalSuperAdmin && studioId !== user.defaultStudioId) {
     throw new Error("Anda hanya diperbolehkan mengubah kebijakan untuk studio Anda sendiri.");
   }
@@ -207,7 +207,7 @@ export async function updateStudioGeofenceAction(
 ) {
   const user = await requireRole("SUPER_ADMIN");
 
-  const isGlobalSuperAdmin = user.role === "SUPER_ADMIN" && user.defaultStudioId === null;
+  const isGlobalSuperAdmin = user.role === "SUPER_ADMIN";
   if (!isGlobalSuperAdmin && studioId !== user.defaultStudioId) {
     throw new Error("Anda hanya diperbolehkan mengubah geofence untuk studio Anda sendiri.");
   }

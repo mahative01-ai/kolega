@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAnyRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getJakartaDateKey } from "@/lib/attendance-time";
 
 export async function createCorrectionAction(formData: FormData) {
   const currentUser = await requireAnyRole(["ADMIN", "MEMBER"]);
@@ -11,6 +12,7 @@ export async function createCorrectionAction(formData: FormData) {
   const recordId = String(formData.get("recordId") ?? "");
   const newStatus = String(formData.get("newStatus") ?? "");
   const reason = String(formData.get("reason") ?? "").trim();
+  let proposedCheckInTime = String(formData.get("proposedCheckInTime") ?? "") || null;
 
   // Validate fields
   const validStatuses = [
@@ -28,6 +30,14 @@ export async function createCorrectionAction(formData: FormData) {
     redirect("/member/corrections?error=missing-fields");
   }
 
+  if (newStatus === "ON_TIME" || newStatus === "LATE") {
+    if (!proposedCheckInTime || !/^\d{2}:\d{2}$/.test(proposedCheckInTime)) {
+      redirect("/member/corrections?error=missing-fields");
+    }
+  } else {
+    proposedCheckInTime = null;
+  }
+
   // Fetch the attendance record
   const record = await prisma.attendanceRecord.findUnique({
     where: { id: recordId },
@@ -40,6 +50,17 @@ export async function createCorrectionAction(formData: FormData) {
   // Validate ownership
   if (record.userId !== currentUser.id) {
     redirect("/member/corrections?error=unauthorized");
+  }
+
+  // Validate time limit (2 to 7 days ago)
+  const todayKey = getJakartaDateKey(new Date());
+  const todayMidnight = new Date(`${todayKey}T00:00:00.000Z`);
+  const recordDate = new Date(record.attendanceDate);
+  const diffTime = todayMidnight.getTime() - recordDate.getTime();
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 2 || diffDays > 7) {
+    redirect("/member/corrections?error=out-of-range");
   }
 
   // Check for existing pending corrections for this record
@@ -61,6 +82,7 @@ export async function createCorrectionAction(formData: FormData) {
       requestedById: currentUser.id,
       previousStatus: record.status,
       newStatus: newStatus as typeof record.status,
+      proposedCheckInTime,
       reason,
       status: "PENDING",
     },

@@ -326,6 +326,7 @@ model AttendanceCorrection {
   approvedBy         User?            @relation("CorrectionApprover", fields: [approvedById], references: [id])
   previousStatus     AttendanceStatus?
   newStatus          AttendanceStatus?
+  proposedCheckInTime String?
   reason             String
   status             RequestStatus    @default(PENDING)
   createdAt          DateTime         @default(now())
