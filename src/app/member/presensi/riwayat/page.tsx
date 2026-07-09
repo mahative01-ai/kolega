@@ -26,6 +26,7 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { requireAnyRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { cn } from "@/lib/utils";
+import { getJakartaDateKey } from "@/lib/attendance-time";
 
 export const dynamic = "force-dynamic";
 
@@ -265,15 +266,28 @@ export default async function PersonalAttendanceHistoryPage() {
                         {record.locationStudio?.name ?? "Tidak perlu lokasi"}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Link
-                          href={`/member/corrections?recordId=${record.id}`}
-                          className={cn(
-                            buttonVariants({ variant: "outline", size: "sm" }),
-                            "h-7 px-2 text-xs"
-                          )}
-                        >
-                          Koreksi
-                        </Link>
+                        {(() => {
+                          const todayKey = getJakartaDateKey(new Date());
+                          const todayMidnight = new Date(`${todayKey}T00:00:00.000Z`);
+                          const recordDate = new Date(record.attendanceDate);
+                          const diffTime = todayMidnight.getTime() - recordDate.getTime();
+                          const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+                          if (diffDays >= 2 && diffDays <= 7) {
+                            return (
+                              <Link
+                                href={`/member/corrections?recordId=${record.id}`}
+                                className={cn(
+                                  buttonVariants({ variant: "outline", size: "sm" }),
+                                  "h-7 px-2 text-xs"
+                                )}
+                              >
+                                Koreksi
+                              </Link>
+                            );
+                          }
+                          return <span className="text-xs text-zinc-400 dark:text-zinc-500">-</span>;
+                        })()}
                       </TableCell>
                     </TableRow>
                   ))

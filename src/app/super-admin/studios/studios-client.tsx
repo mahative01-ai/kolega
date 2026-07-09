@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useTransition } from "react";
+import React, { useMemo, useState, useTransition, useEffect, useRef } from "react";
 import { Building2, Edit2, MapPin, Plus, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,13 @@ import {
 import { cn } from "@/lib/utils";
 import { createStudioAction, updateStudioAction, toggleStudioActiveAction } from "./actions";
 
+// Leaflet window declaration
+declare global {
+  interface Window {
+    L: any;
+  }
+}
+
 type Studio = {
   id: string;
   name: string;
@@ -48,6 +55,110 @@ type Studio = {
 type Props = {
   initialStudios: Studio[];
 };
+
+function LeafletMapPicker({
+  lat,
+  lng,
+  onChange,
+}: {
+  lat: number;
+  lng: number;
+  onChange: (lat: number, lng: number) => void;
+}) {
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<any>(null);
+  const markerRef = useRef<any>(null);
+
+  useEffect(() => {
+    // 1. Add Leaflet CSS
+    if (!document.getElementById("leaflet-css")) {
+      const link = document.createElement("link");
+      link.id = "leaflet-css";
+      link.rel = "stylesheet";
+      link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+      document.head.appendChild(link);
+    }
+
+    // 2. Add Leaflet JS
+    if (!document.getElementById("leaflet-js")) {
+      const script = document.createElement("script");
+      script.id = "leaflet-js";
+      script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+      script.async = true;
+      script.onload = () => {
+        initMap();
+      };
+      document.head.appendChild(script);
+    } else if (window.L) {
+      initMap();
+    }
+
+    function initMap() {
+      if (!mapContainerRef.current || mapRef.current) return;
+      const L = window.L;
+
+      // Custom marker icon to avoid default Leaflet webpack assets path issue
+      const DefaultIcon = L.icon({
+        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+      });
+      L.Marker.prototype.options.icon = DefaultIcon;
+
+      // Initialize map
+      const map = L.map(mapContainerRef.current).setView([lat, lng], 13);
+      mapRef.current = map;
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(map);
+
+      const marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+      markerRef.current = marker;
+
+      // Update lat/lng on drag
+      marker.on("dragend", () => {
+        const pos = marker.getLatLng();
+        onChange(pos.lat, pos.lng);
+      });
+
+      // Update lat/lng on map click
+      map.on("click", (e: any) => {
+        const pos = e.latlng;
+        marker.setLatLng(pos);
+        onChange(pos.lat, pos.lng);
+      });
+    }
+
+    return () => {
+      // Cleanup map on unmount
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+        markerRef.current = null;
+      }
+    };
+  }, []);
+
+  // Update marker position when prop lat/lng change from outside (e.g. typing)
+  useEffect(() => {
+    if (window.L && mapRef.current && markerRef.current) {
+      const currentPos = markerRef.current.getLatLng();
+      if (currentPos.lat !== lat || currentPos.lng !== lng) {
+        markerRef.current.setLatLng([lat, lng]);
+        mapRef.current.panTo([lat, lng]);
+      }
+    }
+  }, [lat, lng]);
+
+  return (
+    <div
+      ref={mapContainerRef}
+      className="w-full h-[180px] rounded-lg border border-zinc-200 dark:border-zinc-800 overflow-hidden z-0"
+    />
+  );
+}
 
 const WEEKDAYS = [
   { value: 1, label: "Senin" },
@@ -371,19 +482,17 @@ export function StudiosClient({ initialStudios }: Props) {
               </div>
             </div>
 
-            {addLat && addLng && !isNaN(parseFloat(addLat)) && !isNaN(parseFloat(addLng)) && (
-              <div className="rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800 h-[150px] w-full">
-                <iframe
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  loading="lazy"
-                  allowFullScreen
-                  referrerPolicy="no-referrer-when-downgrade"
-                  src={`https://maps.google.com/maps?q=${parseFloat(addLat)},${parseFloat(addLng)}&z=16&output=embed`}
-                />
-              </div>
-            )}
+            <div className="grid gap-1.5">
+              <Label>Peta Lokasi (Klik / Geser Pin untuk Mengatur Koordinat)</Label>
+              <LeafletMapPicker
+                lat={parseFloat(addLat) || -6.200000}
+                lng={parseFloat(addLng) || 106.816666}
+                onChange={(lat, lng) => {
+                  setAddLat(lat.toFixed(6));
+                  setAddLng(lng.toFixed(6));
+                }}
+              />
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label htmlFor="add-radius">Radius Absen (Meter)</Label>
@@ -493,19 +602,17 @@ export function StudiosClient({ initialStudios }: Props) {
               </div>
             </div>
 
-            {editLat && editLng && !isNaN(parseFloat(editLat)) && !isNaN(parseFloat(editLng)) && (
-              <div className="rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800 h-[150px] w-full">
-                <iframe
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  loading="lazy"
-                  allowFullScreen
-                  referrerPolicy="no-referrer-when-downgrade"
-                  src={`https://maps.google.com/maps?q=${parseFloat(editLat)},${parseFloat(editLng)}&z=16&output=embed`}
-                />
-              </div>
-            )}
+            <div className="grid gap-1.5">
+              <Label>Peta Lokasi (Klik / Geser Pin untuk Mengatur Koordinat)</Label>
+              <LeafletMapPicker
+                lat={parseFloat(editLat) || -6.200000}
+                lng={parseFloat(editLng) || 106.816666}
+                onChange={(lat, lng) => {
+                  setEditLat(lat.toFixed(6));
+                  setEditLng(lng.toFixed(6));
+                }}
+              />
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label htmlFor="edit-radius">Radius Absen (Meter)</Label>

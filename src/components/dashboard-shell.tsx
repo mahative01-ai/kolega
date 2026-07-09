@@ -5,11 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { ROLE_LABEL } from "@/lib/roles";
 import { prisma } from "@/lib/prisma";
-import {
-  dateOnlyFromKey,
-  getDayOfWeek,
-  getJakartaDateKey,
-} from "@/lib/attendance-time";
 import { NotificationBellClient } from "@/app/notifications/notification-bell-client";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
@@ -92,69 +87,7 @@ export async function DashboardShell({
     createdAt: n.createdAt.toISOString(),
   }));
 
-  // Gatekeeper check: Super Admin and Admin are always allowed
-  if (user.role === "MEMBER") {
-    const cookieStore = await cookies();
-    const isUnlockedForRequests = cookieStore.get("kolega_unlocked_requests")?.value === "1";
 
-    const todayKey = getJakartaDateKey();
-    const todayDate = dateOnlyFromKey(todayKey);
-    const dayOfWeek = getDayOfWeek(todayKey);
-
-    const [attendanceRecord, personalSchedule, weeklyRule, holiday] = await Promise.all([
-      prisma.attendanceRecord.findUnique({
-        where: {
-          userId_attendanceDate: {
-            userId: user.id,
-            attendanceDate: todayDate,
-          },
-        },
-        select: { id: true },
-      }),
-      prisma.personalWorkSchedule.findUnique({
-        where: {
-          userId_workDate: {
-            userId: user.id,
-            workDate: todayDate,
-          },
-        },
-        select: { workMode: true },
-      }),
-      user.defaultStudioId
-        ? prisma.weeklyWorkRule.findUnique({
-            where: {
-              studioId_dayOfWeek: {
-                studioId: user.defaultStudioId,
-                dayOfWeek,
-              },
-            },
-            select: { isWorkday: true },
-          })
-        : null,
-      prisma.calendarEvent.findFirst({
-        where: {
-          OR: [{ studioId: null }, { studioId: user.defaultStudioId || undefined }],
-          type: { in: ["NATIONAL_HOLIDAY", "COMPANY_LEAVE"] },
-          startDate: { lte: todayDate },
-          endDate: { gte: todayDate },
-        },
-        select: { id: true },
-      }),
-    ]);
-
-    const isWeekendOrHoliday = holiday || (weeklyRule?.isWorkday === false && personalSchedule?.workMode !== "WFO");
-    const isWfh = personalSchedule?.workMode === "WFH";
-
-    const isAllowed =
-      attendanceRecord ||
-      isWeekendOrHoliday ||
-      isWfh ||
-      isUnlockedForRequests;
-
-    if (!isAllowed) {
-      redirect("/login?error=need-presence");
-    }
-  }
 
   // Generate breadcrumb list dynamically
   const dashboardBase = user.role === "SUPER_ADMIN" ? "super-admin" : user.role === "ADMIN" ? "admin" : "member";

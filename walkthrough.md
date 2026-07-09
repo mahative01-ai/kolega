@@ -45,12 +45,25 @@ Seluruh perbaikan bug dan masukan fitur telah sukses diimplementasikan dan diver
 *   **Perubahan**:
     *   Menambahkan kelas `dark:` pada elemen-elemen berlatar belakang abu-abu terang (`bg-zinc-50`), merah (`bg-red-50`), dan hijau (`bg-emerald-50`) agar tampil elegan dan tidak silau dalam darkmode.
 
-### 5. Preview Google Maps untuk Studio Baru
+### 5. Peta Lokasi Interaktif (Leaflet Map Picker)
 *   **Berkas Dimodifikasi**:
     *   [studios-client.tsx](file:///C:/Users/zxsyn/Documents/Codex/2026-06-23/aku/mahateams-new-gen/src/app/super-admin/studios/studios-client.tsx)
 *   **Perubahan**:
-    *   Menyematkan Google Maps Embed iframe di bawah kolom Latitude & Longitude pada form Tambah Cabang Studio dan Edit Cabang Studio.
-    *   Peta visual akan langsung muncul secara interaktif begitu pengguna memasukkan nilai koordinat yang valid.
+    *   Mengintegrasikan Leaflet Map Picker interaktif menggunakan ubin OpenStreetMap (gratis dan bebas API Key).
+    *   Mendukung dua arah data (two-way binding): pengguna dapat menggeser penunjuk (marker drag) atau mengetuk peta untuk memperbarui input latitude & longitude, dan mengetik koordinat manual untuk memindahkan letak penunjuk di peta.
+
+### 6. Batasan Tombol Koreksi di Riwayat Kehadiran Member
+*   **Berkas Dimodifikasi**:
+    *   [page.tsx (Riwayat)](file:///C:/Users/zxsyn/Documents/Codex/2026-06-23/aku/mahateams-new-gen/src/app/member/presensi/riwayat/page.tsx)
+*   **Perubahan**:
+    *   Menghilangkan tombol **Koreksi** pada tabel riwayat absensi jika catatan kehadiran tersebut berada di luar rentang 2 hingga 7 hari yang lalu (misalnya lebih dari 7 hari atau kurang dari 2 hari).
+
+### 7. Alur Masuk Kredensial Langsung ke Dasbor Member
+*   **Berkas Dimodifikasi**:
+    *   [dashboard-shell.tsx](file:///C:/Users/zxsyn/Documents/Codex/2026-06-23/aku/mahateams-new-gen/src/components/dashboard-shell.tsx)
+*   **Perubahan**:
+    *   Menghapus logika gatekeeper penguncian dasbor (`need-presence` redirect) pada member.
+    *   Pengguna dengan peran Member yang masuk menggunakan email & password (kredensial) kini langsung masuk ke dashboard `/member` dengan status "Belum Presensi" dan dapat berinteraksi penuh tanpa dipaksa redirect ke halaman pemindaian QR.
 
 ---
 
@@ -58,3 +71,4 @@ Seluruh perbaikan bug dan masukan fitur telah sukses diimplementasikan dan diver
 
 *   **Prisma Client**: Sukses diregenerasikan menggunakan perintah `npx prisma generate` untuk memetakan kolom baru `proposedCheckInTime`.
 *   **Next.js Production Build**: Perintah `npm run build` berhasil dieksekusi dengan status **SUKSES** tanpa ada masalah tipe data (TypeScript) maupun rendering halaman statis.
+
