@@ -303,9 +303,7 @@ export default async function SettingsPage({
                         <Label htmlFor="doff-studio" className="text-zinc-700 dark:text-zinc-300">Studio</Label>
                         <Select name="studioId">
                           <SelectTrigger id="doff-studio">
-                            <SelectValue placeholder="Pilih Studio">
-                              {(val) => val ? (studios.find((s) => s.id === val)?.name || val) : (val === "" ? "🌐 Semua Studio (Global)" : undefined)}
-                            </SelectValue>
+                            <SelectValue placeholder="Pilih Studio" />
                           </SelectTrigger>
                           <SelectContent>
                             {isGlobalSuperAdmin ? (
