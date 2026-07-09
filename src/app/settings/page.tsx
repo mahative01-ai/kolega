@@ -100,7 +100,7 @@ export default async function SettingsPage({
 }) {
   const [user, params] = await Promise.all([requireUser(), searchParams]);
   const isSuperAdmin = user.role === "SUPER_ADMIN";
-  const isGlobalSuperAdmin = user.role === "SUPER_ADMIN" && user.defaultStudioId === null;
+  const isGlobalSuperAdmin = user.role === "SUPER_ADMIN";
 
   const activeTab = isSuperAdmin ? (params.tab ?? "profile") : "profile";
 

@@ -65,10 +65,16 @@ Seluruh perbaikan bug dan masukan fitur telah sukses diimplementasikan dan diver
     *   Menghapus logika gatekeeper penguncian dasbor (`need-presence` redirect) pada member.
     *   Pengguna dengan peran Member yang masuk menggunakan email & password (kredensial) kini langsung masuk ke dashboard `/member` dengan status "Belum Presensi" dan dapat berinteraksi penuh tanpa dipaksa redirect ke halaman pemindaian QR.
 
+### 8. Pengaturan Global Super Admin untuk Semua Studio
+*   **Berkas Dimodifikasi**:
+    *   [page.tsx (Settings)](file:///C:/Users/zxsyn/Documents/Codex/2026-06-23/aku/mahateams-new-gen/src/app/settings/page.tsx)
+*   **Perubahan**:
+    *   Mengubah `isGlobalSuperAdmin` di halaman pengaturan agar memeriksa status peran `SUPER_ADMIN` saja tanpa memedulikan nilai `defaultStudioId`.
+    *   Semua akun dengan peran Super Admin kini dapat secara fleksibel beralih dan mengonfigurasi pengaturan hari kerja, hari libur (days off), dan geofence lokasi untuk seluruh cabang studio secara global.
+
 ---
 
 ## 🔍 Hasil Verifikasi & Kompilasi
 
 *   **Prisma Client**: Sukses diregenerasikan menggunakan perintah `npx prisma generate` untuk memetakan kolom baru `proposedCheckInTime`.
 *   **Next.js Production Build**: Perintah `npm run build` berhasil dieksekusi dengan status **SUKSES** tanpa ada masalah tipe data (TypeScript) maupun rendering halaman statis.
-
