@@ -146,6 +146,7 @@ model User {
   picketSchedules            PicketSchedule[]
   notifications              Notification[]
   auditLogs                  AuditLog[]             @relation("AuditActor")
+  payslips                   Payslip[]
 
   @@index([role])
   @@index([accountStatus])
@@ -409,4 +410,23 @@ model AuditLog {
 
   @@index([actorId, createdAt])
   @@index([entity, entityId])
+}
+
+model Payslip {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  month       Int
+  year        Int
+  basicSalary Float
+  allowances  Float    @default(0)
+  deductions  Float    @default(0)
+  netSalary   Float
+  notes       String?
+  status      String   @default("SENT")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, month, year])
+  @@index([userId])
 }

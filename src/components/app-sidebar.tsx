@@ -87,6 +87,7 @@ function getMenuGroups(role: SidebarUser["role"]): MenuGroup[] {
           { label: "Jadwal WFO/WFH", href: "/schedules", icon: CalendarClock },
           { label: "Cuti & Kalender", href: "/calendar", icon: CalendarClock },
           { label: "Jadwal Piket", href: "/piket", icon: BrushCleaning },
+          { label: "Slip Gaji", href: "/super-admin/payslips", icon: ClipboardCheck },
         ],
       },
       {
@@ -139,6 +140,7 @@ function getMenuGroups(role: SidebarUser["role"]): MenuGroup[] {
         { label: "Koreksi Presensi", href: "/member/corrections", icon: ClipboardCheck },
         { label: "Jadwal Piket Saya", href: "/piket", icon: BrushCleaning },
         { label: "Laporan WFH", href: "/member/laporan-wfh", icon: Clipboard },
+        { label: "Slip Gaji Saya", href: "/member/payslips", icon: ClipboardCheck },
       ],
     },
   ];
