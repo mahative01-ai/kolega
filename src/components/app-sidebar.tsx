@@ -16,6 +16,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Archive,
   CalendarDays,
@@ -28,6 +29,7 @@ import {
   FileText,
   Receipt,
   Terminal,
+  Search,
 } from "lucide-react";
 import { ROLE_LABEL } from "@/lib/roles";
 import { NavUser } from "@/components/nav-user";
@@ -146,11 +148,12 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
   const currentPath = usePathname();
   const groups = getMenuGroups(user.role);
   const { state } = useSidebar();
+  const isMember = user.role === "MEMBER";
 
   return (
-    <Sidebar collapsible="icon" variant="inset" {...props}>
+    <Sidebar collapsible={isMember ? undefined : "icon"} variant="inset" {...props}>
       <SidebarHeader className="relative overflow-visible">
-        {state === "collapsed" ? (
+        {state === "collapsed" && !isMember ? (
           <div className="relative h-12 w-full flex items-center justify-center overflow-visible">
             {/* The Logo container that extends (memanjangkan) on hover to the right using the terminal logo */}
             <div className="group absolute left-1.5 flex items-center h-10 w-9 hover:w-44 rounded-lg bg-white dark:bg-zinc-950 border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800 hover:shadow-md hover:z-50 transition-all duration-300 overflow-hidden cursor-pointer p-0.5">
@@ -164,19 +167,34 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
             </div>
           </div>
         ) : (
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <div className="flex items-center gap-3 px-2 py-3">
-                <div className="flex aspect-square size-9 items-center justify-center rounded-lg bg-zinc-950 dark:bg-zinc-100 text-zinc-50 dark:text-zinc-950">
-                  <Terminal className="size-4" />
+          <div className="space-y-1.5">
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <div className="flex items-center gap-3 px-2 py-3">
+                  <div className="flex aspect-square size-9 items-center justify-center rounded-lg bg-zinc-950 dark:bg-zinc-100 text-zinc-50 dark:text-zinc-950">
+                    <Terminal className="size-4" />
+                  </div>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-semibold text-zinc-900 dark:text-zinc-100">Kolega</span>
+                    <span className="truncate text-xs text-zinc-500 dark:text-zinc-400">New Gen</span>
+                  </div>
                 </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold text-zinc-900 dark:text-zinc-100">Kolega</span>
-                  <span className="truncate text-xs text-zinc-500 dark:text-zinc-400">New Gen</span>
+              </SidebarMenuItem>
+            </SidebarMenu>
+            {/* Search Input Box below the logo for MEMBER role to match sidebar-01 specifications */}
+            {isMember && (
+              <div className="px-2 pb-2">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-500" />
+                  <Input
+                    type="search"
+                    placeholder="Cari menu..."
+                    className="pl-8 h-9 text-xs bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
+                  />
                 </div>
               </div>
-            </SidebarMenuItem>
-          </SidebarMenu>
+            )}
+          </div>
         )}
       </SidebarHeader>
 
@@ -197,7 +215,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                       <SidebarMenuButton
                         isActive={isActive}
                         render={<Link href={item.href} />}
-                        tooltip={item.label}
+                        tooltip={isMember ? undefined : item.label}
                         className={isActive ? "bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 font-medium group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2!" : "text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2!"}
                       >
                         <Icon className="size-4 shrink-0" />
@@ -219,7 +237,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                     ) : (
                       <SidebarMenuButton
                         disabled
-                        tooltip={item.label}
+                        tooltip={isMember ? undefined : item.label}
                         className="opacity-55 cursor-not-allowed text-zinc-700 dark:text-zinc-300 flex w-full items-center gap-2 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2!"
                       >
                         <Icon className="size-4 shrink-0" />

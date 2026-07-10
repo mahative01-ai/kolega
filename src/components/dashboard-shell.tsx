@@ -107,7 +107,7 @@ export async function DashboardShell({
   const hasSubpages = breadcrumbs.length > 0;
 
   return (
-    <SidebarProvider defaultOpen={false} className="bg-zinc-100 dark:bg-background">
+    <SidebarProvider defaultOpen={user.role === "MEMBER"} className="bg-zinc-100 dark:bg-background">
       <AppSidebar user={user} />
       <SidebarInset className="flex flex-col bg-white dark:bg-background border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-none m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2 text-zinc-950 dark:text-zinc-50">
         {/* Navbar */}
