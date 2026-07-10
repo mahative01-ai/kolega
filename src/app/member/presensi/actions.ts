@@ -24,6 +24,22 @@ function createQrUid() {
   return `MHT-${randomUUID().slice(0, 8).toUpperCase()}`;
 }
 
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371e3; // Earth's radius in meters
+  const phi1 = (lat1 * Math.PI) / 180;
+  const phi2 = (lat2 * Math.PI) / 180;
+  const deltaPhi = ((lat2 - lat1) * Math.PI) / 180;
+  const deltaLambda = ((lon2 - lon1) * Math.PI) / 180;
+
+  const a =
+    Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+    Math.cos(phi1) * Math.cos(phi2) *
+    Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c; // in meters
+}
+
 function isUniqueConstraintError(error: unknown) {
   return (
     typeof error === "object" &&
@@ -99,6 +115,19 @@ export async function submitWfoAttendanceAction(formData: FormData) {
     redirect("/member/presensi?error=studio");
   }
 
+  const latStr = String(formData.get("latitude") ?? "").trim();
+  const lngStr = String(formData.get("longitude") ?? "").trim();
+
+  if (!latStr || !lngStr) {
+    redirect("/member/presensi?error=location-required");
+  }
+
+  const userLat = parseFloat(latStr);
+  const userLng = parseFloat(lngStr);
+  if (isNaN(userLat) || isNaN(userLng)) {
+    redirect("/member/presensi?error=location-required");
+  }
+
   const credential = await prisma.qrCredential.findUnique({
     where: {
       qrUid,
@@ -125,76 +154,93 @@ export async function submitWfoAttendanceAction(formData: FormData) {
   const attendanceDate = dateOnlyFromKey(todayKey);
   const dayOfWeek = getDayOfWeek(todayKey);
 
-  const [policy, personalSchedule, weeklyRule, holiday, replacementWorkday, existingRecord] =
+  const [policy, personalSchedule, weeklyRule, holiday, replacementWorkday, existingRecord, studio] =
     await Promise.all([
-    prisma.attendancePolicy.findFirst({
-      where: {
-        studioId: currentStudioId,
-        isActive: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      select: {
-        checkInTime: true,
-        graceMinutes: true,
-        alphaCutoffTime: true,
-      },
-    }),
-    prisma.personalWorkSchedule.findUnique({
-      where: {
-        userId_workDate: {
-          userId: currentUser.id,
-          workDate: attendanceDate,
-        },
-      },
-      select: {
-        workMode: true,
-      },
-    }),
-    prisma.weeklyWorkRule.findUnique({
-      where: {
-        studioId_dayOfWeek: {
+      prisma.attendancePolicy.findFirst({
+        where: {
           studioId: currentStudioId,
-          dayOfWeek,
+          isActive: true,
         },
-      },
-      select: { isWorkday: true },
-    }),
-    prisma.calendarEvent.findFirst({
-      where: {
-        OR: [{ studioId: null }, { studioId: currentStudioId }],
-        type: { in: ["NATIONAL_HOLIDAY", "COMPANY_LEAVE", "REGULAR_OFF_DAY", "STUDIO_EVENT"] },
-        startDate: { lte: attendanceDate },
-        endDate: { gte: attendanceDate },
-      },
-      select: { id: true },
-    }),
-    prisma.calendarEvent.findFirst({
-      where: {
-        studioId: currentStudioId,
-        type: "REPLACEMENT_WORKDAY",
-        startDate: { lte: attendanceDate },
-        endDate: { gte: attendanceDate },
-      },
-      select: { id: true },
-    }),
-    prisma.attendanceRecord.findUnique({
-      where: {
-        userId_attendanceDate: {
-          userId: currentUser.id,
-          attendanceDate,
+        orderBy: {
+          createdAt: "desc",
         },
-      },
-      select: {
-        id: true,
-        workMode: true,
-        status: true,
-        checkInAt: true,
-        checkOutAt: true,
-      },
-    }),
-  ]);
+        select: {
+          checkInTime: true,
+          graceMinutes: true,
+          alphaCutoffTime: true,
+        },
+      }),
+      prisma.personalWorkSchedule.findUnique({
+        where: {
+          userId_workDate: {
+            userId: currentUser.id,
+            workDate: attendanceDate,
+          },
+        },
+        select: {
+          workMode: true,
+        },
+      }),
+      prisma.weeklyWorkRule.findUnique({
+        where: {
+          studioId_dayOfWeek: {
+            studioId: currentStudioId,
+            dayOfWeek,
+          },
+        },
+        select: { isWorkday: true },
+      }),
+      prisma.calendarEvent.findFirst({
+        where: {
+          OR: [{ studioId: null }, { studioId: currentStudioId }],
+          type: { in: ["NATIONAL_HOLIDAY", "COMPANY_LEAVE", "REGULAR_OFF_DAY", "STUDIO_EVENT"] },
+          startDate: { lte: attendanceDate },
+          endDate: { gte: attendanceDate },
+        },
+        select: { id: true },
+      }),
+      prisma.calendarEvent.findFirst({
+        where: {
+          studioId: currentStudioId,
+          type: "REPLACEMENT_WORKDAY",
+          startDate: { lte: attendanceDate },
+          endDate: { gte: attendanceDate },
+        },
+        select: { id: true },
+      }),
+      prisma.attendanceRecord.findUnique({
+        where: {
+          userId_attendanceDate: {
+            userId: currentUser.id,
+            attendanceDate,
+          },
+        },
+        select: {
+          id: true,
+          workMode: true,
+          status: true,
+          checkInAt: true,
+          checkOutAt: true,
+        },
+      }),
+      prisma.studio.findUnique({
+        where: { id: currentStudioId },
+        select: { latitude: true, longitude: true, radiusMeters: true },
+      }),
+    ]);
+
+  if (!studio || studio.latitude === null || studio.longitude === null) {
+    redirect("/member/presensi?error=studio-location-missing");
+  }
+
+  const distance = calculateDistance(userLat, userLng, studio.latitude, studio.longitude);
+  const maxRadius = studio.radiusMeters ?? 100;
+
+  if (distance > maxRadius) {
+    redirect(
+      `/member/presensi?error=out-of-range&distance=${Math.round(distance)}&radius=${maxRadius}`
+    );
+  }
 
   const isWeekendOrHoliday = (holiday && !replacementWorkday) || (weeklyRule?.isWorkday === false && personalSchedule?.workMode !== "WFO" && !replacementWorkday);
 
@@ -227,6 +273,10 @@ export async function submitWfoAttendanceAction(formData: FormData) {
       },
       data: {
         checkOutAt: now,
+        checkOutLatitude: userLat,
+        checkOutLongitude: userLng,
+        distanceMeters: distance,
+        locationValidationStatus: "VALID",
         updatedAt: now,
       },
     });
@@ -274,7 +324,10 @@ export async function submitWfoAttendanceAction(formData: FormData) {
           locationStudioId: currentStudioId,
           workMode: "WFO",
           status: "ALPHA",
-          locationValidationStatus: "NOT_REQUIRED",
+          locationValidationStatus: "VALID",
+          checkInLatitude: userLat,
+          checkInLongitude: userLng,
+          distanceMeters: distance,
         },
         skipDuplicates: true,
       });
@@ -308,7 +361,10 @@ export async function submitWfoAttendanceAction(formData: FormData) {
         checkInAt: now,
         ownerStudioId: currentUser.defaultStudioId ?? currentStudioId,
         locationStudioId: currentStudioId,
-        locationValidationStatus: "NOT_REQUIRED",
+        locationValidationStatus: "VALID",
+        checkInLatitude: userLat,
+        checkInLongitude: userLng,
+        distanceMeters: distance,
         lateMinutes,
       },
     });
@@ -323,7 +379,10 @@ export async function submitWfoAttendanceAction(formData: FormData) {
           workMode: "WFO",
           status,
           checkInAt: now,
-          locationValidationStatus: "NOT_REQUIRED",
+          locationValidationStatus: "VALID",
+          checkInLatitude: userLat,
+          checkInLongitude: userLng,
+          distanceMeters: distance,
           lateMinutes,
           createdById: currentUser.id,
         },

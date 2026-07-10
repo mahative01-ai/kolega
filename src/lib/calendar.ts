@@ -67,3 +67,30 @@ export function formatMonthLabel(year: number, monthIndex: number) {
     year: "numeric",
   }).format(new Date(year, monthIndex, 1));
 }
+
+export type IndonesianHoliday = {
+  dateKey: string;
+  label: string;
+  isCutiBersama: boolean;
+};
+
+export async function getIndonesianHolidays(year: number): Promise<IndonesianHoliday[]> {
+  try {
+    const res = await fetch(`https://api-hari-libur.vercel.app/api?year=${year}`, {
+      next: { revalidate: 86400 } // cache for 24 hours
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.status === "success" && Array.isArray(data.data)) {
+        return data.data.map((item: any) => ({
+          dateKey: item.date,
+          label: item.description,
+          isCutiBersama: item.description.toLowerCase().includes("cuti bersama"),
+        }));
+      }
+    }
+  } catch (err) {
+    console.error("Gagal mengambil data hari libur nasional:", err);
+  }
+  return [];
+}

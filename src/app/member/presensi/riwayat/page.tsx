@@ -3,6 +3,7 @@ import {
   CheckCheck,
   Clock3,
   LogOut,
+  History,
 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
@@ -208,7 +209,10 @@ export default async function PersonalAttendanceHistoryPage() {
         <Card>
           <CardHeader>
             <div>
-              <CardTitle>Catatan Presensi</CardTitle>
+              <CardTitle className="text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+                <History className="size-5 text-blue-700 dark:text-blue-400" />
+                Catatan Presensi
+              </CardTitle>
               <CardDescription>
                 Maksimal 60 catatan terbaru, termasuk WFO dan WFH.
               </CardDescription>

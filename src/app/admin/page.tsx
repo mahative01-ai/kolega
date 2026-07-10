@@ -14,6 +14,7 @@ import {
   formatDateKey,
   getCalendarDays,
   parseMonthKey,
+  getIndonesianHolidays,
 } from "@/lib/calendar";
 import QRCode from "qrcode";
 
@@ -53,13 +54,13 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
     pendingRequestList,
     pendingCorrectionList,
     studioMembers,
+    calendarEvents,
+    apiHolidays,
   ] = await Promise.all([
-    defaultStudioId
-      ? prisma.studio.findUnique({
-          where: { id: defaultStudioId },
-          select: { name: true, address: true },
-        })
-      : null,
+    prisma.studio.findUnique({
+      where: { id: defaultStudioId ?? "__none__" },
+      select: { name: true, address: true },
+    }),
     prisma.user.count({
       where: {
         ...userFilter,
@@ -226,6 +227,24 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
       },
       orderBy: { name: "asc" },
     }),
+    prisma.calendarEvent.findMany({
+      where: {
+        startDate: { lte: monthEnd },
+        endDate: { gte: monthStart },
+        OR: [
+          { studioId: null },
+          { studioId: defaultStudioId ?? "__none__" },
+        ],
+      },
+      select: {
+        id: true,
+        title: true,
+        type: true,
+        startDate: true,
+        endDate: true,
+      },
+    }),
+    getIndonesianHolidays(month.year),
   ]);
 
   const dailyTrend: { dateLabel: string; count: number }[] = [];
@@ -266,6 +285,8 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
     pendingRequestList,
     pendingCorrectionList,
     studioMembers,
+    calendarEvents,
+    apiHolidays,
     monthLabel: formatMonthLabel(reportMonth),
     selectedMonth: month,
   };

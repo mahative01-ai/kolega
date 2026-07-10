@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState, useTransition, useEffect, useRef } from "react";
-import { Building2, Edit2, MapPin, Plus, Search } from "lucide-react";
+import { Building2, Edit2, MapPin, Plus, Search, Navigation, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -198,6 +198,49 @@ export function StudiosClient({ initialStudios }: Props) {
   const [editWeekStart, setEditWeekStart] = useState("1");
   const [editError, setEditError] = useState("");
 
+  const [addGpsLoading, setAddGpsLoading] = useState(false);
+  const [editGpsLoading, setEditGpsLoading] = useState(false);
+
+  function handleDetectAddLocation() {
+    if (!navigator.geolocation) {
+      alert("Browser Anda tidak mendukung deteksi lokasi GPS.");
+      return;
+    }
+    setAddGpsLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setAddLat(position.coords.latitude.toFixed(6));
+        setAddLng(position.coords.longitude.toFixed(6));
+        setAddGpsLoading(false);
+      },
+      (err) => {
+        setAddGpsLoading(false);
+        alert("Gagal mendeteksi lokasi. Pastikan izin lokasi diberikan dan GPS aktif.");
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+
+  function handleDetectEditLocation() {
+    if (!navigator.geolocation) {
+      alert("Browser Anda tidak mendukung deteksi lokasi GPS.");
+      return;
+    }
+    setEditGpsLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setEditLat(position.coords.latitude.toFixed(6));
+        setEditLng(position.coords.longitude.toFixed(6));
+        setEditGpsLoading(false);
+      },
+      (err) => {
+        setEditGpsLoading(false);
+        alert("Gagal mendeteksi lokasi. Pastikan izin lokasi diberikan dan GPS aktif.");
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+
   const filteredStudios = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
     if (!q) return studios;
@@ -334,7 +377,10 @@ export function StudiosClient({ initialStudios }: Props) {
 
       <Card className="shadow-none">
         <CardHeader>
-          <CardTitle className="text-zinc-900 dark:text-zinc-50">Daftar Cabang Studio</CardTitle>
+          <CardTitle className="text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+            <Building2 className="size-5 text-blue-700 dark:text-blue-400" />
+            Daftar Cabang Studio
+          </CardTitle>
           <CardDescription>Cabang fisik studio aktif untuk validasi Geofence GPS presensi.</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -482,6 +528,22 @@ export function StudiosClient({ initialStudios }: Props) {
               </div>
             </div>
 
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleDetectAddLocation}
+              disabled={addGpsLoading}
+              className="w-full flex items-center gap-1.5 justify-center text-xs h-9 shadow-none border border-zinc-200 dark:border-zinc-800"
+            >
+              {addGpsLoading ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Navigation className="size-3.5 text-blue-600 dark:text-blue-400" />
+              )}
+              Gunakan Lokasi Saat Ini
+            </Button>
+
             <div className="grid gap-1.5">
               <Label>Peta Lokasi (Klik / Geser Pin untuk Mengatur Koordinat)</Label>
               <LeafletMapPicker
@@ -601,6 +663,22 @@ export function StudiosClient({ initialStudios }: Props) {
                 />
               </div>
             </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleDetectEditLocation}
+              disabled={editGpsLoading}
+              className="w-full flex items-center gap-1.5 justify-center text-xs h-9 shadow-none border border-zinc-200 dark:border-zinc-800"
+            >
+              {editGpsLoading ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Navigation className="size-3.5 text-blue-600 dark:text-blue-400" />
+              )}
+              Gunakan Lokasi Saat Ini
+            </Button>
 
             <div className="grid gap-1.5">
               <Label>Peta Lokasi (Klik / Geser Pin untuk Mengatur Koordinat)</Label>

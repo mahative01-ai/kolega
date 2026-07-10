@@ -8,7 +8,9 @@ import {
   ClipboardList,
   Building,
   Brush,
-  ArrowRight
+  ArrowRight,
+  Building2,
+  Users
 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
@@ -414,7 +416,10 @@ export default async function SuperAdminDashboardPage() {
           {/* Studio Summary */}
           <Card className="shadow-none">
             <CardHeader>
-              <CardTitle className="text-zinc-900 dark:text-zinc-50">Ringkasan Studio</CardTitle>
+              <CardTitle className="text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+                <Building2 className="size-5 text-blue-700 dark:text-blue-400" />
+                Ringkasan Studio
+              </CardTitle>
               <CardDescription className="text-zinc-500 dark:text-zinc-400">
                 Super Admin memantau data seluruh studio aktif secara terpusat.
               </CardDescription>
@@ -575,7 +580,10 @@ export default async function SuperAdminDashboardPage() {
         {/* Recent Attendance across all studios */}
         <Card className="shadow-none">
           <CardHeader>
-            <CardTitle className="text-zinc-900 dark:text-zinc-50">Kehadiran Tim Lintas Studio Hari Ini</CardTitle>
+            <CardTitle className="text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+              <Users className="size-5 text-blue-700 dark:text-blue-400" />
+              Kehadiran Tim Lintas Studio Hari Ini
+            </CardTitle>
             <CardDescription className="text-zinc-500 dark:text-zinc-400">
               Daftar kehadiran staf lintas studio Mahative dan Kipa hari ini.
             </CardDescription>

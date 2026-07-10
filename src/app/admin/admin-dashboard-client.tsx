@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, useMemo } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -112,6 +112,18 @@ type Props = {
       id: string;
       name: string;
     }>;
+    calendarEvents?: Array<{
+      id: string;
+      title: string;
+      type: string;
+      startDate: Date;
+      endDate: Date;
+    }>;
+    apiHolidays?: Array<{
+      dateKey: string;
+      label: string;
+      isCutiBersama: boolean;
+    }>;
   };
   qrSvg: string | null;
   days: { date: Date; dateKey: string; dayNumber: number }[];
@@ -183,6 +195,53 @@ export function AdminDashboardClient({
 }: Props) {
   const [activeTab, setActiveTab] = useState<"personal" | "studio">(defaultTab ?? "personal");
   const isWfhMode = data.todaySchedule?.workMode === "WFH" || data.todayRecord?.workMode === "WFH";
+
+  const adminHolidaysMap = useMemo(() => {
+    const map = new Map<string, { title: string; type: string }[]>();
+    const apiHolidays = data.apiHolidays ?? [];
+    const calendarEvents = data.calendarEvents ?? [];
+
+    const mappedApiHolidays = apiHolidays
+      .filter((h) => {
+        const [hY, hM] = h.dateKey.split("-").map(Number);
+        return hY === data.selectedMonth.year && hM === (data.selectedMonth.monthIndex + 1);
+      })
+      .map((h) => {
+        const dateVal = new Date(`${h.dateKey}T00:00:00.000Z`);
+        return {
+          type: h.isCutiBersama ? "COMPANY_LEAVE" : "NATIONAL_HOLIDAY",
+          title: h.label,
+          startDate: dateVal,
+          endDate: dateVal,
+        };
+      });
+
+    const filteredApiHolidays = mappedApiHolidays.filter((hEv) => {
+      const hDateStr = hEv.startDate.toISOString().slice(0, 10);
+      const hasReplacement = calendarEvents.some((dbEv) => {
+        const dbDateStr = new Date(dbEv.startDate).toISOString().slice(0, 10);
+        return dbDateStr === hDateStr && dbEv.type === "REPLACEMENT_WORKDAY";
+      });
+      return !hasReplacement;
+    });
+
+    const allCalendarEvents = [...calendarEvents, ...filteredApiHolidays];
+
+    for (const ev of allCalendarEvents) {
+      const start = new Date(ev.startDate).getTime();
+      const end = new Date(ev.endDate).getTime();
+      for (const day of days) {
+        const [y, m, d] = day.dateKey.split("-").map(Number);
+        const dayTs = Date.UTC(y, m - 1, d);
+        if (dayTs >= start && dayTs <= end) {
+          const existing = map.get(day.dateKey) ?? [];
+          existing.push({ title: ev.title, type: ev.type });
+          map.set(day.dateKey, existing);
+        }
+      }
+    }
+    return map;
+  }, [data.apiHolidays, data.calendarEvents, data.selectedMonth, days]);
 
   useEffect(() => {
     if (defaultTab) {
@@ -522,7 +581,10 @@ export function AdminDashboardClient({
             {/* Calendar */}
             <Card className="shadow-none">
               <CardHeader>
-                <CardTitle className="text-zinc-900 dark:text-zinc-50">Jadwal Kalender Kerja Saya</CardTitle>
+                <CardTitle className="text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+                  <CalendarDays className="size-5 text-blue-700 dark:text-blue-400" />
+                  Jadwal Kalender Kerja Saya
+                </CardTitle>
                 <CardDescription className="text-zinc-500 dark:text-zinc-400">
                   Mode kerja kalender pribadi Anda bulan ini.
                 </CardDescription>
@@ -540,11 +602,12 @@ export function AdminDashboardClient({
                   {days.map((day) => {
                     const schedule = scheduleByDateMap[day.dateKey];
                     const isToday = day.dateKey === todayKey;
+                    const dayHolidays = adminHolidaysMap.get(day.dateKey) ?? [];
                     return (
                       <div
                         key={day.dateKey}
                         className={cn(
-                          "min-h-12 p-1 bg-white dark:bg-zinc-950 flex flex-col justify-between transition-colors",
+                          "min-h-16 p-1 bg-white dark:bg-zinc-950 flex flex-col justify-between transition-colors",
                           isToday && "bg-blue-50/30 dark:bg-blue-950/10"
                         )}
                       >
@@ -559,17 +622,36 @@ export function AdminDashboardClient({
                           {day.dayNumber}
                         </span>
 
-                        {schedule && (
-                          <div
-                            className={cn(
-                              "text-[8px] font-bold px-1 py-0.5 rounded border truncate mt-1 text-center select-none",
-                              workModeStyles[schedule.workMode]
-                            )}
-                            title={schedule.note || workModeLabels[schedule.workMode]}
-                          >
-                            {schedule.workMode}
-                          </div>
-                        )}
+                        <div className="space-y-0.5 mt-1">
+                          {dayHolidays.map((h, hIdx) => (
+                            <div
+                              key={hIdx}
+                              className={cn(
+                                "text-[7px] font-bold px-1 py-0.5 rounded border truncate text-left select-none leading-none",
+                                h.type === "NATIONAL_HOLIDAY"
+                                  ? "bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900"
+                                  : h.type === "COMPANY_LEAVE"
+                                  ? "bg-orange-50 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-900"
+                                  : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700"
+                              )}
+                              title={h.title}
+                            >
+                              {h.title}
+                            </div>
+                          ))}
+
+                          {schedule && (
+                            <div
+                              className={cn(
+                                "text-[8px] font-bold px-1 py-0.5 rounded border truncate text-center select-none",
+                                workModeStyles[schedule.workMode]
+                              )}
+                              title={schedule.note || workModeLabels[schedule.workMode]}
+                            >
+                              {schedule.workMode}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
@@ -839,7 +921,8 @@ export function AdminDashboardClient({
           {/* Recent Attendance (Tabel Presensi Tim) */}
           <Card className="shadow-none">
             <CardHeader>
-              <CardTitle className="text-base text-zinc-900 dark:text-zinc-50">
+              <CardTitle className="text-base text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+                <Users className="size-5 text-blue-700 dark:text-blue-400" />
                 Presensi Tim Hari Ini
               </CardTitle>
               <CardDescription className="text-zinc-500 dark:text-zinc-400">
