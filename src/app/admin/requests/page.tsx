@@ -471,13 +471,13 @@ export default async function AdminApprovalsPage({
                         <TableCell>{corr.requestedBy.defaultStudio?.name ?? "-"}</TableCell>
                         <TableCell>{formatDate(corr.attendanceRecord.attendanceDate)}</TableCell>
                         <TableCell>
-                          <Badge variant="outline" className={statusColor[corr.oldStatus]}>
-                            {statusLabel[corr.oldStatus] ?? corr.oldStatus}
+                          <Badge variant="outline" className={corr.previousStatus ? statusColor[corr.previousStatus] : ""}>
+                            {corr.previousStatus ? (statusLabel[corr.previousStatus] ?? corr.previousStatus) : "-"}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className={statusColor[corr.newStatus]}>
-                            {statusLabel[corr.newStatus] ?? corr.newStatus}
+                          <Badge variant="outline" className={corr.newStatus ? statusColor[corr.newStatus] : ""}>
+                            {corr.newStatus ? (statusLabel[corr.newStatus] ?? corr.newStatus) : "-"}
                           </Badge>
                         </TableCell>
                         <TableCell className="max-w-[200px] truncate" title={corr.reason}>
@@ -563,13 +563,13 @@ export default async function AdminApprovalsPage({
                         <TableCell>{corr.requestedBy.defaultStudio?.name ?? "-"}</TableCell>
                         <TableCell>{formatDate(corr.attendanceRecord.attendanceDate)}</TableCell>
                         <TableCell>
-                          <Badge variant="outline" className={statusColor[corr.oldStatus]}>
-                            {statusLabel[corr.oldStatus] ?? corr.oldStatus}
+                          <Badge variant="outline" className={corr.previousStatus ? statusColor[corr.previousStatus] : ""}>
+                            {corr.previousStatus ? (statusLabel[corr.previousStatus] ?? corr.previousStatus) : "-"}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className={statusColor[corr.newStatus]}>
-                            {statusLabel[corr.newStatus] ?? corr.newStatus}
+                          <Badge variant="outline" className={corr.newStatus ? statusColor[corr.newStatus] : ""}>
+                            {corr.newStatus ? (statusLabel[corr.newStatus] ?? corr.newStatus) : "-"}
                           </Badge>
                         </TableCell>
                         <TableCell className="max-w-[200px] truncate" title={corr.reason}>

@@ -25,7 +25,6 @@ import {
   LayoutGrid,
   BrushCleaning,
   MessageSquare,
-  FileCheck,
   FileWarning,
   ClipboardCheck,
   Clipboard,
