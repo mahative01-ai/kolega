@@ -72,15 +72,15 @@ Seluruh perbaikan bug dan masukan fitur telah sukses diimplementasikan dan diver
     *   Mengubah `isGlobalSuperAdmin` di halaman pengaturan agar memeriksa status peran `SUPER_ADMIN` saja tanpa memedulikan nilai `defaultStudioId`.
     *   Semua akun dengan peran Super Admin kini dapat secara fleksibel beralih dan mengonfigurasi pengaturan hari kerja, hari libur (days off), dan geofence lokasi untuk seluruh cabang studio secara global.
 
-### 9. Sistem Check-out Otomatis (Auto Check-out Cron)
-*   **Berkas Dimodifikasi / Baru**:
-    *   [route.ts (Auto Check-out)](file:///C:/Users/zxsyn/Documents/Codex/2026-06-23/aku/mahateams-new-gen/src/app/api/cron/auto-checkout/route.ts) [NEW]
+### 9. Sistem Check-out Otomatis (Auto Check-out Terintegrasi)
+*   **Berkas Dimodifikasi**:
+    *   [route.ts (Reminders)](file:///C:/Users/zxsyn/Documents/Codex/2026-06-23/aku/mahateams-new-gen/src/app/api/cron/reminders/route.ts) [MODIFY]
     *   [vercel.json](file:///C:/Users/zxsyn/Documents/Codex/2026-06-23/aku/mahateams-new-gen/vercel.json) [MODIFY]
 *   **Perubahan**:
-    *   Membuat API endpoint baru `/api/cron/auto-checkout` yang bertugas mendeteksi seluruh catatan presensi hari ini yang memiliki jam check-in namun belum melakukan check-out.
-    *   Sistem secara otomatis akan mencatatkan jam check-out sesuai waktu check-out kebijakan aktif studio asal anggota (default: 17:00 WIB).
-    *   Anggota terkait akan menerima notifikasi di dasbor mengenai tindakan auto check-out ini.
-    *   Mendaftarkan cron schedule baru `0 10 * * *` (setiap hari jam 17:00 WIB / 10:00 UTC) pada berkas `vercel.json` untuk otomatis memicu API route tersebut.
+    *   Mengintegrasikan logika check-out otomatis ke dalam endpoint API `/api/cron/reminders` untuk kepraktisan pemeliharaan endpoint.
+    *   Logika ini diprogram secara aman: **hanya akan berjalan pada eksekusi sore hari (WIB >= 17:00)** untuk mencegah bentrokan check-out prematur di pagi hari.
+    *   Secara otomatis mendeteksi member yang lupa check-out, menyetel jam check-out sesuai waktu kebijakan aktif studio (bawaan: 17:00 WIB), dan mengirimkan notifikasi ke dasbor masing-masing anggota.
+    *   `vercel.json` dipertahankan ringkas dengan hanya mendaftarkan pemicu reminders harian.
 
 ---
 

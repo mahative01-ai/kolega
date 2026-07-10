@@ -151,9 +151,68 @@ export async function GET(request: Request) {
     }
   }
 
+  // ─── Auto Check-out for Forgotten Check-outs (Only after 17:00 WIB) ────────
+  let autoCheckOutCount = 0;
+  const now = new Date();
+  const jakartaHour = Number(new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Jakarta",
+    hour: "numeric",
+    hour12: false,
+  }).format(now));
+
+  if (jakartaHour >= 17) {
+    // Find all attendance records for today that have check-in but no check-out
+    const activeRecords = await prisma.attendanceRecord.findMany({
+      where: {
+        attendanceDate: todayDate,
+        checkInAt: { not: null },
+        checkOutAt: null,
+      },
+      select: {
+        id: true,
+        ownerStudioId: true,
+        userId: true,
+      },
+    });
+
+    for (const record of activeRecords) {
+      // Get the active checkout policy for this studio
+      const policy = await prisma.attendancePolicy.findFirst({
+        where: { studioId: record.ownerStudioId, isActive: true },
+        select: { checkOutTime: true },
+      });
+
+      const checkoutTime = policy?.checkOutTime ?? "17:00";
+      const [h, m] = checkoutTime.split(":").map(Number);
+
+      const autoCheckOutTime = new Date(`${todayKey}T00:00:00.000Z`);
+      autoCheckOutTime.setUTCHours(h - 7, m, 0, 0); // Convert Jakarta time to UTC
+
+      await prisma.attendanceRecord.update({
+        where: { id: record.id },
+        data: {
+          checkOutAt: autoCheckOutTime,
+          updatedAt: new Date(),
+        },
+      });
+
+      // Create a notification for the member
+      await prisma.notification.create({
+        data: {
+          userId: record.userId,
+          title: "Auto Check-out",
+          message: `Sistem mendeteksi Anda belum melakukan check-out hari ini. Anda telah di-checkout otomatis pada jam ${checkoutTime} WIB.`,
+        },
+      });
+
+      autoCheckOutCount++;
+    }
+  }
+
   return Response.json({
     success: true,
     notificationsCreated,
     emailsSent,
+    autoCheckOutCount,
   });
 }
