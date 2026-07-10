@@ -93,7 +93,7 @@ export default async function CalendarPage({
   if (user.role !== "SUPER_ADMIN" && user.role !== "ADMIN") redirect("/member");
 
   const isSuperAdmin = user.role === "SUPER_ADMIN";
-  const isGlobalSuperAdmin = user.role === "SUPER_ADMIN" && user.defaultStudioId === null;
+  const isGlobalSuperAdmin = user.role === "SUPER_ADMIN";
 
   const { year, month } = parseMonthKey(params.month);
   const startDate = dateOnly(new Date(Date.UTC(year, month - 1, 1)));
