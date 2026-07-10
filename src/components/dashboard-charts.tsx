@@ -27,24 +27,7 @@ type Props = {
 };
 
 export function DashboardCharts({ summary, dailyTrend }: Props) {
-  const [activeDonutSlice, setActiveDonutSlice] = useState<"WFO" | "WFH" | null>(null);
 
-  // ── 1. Donut Chart Calculations (WFO vs WFH) ─────────────────────────────
-  const wfoCount = summary.onTime + summary.late;
-  const wfhCount = summary.wfh;
-  const totalPresence = wfoCount + wfhCount;
-
-  const donutData = useMemo(() => {
-    if (totalPresence === 0) return { wfoPercent: 50, wfhPercent: 50, isEmpty: true };
-    const wfoPercent = Math.round((wfoCount / totalPresence) * 100);
-    const wfhPercent = 100 - wfoPercent;
-    return { wfoPercent, wfhPercent, isEmpty: false };
-  }, [wfoCount, wfhCount, totalPresence]);
-
-  const radius = 36;
-  const circumference = 2 * Math.PI * radius; // ~226.19
-  const wfoStrokeDash = (donutData.wfoPercent / 100) * circumference;
-  const wfhStrokeDash = (donutData.wfhPercent / 100) * circumference;
 
   // ── 2. Horizontal Composition Calculations ──────────────────────────────
   const totalSummary = summary.total;
@@ -85,98 +68,8 @@ export function DashboardCharts({ summary, dailyTrend }: Props) {
   }, [dailyTrend]);
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {/* 1. Donut Chart Card */}
-      <Card className="shadow-none flex flex-col justify-between">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold flex items-center gap-1.5 text-zinc-900 dark:text-zinc-50">
-            <PieChart className="size-4 text-blue-700 dark:text-blue-400" />
-            Kehadiran WFO vs WFH
-          </CardTitle>
-          <CardDescription>Perbandingan rasio kehadiran bulan ini</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center justify-center py-4 flex-1">
-          {totalPresence === 0 ? (
-            <div className="text-center py-8 text-zinc-400 dark:text-zinc-600 text-xs">
-              Belum ada data presensi WFO / WFH
-            </div>
-          ) : (
-            <div className="flex items-center gap-8 w-full justify-around">
-              {/* SVG Donut */}
-              <div className="relative size-32">
-                <svg viewBox="0 0 100 100" className="size-full -rotate-90">
-                  {/* WFO Circle (Base / bottom layer) */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r={radius}
-                    fill="transparent"
-                    stroke="#10b981" /* emerald-500 */
-                    strokeWidth="12"
-                    strokeDasharray={circumference}
-                    className="transition-all duration-300 cursor-pointer"
-                    onMouseEnter={() => setActiveDonutSlice("WFO")}
-                    onMouseLeave={() => setActiveDonutSlice(null)}
-                  />
-                  {/* WFH Circle (Top layer offset) */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r={radius}
-                    fill="transparent"
-                    stroke="#3b82f6" /* blue-500 */
-                    strokeWidth="12"
-                    strokeDasharray={`${wfhStrokeDash} ${circumference}`}
-                    strokeDashoffset={-wfoStrokeDash}
-                    className="transition-all duration-300 cursor-pointer"
-                    onMouseEnter={() => setActiveDonutSlice("WFH")}
-                    onMouseLeave={() => setActiveDonutSlice(null)}
-                  />
-                </svg>
-                {/* Donut Center Display */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <p className="text-2xl font-bold text-zinc-800 dark:text-zinc-100">
-                    {activeDonutSlice === "WFH" 
-                      ? `${donutData.wfhPercent}%` 
-                      : activeDonutSlice === "WFO"
-                        ? `${donutData.wfoPercent}%`
-                        : `${donutData.wfoPercent}%`
-                    }
-                  </p>
-                  <p className="text-[10px] text-zinc-400 font-medium uppercase tracking-wider">
-                    {activeDonutSlice === "WFH" 
-                      ? "WFH" 
-                      : activeDonutSlice === "WFO"
-                        ? "WFO"
-                        : "WFO (Default)"
-                    }
-                  </p>
-                </div>
-              </div>
-
-              {/* Legends */}
-              <div className="flex flex-col gap-2.5 text-xs text-zinc-600 dark:text-zinc-400 font-medium">
-                <div className="flex items-center gap-2">
-                  <span className="size-3 rounded-full bg-emerald-500" />
-                  <div>
-                    <p className="font-semibold text-zinc-900 dark:text-zinc-200">WFO: {wfoCount} kali</p>
-                    <p className="text-[10px] text-zinc-400">{donutData.wfoPercent}% dari total</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="size-3 rounded-full bg-blue-500" />
-                  <div>
-                    <p className="font-semibold text-zinc-900 dark:text-zinc-200">WFH: {wfhCount} kali</p>
-                    <p className="text-[10px] text-zinc-400">{donutData.wfhPercent}% dari total</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* 2. Composition Horizontal Bars Card */}
+    <div className="grid gap-6 md:grid-cols-2">
+      {/* 1. Composition Horizontal Bars Card */}
       <Card className="shadow-none flex flex-col justify-between">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-semibold flex items-center gap-1.5 text-zinc-900 dark:text-zinc-50">
@@ -211,8 +104,8 @@ export function DashboardCharts({ summary, dailyTrend }: Props) {
         </CardContent>
       </Card>
 
-      {/* 3. Trend Line Chart Card */}
-      <Card className="shadow-none flex flex-col justify-between md:col-span-2 lg:col-span-1">
+      {/* 2. Trend Line Chart Card */}
+      <Card className="shadow-none flex flex-col justify-between">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-semibold flex items-center gap-1.5 text-zinc-900 dark:text-zinc-50">
             <TrendingUp className="size-4 text-emerald-700 dark:text-emerald-400" />

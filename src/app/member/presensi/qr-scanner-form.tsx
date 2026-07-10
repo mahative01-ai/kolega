@@ -47,7 +47,64 @@ export function QrScannerForm({
   const [message, setMessage] = useState(
     "Scan QR Card yang sudah kamu simpan untuk membuka tombol presensi."
   );
-  const canSubmit = Boolean(scanValue.trim()) && !disabled;
+  
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [geoError, setGeoError] = useState<string | null>(null);
+  const [isLoadingGeo, setIsLoadingGeo] = useState(true);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setCoords({
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+          });
+          setIsLoadingGeo(false);
+        },
+        (err) => {
+          console.error(err);
+          setGeoError(
+            err.code === 1
+              ? "Akses lokasi ditolak. Harap aktifkan GPS & izin lokasi browser."
+              : "Gagal mendapatkan koordinat GPS. Pastikan GPS aktif."
+          );
+          setIsLoadingGeo(false);
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    } else {
+      setGeoError("Browser Anda tidak mendukung Geolocation.");
+      setIsLoadingGeo(false);
+    }
+  }, []);
+
+  function refreshLocation() {
+    setIsLoadingGeo(true);
+    setGeoError(null);
+    setCoords(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setCoords({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        });
+        setIsLoadingGeo(false);
+      },
+      (err) => {
+        console.error(err);
+        setGeoError(
+          err.code === 1
+            ? "Akses lokasi ditolak. Harap aktifkan GPS & izin lokasi browser."
+            : "Gagal mendapatkan koordinat GPS. Pastikan GPS aktif."
+        );
+        setIsLoadingGeo(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+
+  const canSubmit = Boolean(scanValue.trim()) && !disabled && Boolean(coords);
 
   async function stopScanner() {
     const scanner = scannerRef.current;
@@ -167,7 +224,38 @@ export function QrScannerForm({
 
       <p className="text-sm text-zinc-600">{message}</p>
 
+      <div className="rounded-md border p-3 text-xs bg-zinc-50 dark:bg-zinc-900/50">
+        {isLoadingGeo ? (
+          <p className="text-zinc-500 flex items-center gap-1.5 animate-pulse">
+            <span className="h-2 w-2 rounded-full bg-zinc-400" />
+            Sedang melacak koordinat GPS Anda...
+          </p>
+        ) : coords ? (
+          <p className="text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5 font-medium">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            Lokasi GPS Terverifikasi: {coords.lat.toFixed(6)}, {coords.lng.toFixed(6)}
+          </p>
+        ) : (
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-red-600 dark:text-red-400 flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-red-500" />
+              {geoError}
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={refreshLocation}
+              className="text-[10px] h-6 py-0 px-2 shadow-none"
+            >
+              Coba Lagi
+            </Button>
+          </div>
+        )}
+      </div>
+
       <form action={submitWfoAttendanceAction} className="grid gap-3">
+        <input type="hidden" name="latitude" value={coords?.lat ?? ""} />
+        <input type="hidden" name="longitude" value={coords?.lng ?? ""} />
         <div className="flex flex-col gap-2">
           <label htmlFor="qrUid" className="text-sm font-medium">
             Hasil Scan QR

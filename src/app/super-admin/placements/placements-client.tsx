@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState, useTransition } from "react";
-import { Plus, Search, Check, X, Calendar } from "lucide-react";
+import { Plus, Search, Check, X, Calendar, Milestone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -186,7 +186,10 @@ export function PlacementsClient({ initialPlacements, users, studios }: Props) {
 
       <Card className="shadow-none">
         <CardHeader>
-          <CardTitle className="text-zinc-900 dark:text-zinc-50">Daftar Penempatan Staf/Magang</CardTitle>
+          <CardTitle className="text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+            <Milestone className="size-5 text-blue-700 dark:text-blue-400" />
+            Daftar Penempatan Staf/Magang
+          </CardTitle>
           <CardDescription>
             Riwayat penugasan studio fisik sementara untuk validasi GPS WFO presensi harian anggota.
           </CardDescription>

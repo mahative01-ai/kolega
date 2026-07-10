@@ -22,6 +22,7 @@ import {
   getCalendarDays,
   parseDateKey,
   parseMonthKey,
+  getIndonesianHolidays,
 } from "@/lib/calendar";
 
 export const dynamic = "force-dynamic";
@@ -167,11 +168,42 @@ export default async function WorkSchedulesPage({
     month.year,
     month.monthIndex
   );
-  const data = await getScheduleData({
-    actor: currentUser,
-    monthKey: month.monthKey,
-    selectedUserId: params.userId,
+  
+  const [data, apiHolidays] = await Promise.all([
+    getScheduleData({
+      actor: currentUser,
+      monthKey: month.monthKey,
+      selectedUserId: params.userId,
+    }),
+    getIndonesianHolidays(month.year),
+  ]);
+
+  const mappedApiHolidays = apiHolidays
+    .filter((h) => {
+      const [hY, hM] = h.dateKey.split("-").map(Number);
+      return hY === month.year && hM === (month.monthIndex + 1);
+    })
+    .map((h) => {
+      const dateVal = new Date(`${h.dateKey}T00:00:00.000Z`);
+      return {
+        type: h.isCutiBersama ? "COMPANY_LEAVE" : "NATIONAL_HOLIDAY",
+        title: h.label,
+        startDate: dateVal,
+        endDate: dateVal,
+      };
+    });
+
+  const filteredApiHolidays = mappedApiHolidays.filter((hEv) => {
+    const hDateStr = hEv.startDate.toISOString().slice(0, 10);
+    const hasReplacement = data.calendarEvents.some((dbEv) => {
+      const dbDateStr = dbEv.startDate.toISOString().slice(0, 10);
+      return dbDateStr === hDateStr && dbEv.type === "REPLACEMENT_WORKDAY";
+    });
+    return !hasReplacement;
   });
+
+  const allCalendarEvents = [...data.calendarEvents, ...filteredApiHolidays];
+
   const canManage = currentUser.role === "SUPER_ADMIN";
   const scheduleByDate = new Map(
     data.schedules.map((schedule) => [
@@ -191,7 +223,7 @@ export default async function WorkSchedulesPage({
     REPLACEMENT_WORKDAY: "bg-emerald-100 text-emerald-700",
     STUDIO_EVENT: "bg-blue-100 text-blue-700",
   };
-  for (const ev of data.calendarEvents) {
+  for (const ev of allCalendarEvents) {
     const start = ev.startDate.getTime();
     const end = ev.endDate.getTime();
     for (const day of days) {

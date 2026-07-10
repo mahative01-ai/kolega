@@ -38,6 +38,7 @@ import {
   formatMonthLabel as formatCalendarMonth,
   getCalendarDays,
   parseMonthKey,
+  getIndonesianHolidays,
 } from "@/lib/calendar";
 
 export const dynamic = "force-dynamic";
@@ -88,6 +89,11 @@ async function getMemberDashboardData(userId: string, selectedMonthKey?: string)
   const todayKey = getJakartaDateKey();
   const todayDate = dateOnlyFromKey(todayKey);
 
+  const userObj = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { defaultStudioId: true }
+  });
+
   const [
     groups,
     recentAttendance,
@@ -99,6 +105,8 @@ async function getMemberDashboardData(userId: string, selectedMonthKey?: string)
     lateMinutesSum,
     announcement,
     picketCalendar,
+    calendarEvents,
+    apiHolidays,
   ] = await Promise.all([
     prisma.attendanceRecord.groupBy({
       by: ["status"],
@@ -217,6 +225,24 @@ async function getMemberDashboardData(userId: string, selectedMonthKey?: string)
         note: true,
       },
     }),
+    prisma.calendarEvent.findMany({
+      where: {
+        startDate: { lte: monthEnd },
+        endDate: { gte: monthStart },
+        OR: [
+          { studioId: null },
+          { studioId: userObj?.defaultStudioId ?? "__none__" },
+        ],
+      },
+      select: {
+        id: true,
+        title: true,
+        type: true,
+        startDate: true,
+        endDate: true,
+      },
+    }),
+    getIndonesianHolidays(month.year),
   ]);
 
   return {
@@ -230,6 +256,8 @@ async function getMemberDashboardData(userId: string, selectedMonthKey?: string)
     lateMakeupMinutes: lateMinutesSum._sum.lateMinutes ?? 0,
     announcement,
     picketCalendar,
+    calendarEvents,
+    apiHolidays,
     monthLabel: formatMonthLabel(reportMonth),
     selectedMonth: month,
   };
@@ -271,6 +299,47 @@ export default async function MemberDashboardPage({
     data.picketCalendar.map((p) => formatDateKey(p.picketDate))
   );
   const todayKey = formatDateKey(dateOnly());
+  const memberHolidaysMap = new Map<string, { title: string; type: string }[]>();
+
+  const mappedApiHolidays = data.apiHolidays
+    .filter((h) => {
+      const [hY, hM] = h.dateKey.split("-").map(Number);
+      return hY === data.selectedMonth.year && hM === (data.selectedMonth.monthIndex + 1);
+    })
+    .map((h) => {
+      const dateVal = new Date(`${h.dateKey}T00:00:00.000Z`);
+      return {
+        type: h.isCutiBersama ? "COMPANY_LEAVE" : "NATIONAL_HOLIDAY",
+        title: h.label,
+        startDate: dateVal,
+        endDate: dateVal,
+      };
+    });
+
+  const filteredApiHolidays = mappedApiHolidays.filter((hEv) => {
+    const hDateStr = hEv.startDate.toISOString().slice(0, 10);
+    const hasReplacement = data.calendarEvents.some((dbEv) => {
+      const dbDateStr = dbEv.startDate.toISOString().slice(0, 10);
+      return dbDateStr === hDateStr && dbEv.type === "REPLACEMENT_WORKDAY";
+    });
+    return !hasReplacement;
+  });
+
+  const allCalendarEvents = [...data.calendarEvents, ...filteredApiHolidays];
+
+  for (const ev of allCalendarEvents) {
+    const start = ev.startDate.getTime();
+    const end = ev.endDate.getTime();
+    for (const day of days) {
+      const [y, m, d] = day.dateKey.split("-").map(Number);
+      const dayTs = Date.UTC(y, m - 1, d);
+      if (dayTs >= start && dayTs <= end) {
+        const existing = memberHolidaysMap.get(day.dateKey) ?? [];
+        existing.push({ title: ev.title, type: ev.type });
+        memberHolidaysMap.set(day.dateKey, existing);
+      }
+    }
+  }
 
   const metrics = [
     {
@@ -597,6 +666,7 @@ export default async function MemberDashboardPage({
                 const isWfh = schedule?.workMode === "WFH";
                 const isToday = day.dateKey === todayKey;
                 const isPicket = picketDaysSet.has(day.dateKey);
+                const dayHolidays = memberHolidaysMap.get(day.dateKey) ?? [];
 
                 return (
                   <div
@@ -635,15 +705,33 @@ export default async function MemberDashboardPage({
                         </span>
                       </div>
                     </div>
-                    {schedule?.note ? (
-                      <p className="mt-1 truncate text-[9px] text-zinc-400" title={schedule.note}>
-                        {schedule.note}
-                      </p>
-                    ) : (
-                      <p className="mt-1 truncate text-[9px] text-zinc-300 dark:text-zinc-600">
-                        Default WFO
-                      </p>
-                    )}
+                    <div className="mt-1 space-y-1">
+                      {dayHolidays.map((h, hIdx) => (
+                        <div
+                          key={hIdx}
+                          className={cn(
+                            "rounded px-1.5 py-0.5 text-[8px] font-bold border truncate max-w-full select-none text-left leading-tight",
+                            h.type === "NATIONAL_HOLIDAY"
+                              ? "bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900"
+                              : h.type === "COMPANY_LEAVE"
+                              ? "bg-orange-50 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-900"
+                              : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700"
+                          )}
+                          title={h.title}
+                        >
+                          {h.title}
+                        </div>
+                      ))}
+                      {schedule?.note ? (
+                        <p className="truncate text-[9px] text-zinc-400" title={schedule.note}>
+                          {schedule.note}
+                        </p>
+                      ) : (
+                        <p className="truncate text-[9px] text-zinc-300 dark:text-zinc-600">
+                          Default WFO
+                        </p>
+                      )}
+                    </div>
                   </div>
                 );
               })}

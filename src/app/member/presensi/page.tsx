@@ -44,9 +44,31 @@ function formatTime(date: Date | null) {
   }).format(new Date(date));
 }
 
-export default async function MemberPresensiPage() {
+const successMessages: Record<string, string> = {
+  checkin: "Berhasil melakukan check-in WFO!",
+  checkout: "Berhasil melakukan check-out WFO!",
+  done: "Presensi hari ini sudah selesai dilakukan.",
+};
+
+const errorMessages: Record<string, string> = {
+  qr: "Kartu QR tidak valid atau dinonaktifkan.",
+  studio: "Studio penempatan Anda tidak ditemukan.",
+  "missing-checkout": "Anda belum check-out pada hari sebelumnya. Silakan ajukan koreksi presensi di dashboard.",
+  mode: "Status atau mode kerja tidak valid untuk presensi WFO hari ini.",
+  alpha: "Waktu cutoff presensi sudah terlewati. Anda ditandai Alpa.",
+  "location-required": "GPS / Lokasi diperlukan untuk memverifikasi presensi WFO.",
+  "studio-location-missing": "Lokasi GPS Studio penempatan belum dikonfigurasi oleh admin.",
+};
+
+export default async function MemberPresensiPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ success?: string; error?: string; distance?: string; radius?: string }>;
+}) {
   const currentUser = await requireAnyRole(["ADMIN", "MEMBER"]);
   const dashboardPath = currentUser.role === "ADMIN" ? "/admin" : "/member";
+
+  const params = await searchParams;
 
   const todayKey = getJakartaDateKey();
   const todayDate = dateOnlyFromKey(todayKey);
@@ -89,6 +111,23 @@ export default async function MemberPresensiPage() {
       description="Scan QR Card Anda menggunakan kamera perangkat ini untuk melakukan Check-in atau Check-out WFO."
     >
       <div className="max-w-2xl mx-auto space-y-6">
+        {params.success && successMessages[params.success] ? (
+          <div className="rounded-md border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/20 px-4 py-3 text-sm text-emerald-800 dark:text-emerald-400">
+            {successMessages[params.success]}
+          </div>
+        ) : null}
+
+        {params.error ? (
+          <div className="rounded-md border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/20 px-4 py-3 text-sm text-red-700 dark:text-red-400">
+            {params.error === "out-of-range" ? (
+              <span>
+                Anda berada di luar jangkauan studio (jarak Anda: <strong>{params.distance} meter</strong>, batas jangkauan: <strong>{params.radius} meter</strong>). Silakan mendekat ke lokasi studio.
+              </span>
+            ) : (
+              errorMessages[params.error] || "Terjadi kesalahan saat memproses presensi."
+            )}
+          </div>
+        ) : null}
         <Link
           href={dashboardPath}
           className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "flex items-center gap-1.5 w-fit")}
