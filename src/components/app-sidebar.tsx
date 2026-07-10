@@ -30,6 +30,7 @@ import {
   FileText,
   Receipt,
   CircleHelp,
+  Terminal,
 } from "lucide-react";
 import { logoutAction } from "@/app/login/actions";
 import { ROLE_LABEL } from "@/lib/roles";
@@ -154,12 +155,12 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
       <SidebarHeader className="relative overflow-visible">
         {state === "collapsed" ? (
           <div className="relative h-12 w-full flex items-center justify-center overflow-visible">
-            {/* The S Logo container that extends (memanjangkan) on hover to the right */}
-            <div className="group absolute left-1 flex items-center h-10 w-9 hover:w-44 rounded-lg bg-white dark:bg-zinc-950 border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800 hover:shadow-md hover:z-50 transition-all duration-300 overflow-hidden cursor-pointer p-0.5">
-              <div className="flex items-center justify-center w-8 h-8 shrink-0 text-zinc-900 dark:text-zinc-50 font-serif text-2xl font-bold select-none">
-                S
+            {/* The Logo container that extends (memanjangkan) on hover to the right using the terminal logo */}
+            <div className="group absolute left-1.5 flex items-center h-10 w-9 hover:w-44 rounded-lg bg-white dark:bg-zinc-950 border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800 hover:shadow-md hover:z-50 transition-all duration-300 overflow-hidden cursor-pointer p-0.5">
+              <div className="flex aspect-square size-8 items-center justify-center shrink-0 rounded-lg bg-zinc-950 dark:bg-zinc-100 text-zinc-50 dark:text-zinc-950">
+                <Terminal className="size-4" />
               </div>
-              <div className="flex flex-col ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+              <div className="flex flex-col ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
                 <span className="font-semibold text-zinc-900 dark:text-zinc-100 text-xs">Kolega</span>
                 <span className="text-[9px] text-zinc-500 dark:text-zinc-400">New Gen</span>
               </div>
@@ -169,8 +170,8 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
           <SidebarMenu>
             <SidebarMenuItem>
               <div className="flex items-center gap-3 px-2 py-3">
-                <div className="flex aspect-square size-9 items-center justify-center rounded-lg text-zinc-900 dark:text-zinc-50 font-serif text-2xl font-bold">
-                  S
+                <div className="flex aspect-square size-9 items-center justify-center rounded-lg bg-zinc-950 dark:bg-zinc-100 text-zinc-50 dark:text-zinc-950">
+                  <Terminal className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold text-zinc-900 dark:text-zinc-100">Kolega</span>
