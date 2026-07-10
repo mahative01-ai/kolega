@@ -16,6 +16,20 @@ export async function GET(request: Request) {
   const todayDate = new Date(`${todayKey}T00:00:00.000Z`);
   const dayOfWeek = (new Date(todayKey).getDay() + 6) % 7; // Mon=0 ... Sun=6
 
+  // Parse query parameter and fallback to Jakarta hour
+  const { searchParams } = new URL(request.url);
+  const runType = searchParams.get("run"); // "morning" | "evening" | null
+
+  const now = new Date();
+  const jakartaHour = Number(new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Jakarta",
+    hour: "numeric",
+    hour12: false,
+  }).format(now));
+
+  const isMorning = runType ? runType === "morning" : jakartaHour < 17;
+  const isEvening = runType ? runType === "evening" : jakartaHour >= 17;
+
   const activeReminders = await prisma.reminder.findMany({ where: { isActive: true } });
 
   let notificationsCreated = 0;
@@ -39,7 +53,7 @@ export async function GET(request: Request) {
       },
     });
 
-    if (reminder.type === "CHECK_IN") {
+    if (reminder.type === "CHECK_IN" && isMorning) {
       // Find members who have NOT checked in yet today (and today is a workday for their studio)
       for (const member of members) {
         const studioId = member.defaultStudioId;
@@ -92,7 +106,7 @@ export async function GET(request: Request) {
           emailsSent++;
         }
       }
-    } else if (reminder.type === "CHECK_OUT") {
+    } else if (reminder.type === "CHECK_OUT" && isEvening) {
       // Find members who checked in today but have NOT checked out yet
       for (const member of members) {
         const existingRecord = await prisma.attendanceRecord.findUnique({
@@ -118,7 +132,7 @@ export async function GET(request: Request) {
           emailsSent++;
         }
       }
-    } else if (reminder.type === "PICKET") {
+    } else if (reminder.type === "PICKET" && isMorning) {
       // Find members who have picket duty today
       const picketSchedules = await prisma.picketSchedule.findMany({
         where: {
@@ -151,16 +165,10 @@ export async function GET(request: Request) {
     }
   }
 
-  // ─── Auto Check-out for Forgotten Check-outs (Only after 17:00 WIB) ────────
+  // ─── Auto Check-out for Forgotten Check-outs (Only if isEvening is true) ───
   let autoCheckOutCount = 0;
-  const now = new Date();
-  const jakartaHour = Number(new Intl.DateTimeFormat("en-US", {
-    timeZone: "Asia/Jakarta",
-    hour: "numeric",
-    hour12: false,
-  }).format(now));
 
-  if (jakartaHour >= 17) {
+  if (isEvening) {
     // Find all attendance records for today that have check-in but no check-out
     const activeRecords = await prisma.attendanceRecord.findMany({
       where: {
