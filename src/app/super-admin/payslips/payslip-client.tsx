@@ -154,14 +154,13 @@ export function PayslipClient({
           </p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogTrigger
-            render={
-              <Button className="bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 hover:opacity-90 flex items-center gap-2">
-                <Plus className="size-4" />
-                Buat Slip Gaji
-              </Button>
-            }
-          />
+          <Button
+            className="bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 hover:opacity-90 flex items-center gap-2"
+            render={<DialogTrigger />}
+          >
+            <Plus className="size-4" />
+            Buat Slip Gaji
+          </Button>
           <DialogContent className="max-w-md bg-white dark:bg-zinc-950 font-sans border border-zinc-200 dark:border-zinc-800">
             <DialogHeader>
               <DialogTitle>Buat Slip Gaji Baru</DialogTitle>

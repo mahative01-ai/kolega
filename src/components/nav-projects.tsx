@@ -39,18 +39,14 @@ export function NavProjects({
               <span>{item.name}</span>
             </SidebarMenuButton>
             <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <SidebarMenuAction
-                    showOnHover
-                    className="aria-expanded:bg-muted"
-                  />
-                }
+              <SidebarMenuAction
+                showOnHover
+                className="aria-expanded:bg-muted"
+                render={<DropdownMenuTrigger />}
               >
-                <MoreHorizontalIcon
-                />
+                <MoreHorizontalIcon />
                 <span className="sr-only">More</span>
-              </DropdownMenuTrigger>
+              </SidebarMenuAction>
               <DropdownMenuContent
                 className="w-48"
                 side={isMobile ? "bottom" : "right"}
