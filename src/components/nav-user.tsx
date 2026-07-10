@@ -102,12 +102,7 @@ export function NavUser({ user }: { user: SidebarUser }) {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="w-full flex items-center gap-2 cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
-              onClick={async () => {
-                await logoutAction();
-              }}
-            >
+            <DropdownMenuItem render={<a href="/api/auth/logout" className="w-full flex items-center gap-2 text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400" />}>
               <LogOut className="size-4" />
               <span>Keluar</span>
             </DropdownMenuItem>
