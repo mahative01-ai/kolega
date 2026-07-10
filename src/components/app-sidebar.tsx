@@ -13,25 +13,23 @@ import {
   SidebarMenuItem,
   SidebarGroup,
   SidebarGroupLabel,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import {
   Archive,
-  BarChart3,
-  BriefcaseBusiness,
-  Building2,
   CalendarDays,
-  ClipboardCheck,
-  ClipboardList,
   Home,
   LogOut,
   MapPin,
   Settings,
-  ShieldCheck,
-  UserCog,
-  UserRound,
   UsersRound,
-  Terminal,
+  LayoutGrid,
+  Soup,
+  MessageSquare,
+  FileText,
+  Receipt,
+  CircleHelp,
 } from "lucide-react";
 import { logoutAction } from "@/app/login/actions";
 import { ROLE_LABEL } from "@/lib/roles";
@@ -49,7 +47,7 @@ type SidebarUser = {
 type MenuItem = {
   label: string;
   href?: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ className?: string }>;
   badge?: string;
 };
 
@@ -69,12 +67,7 @@ function getMenuGroups(role: SidebarUser["role"]): MenuGroup[] {
     {
       label: "Dashboard",
       href: getPrimaryDashboard(role),
-      icon:
-        role === "SUPER_ADMIN"
-          ? ShieldCheck
-          : role === "ADMIN"
-            ? UserCog
-            : UserRound,
+      icon: LayoutGrid,
     },
   ];
 
@@ -85,20 +78,20 @@ function getMenuGroups(role: SidebarUser["role"]): MenuGroup[] {
         label: "Manajemen",
         items: [
           { label: "User & Role", href: "/roles", icon: UsersRound },
-          { label: "Studio & Lokasi", href: "/super-admin/studios", icon: Building2 },
-          { label: "Placement", href: "/super-admin/placements", icon: BriefcaseBusiness },
+          { label: "Studio & Lokasi", href: "/super-admin/studios", icon: Home },
+          { label: "Placement", href: "/super-admin/placements", icon: Home },
           { label: "Jadwal WFO/WFH", href: "/schedules", icon: CalendarDays },
-          { label: "Cuti & Kalender", href: "/calendar", icon: ClipboardList },
-          { label: "Jadwal Piket", href: "/piket", icon: ClipboardList },
+          { label: "Cuti & Kalender", href: "/calendar", icon: CalendarDays },
+          { label: "Jadwal Piket", href: "/piket", icon: Soup },
         ],
       },
       {
         label: "Monitoring",
         items: [
-          { label: "Laporan Presensi", href: "/laporan-presensi", icon: BarChart3 },
-          { label: "Approval Izin", href: "/admin/requests", icon: ClipboardCheck },
-          { label: "Approval Koreksi", href: "/admin/corrections", icon: Archive },
-          { label: "Audit Trail", href: "/super-admin/audit-logs", icon: ShieldCheck },
+          { label: "Laporan Presensi", href: "/laporan-presensi", icon: Receipt },
+          { label: "Approval Izin", href: "/admin/requests", icon: MessageSquare },
+          { label: "Approval Koreksi", href: "/admin/corrections", icon: FileText },
+          { label: "Audit Trail", href: "/super-admin/audit-logs", icon: FileText },
           { label: "Arsip Akun", href: "/super-admin/archived-accounts", icon: Archive },
           { label: "Pengaturan", href: "/settings", icon: Settings },
         ],
@@ -112,10 +105,10 @@ function getMenuGroups(role: SidebarUser["role"]): MenuGroup[] {
       {
         label: "Presensi Saya",
         items: [
-          { label: "Riwayat Saya", href: "/member/presensi/riwayat", icon: ClipboardCheck },
-          { label: "Ajukan Izin Saya", href: "/member/requests", icon: ClipboardList },
-          { label: "Koreksi Presensi Saya", href: "/member/corrections", icon: Archive },
-          { label: "Laporan WFH Saya", href: "/member/laporan-wfh", icon: Home },
+          { label: "Riwayat Saya", href: "/member/presensi/riwayat", icon: CalendarDays },
+          { label: "Ajukan Izin Saya", href: "/member/requests", icon: MessageSquare },
+          { label: "Koreksi Presensi Saya", href: "/member/corrections", icon: FileText },
+          { label: "Laporan WFH Saya", href: "/member/laporan-wfh", icon: Receipt },
         ],
       },
       {
@@ -123,9 +116,9 @@ function getMenuGroups(role: SidebarUser["role"]): MenuGroup[] {
         items: [
           { label: "User Studio", href: "/roles", icon: UsersRound },
           { label: "Jadwal Tim", href: "/schedules", icon: CalendarDays },
-          { label: "Izin/Sakit/Cuti", href: "/admin/requests", icon: ClipboardList },
-          { label: "Koreksi Presensi", href: "/admin/corrections", icon: Archive },
-          { label: "Piket & Pengingat", href: "/piket", icon: CalendarDays },
+          { label: "Izin/Sakit/Cuti", href: "/admin/requests", icon: MessageSquare },
+          { label: "Koreksi Presensi", href: "/admin/corrections", icon: FileText },
+          { label: "Piket & Pengingat", href: "/piket", icon: Soup },
         ],
       },
     ];
@@ -137,11 +130,11 @@ function getMenuGroups(role: SidebarUser["role"]): MenuGroup[] {
       label: "Presensi",
       items: [
         { label: "Jadwal Saya", icon: CalendarDays, badge: "Next" },
-        { label: "Riwayat Saya", href: "/member/presensi/riwayat", icon: ClipboardCheck },
-        { label: "Izin/Sakit/Cuti", href: "/member/requests", icon: ClipboardList },
-        { label: "Koreksi Presensi", href: "/member/corrections", icon: Archive },
-        { label: "Jadwal Piket Saya", href: "/piket", icon: ClipboardList },
-        { label: "Laporan WFH", href: "/member/laporan-wfh", icon: Home },
+        { label: "Riwayat Saya", href: "/member/presensi/riwayat", icon: CalendarDays },
+        { label: "Izin/Sakit/Cuti", href: "/member/requests", icon: MessageSquare },
+        { label: "Koreksi Presensi", href: "/member/corrections", icon: FileText },
+        { label: "Jadwal Piket Saya", href: "/piket", icon: Soup },
+        { label: "Laporan WFH", href: "/member/laporan-wfh", icon: Receipt },
       ],
     },
   ];
@@ -154,35 +147,51 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 export function AppSidebar({ user, ...props }: AppSidebarProps) {
   const currentPath = usePathname();
   const groups = getMenuGroups(user.role);
+  const { state } = useSidebar();
 
   return (
-    <Sidebar variant="inset" {...props}>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <div className="flex items-center gap-3 px-2 py-3">
-              <div className="flex aspect-square size-9 items-center justify-center rounded-lg bg-zinc-950 dark:bg-zinc-100 text-zinc-50 dark:text-zinc-950">
-                <Terminal className="size-4" />
+    <Sidebar collapsible="icon" variant="inset" {...props}>
+      <SidebarHeader className="relative overflow-visible">
+        {state === "collapsed" ? (
+          <div className="relative h-12 w-full flex items-center justify-center overflow-visible">
+            {/* The S Logo container that extends (memanjangkan) on hover to the right */}
+            <div className="group absolute left-1 flex items-center h-10 w-9 hover:w-44 rounded-lg bg-white dark:bg-zinc-950 border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800 hover:shadow-md hover:z-50 transition-all duration-300 overflow-hidden cursor-pointer p-0.5">
+              <div className="flex items-center justify-center w-8 h-8 shrink-0 text-zinc-900 dark:text-zinc-50 font-serif text-2xl font-bold select-none">
+                S
               </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold text-zinc-900 dark:text-zinc-100">Kolega</span>
-                <span className="truncate text-xs text-zinc-500 dark:text-zinc-400">New Gen</span>
+              <div className="flex flex-col ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                <span className="font-semibold text-zinc-900 dark:text-zinc-100 text-xs">Kolega</span>
+                <span className="text-[9px] text-zinc-500 dark:text-zinc-400">New Gen</span>
               </div>
             </div>
-          </SidebarMenuItem>
-        </SidebarMenu>
+          </div>
+        ) : (
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <div className="flex items-center gap-3 px-2 py-3">
+                <div className="flex aspect-square size-9 items-center justify-center rounded-lg text-zinc-900 dark:text-zinc-50 font-serif text-2xl font-bold">
+                  S
+                </div>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-semibold text-zinc-900 dark:text-zinc-100">Kolega</span>
+                  <span className="truncate text-xs text-zinc-500 dark:text-zinc-400">New Gen</span>
+                </div>
+              </div>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        )}
       </SidebarHeader>
 
       <SidebarContent>
         {groups.map((group) => (
-          <SidebarGroup key={group.label}>
-            <SidebarGroupLabel className="px-3 text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+          <SidebarGroup key={group.label} className="group-data-[collapsible=icon]:p-2">
+            <SidebarGroupLabel className="px-3 text-xs font-semibold text-zinc-500 dark:text-zinc-400 group-data-[collapsible=icon]:hidden">
               {group.label}
             </SidebarGroupLabel>
             <SidebarMenu>
               {group.items.map((item) => {
                 const Icon = item.icon;
-                const isActive = item.href === currentPath;
+                const isActive = item.href ? item.href === currentPath : false;
 
                 return (
                   <SidebarMenuItem key={item.label}>
@@ -190,17 +199,18 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                       <SidebarMenuButton
                         isActive={isActive}
                         render={<Link href={item.href} />}
-                        className={isActive ? "bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 font-medium" : "text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white"}
+                        className={isActive ? "bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 font-medium group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2!" : "text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2!"}
                       >
                         <Icon className="size-4 shrink-0" />
-                        <span className="truncate flex-1">{item.label}</span>
+                        <span className="truncate flex-1 group-data-[collapsible=icon]:hidden">{item.label}</span>
                         {item.badge && (
                           <Badge
                             variant="outline"
                             className={
-                              isActive
+                              "group-data-[collapsible=icon]:hidden " +
+                              (isActive
                                 ? "border-white/40 dark:border-zinc-800 text-white dark:text-zinc-950 text-[9px] px-1 py-0"
-                                : "text-zinc-700 dark:text-zinc-300 text-[9px] px-1 py-0"
+                                : "text-zinc-700 dark:text-zinc-300 text-[9px] px-1 py-0")
                             }
                           >
                             {item.badge}
@@ -210,14 +220,14 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                     ) : (
                       <SidebarMenuButton
                         disabled
-                        className="opacity-55 cursor-not-allowed text-zinc-700 dark:text-zinc-300 flex w-full items-center gap-2"
+                        className="opacity-55 cursor-not-allowed text-zinc-700 dark:text-zinc-300 flex w-full items-center gap-2 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2!"
                       >
                         <Icon className="size-4 shrink-0" />
-                        <span className="truncate flex-1">{item.label}</span>
+                        <span className="truncate flex-1 group-data-[collapsible=icon]:hidden">{item.label}</span>
                         {item.badge && (
                           <Badge
                             variant="outline"
-                            className="text-zinc-700 dark:text-zinc-300 text-[9px] px-1 py-0"
+                            className="text-zinc-700 dark:text-zinc-300 text-[9px] px-1 py-0 group-data-[collapsible=icon]:hidden"
                           >
                             {item.badge}
                           </Badge>
@@ -233,40 +243,64 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
       </SidebarContent>
 
       <SidebarFooter>
-        <div className="border-t border-zinc-200 dark:border-zinc-800 p-2.5 space-y-2.5">
-          <div className="rounded-lg bg-zinc-50 dark:bg-zinc-900 p-2.5">
-            <div className="flex items-center gap-2">
-              <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-zinc-200 dark:bg-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                {user.name.slice(0, 1).toUpperCase()}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-medium text-zinc-900 dark:text-zinc-100">{user.name}</p>
-                <p className="truncate text-[10px] text-zinc-500 dark:text-zinc-400">{user.email}</p>
-              </div>
-            </div>
-            <div className="mt-2 flex flex-wrap gap-1">
-              <Badge variant="secondary" className="text-[9px] px-1 py-0">
-                {ROLE_LABEL[user.role]}
-              </Badge>
-              {user.defaultStudio?.name && (
-                <Badge variant="outline" className="bg-white dark:bg-zinc-950 text-zinc-700 dark:text-zinc-300 text-[9px] px-1 py-0">
-                  <MapPin className="size-2.5 mr-0.5" />
-                  {user.defaultStudio.name}
-                </Badge>
-              )}
-            </div>
-          </div>
-
-          <form action={logoutAction}>
-            <button
-              type="submit"
-              className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-xs text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors font-medium"
+        {state === "collapsed" ? (
+          <div className="flex flex-col items-center gap-4 py-2 border-t border-zinc-200 dark:border-zinc-800">
+            {/* Settings (Gear) link */}
+            <Link
+              href="/settings"
+              className="flex size-8 items-center justify-center rounded-md text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
+              title="Pengaturan"
             >
-              <LogOut className="size-3.5" />
-              <span>Keluar</span>
-            </button>
-          </form>
-        </div>
+              <Settings className="size-4" />
+            </Link>
+            
+            {/* Logout button (CircleHelp icon to match ? icon at bottom) */}
+            <form action={logoutAction}>
+              <button
+                type="submit"
+                className="flex size-8 items-center justify-center rounded-md text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
+                title="Keluar"
+              >
+                <CircleHelp className="size-4" />
+              </button>
+            </form>
+          </div>
+        ) : (
+          <div className="border-t border-zinc-200 dark:border-zinc-800 p-2.5 space-y-2.5">
+            <div className="rounded-lg bg-zinc-50 dark:bg-zinc-900 p-2.5">
+              <div className="flex items-center gap-2">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-zinc-200 dark:bg-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                  {user.name.slice(0, 1).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-medium text-zinc-900 dark:text-zinc-100">{user.name}</p>
+                  <p className="truncate text-[10px] text-zinc-500 dark:text-zinc-400">{user.email}</p>
+                </div>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-1">
+                <Badge variant="secondary" className="text-[9px] px-1 py-0">
+                  {ROLE_LABEL[user.role]}
+                </Badge>
+                {user.defaultStudio?.name && (
+                  <Badge variant="outline" className="bg-white dark:bg-zinc-950 text-zinc-700 dark:text-zinc-300 text-[9px] px-1 py-0">
+                    <MapPin className="size-2.5 mr-0.5" />
+                    {user.defaultStudio.name}
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            <form action={logoutAction}>
+              <button
+                type="submit"
+                className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-xs text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors font-medium"
+              >
+                <LogOut className="size-3.5" />
+                <span>Keluar</span>
+              </button>
+            </form>
+          </div>
+        )}
       </SidebarFooter>
     </Sidebar>
   );
