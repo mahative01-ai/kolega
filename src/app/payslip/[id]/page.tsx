@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { notFound, redirect } from "next/navigation";
-import { Printer, ArrowLeft, Terminal } from "lucide-react";
+import { ArrowLeft, Terminal } from "lucide-react";
 import Link from "next/link";
+import { PrintButton } from "./print-button";
 
 export const dynamic = "force-dynamic";
 
@@ -63,13 +64,7 @@ export default async function PrintablePayslipPage({
           <ArrowLeft className="size-4" />
           Kembali ke Dashboard
         </Link>
-        <button
-          onClick={() => typeof window !== "undefined" && window.print()}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 rounded-lg hover:opacity-90 transition-all font-medium shadow-sm text-sm"
-        >
-          <Printer className="size-4" />
-          Cetak Slip Gaji
-        </button>
+        <PrintButton />
       </div>
 
       {/* Payslip Content (Optimized for standard A4 portrait print) */}
