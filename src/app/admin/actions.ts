@@ -84,7 +84,7 @@ export async function quickAssignPicketAction(userId: string, dateStr: string) {
         note: "Ditugaskan cepat dari Dasbor",
       },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err && typeof err === "object" && "code" in err && err.code === "P2002") {
       throw new Error("Staf ini sudah memiliki jadwal piket pada tanggal tersebut.");
     }

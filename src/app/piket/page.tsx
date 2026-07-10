@@ -15,7 +15,6 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { PicketFormClient } from "./piket-form-client";
 import { deletePicketAction } from "./actions";
-import { Label } from "@/components/ui/label";
 
 export const dynamic = "force-dynamic";
 

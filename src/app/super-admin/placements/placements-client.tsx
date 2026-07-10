@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState, useTransition } from "react";
-import { Plus, Search, Check, X, Calendar, Milestone } from "lucide-react";
+import { Plus, Search, Check, X, Milestone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -89,7 +89,7 @@ export function PlacementsClient({ initialPlacements, users, studios }: Props) {
     );
   }, [searchQuery, placements]);
 
-  function formatDate(dVal: any) {
+  function formatDate(dVal: Date | string | null) {
     if (!dVal) return "-";
     const d = new Date(dVal);
     return new Intl.DateTimeFormat("id-ID", {
@@ -136,8 +136,8 @@ export function PlacementsClient({ initialPlacements, users, studios }: Props) {
           setAddEndDate("");
           setAddReason("");
         }
-      } catch (err: any) {
-        setAddError(err.message || "Gagal membuat penempatan.");
+      } catch (err: unknown) {
+        setAddError(err instanceof Error ? err.message : "Gagal membuat penempatan.");
       }
     });
   };
@@ -160,8 +160,8 @@ export function PlacementsClient({ initialPlacements, users, studios }: Props) {
 
           setPlacements(placements.map((p) => (p.id === id ? updated : p)));
         }
-      } catch (err: any) {
-        alert(err.message || "Gagal memperbarui status penempatan.");
+      } catch (err: unknown) {
+        alert(err instanceof Error ? err.message : "Gagal memperbarui status penempatan.");
       }
     });
   };

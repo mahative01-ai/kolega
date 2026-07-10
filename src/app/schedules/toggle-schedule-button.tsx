@@ -22,8 +22,8 @@ export function ToggleScheduleButton({ userId, workDate, isWfh }: ToggleProps) {
         } else {
           await setWfhScheduleAction(userId, workDate);
         }
-      } catch (err: any) {
-        alert(err.message || "Gagal mengubah jadwal.");
+      } catch (err: unknown) {
+        alert(err instanceof Error ? err.message : "Gagal mengubah jadwal.");
       }
     });
   }

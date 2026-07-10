@@ -20,7 +20,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
 import { restoreAccountAction } from "./actions";
 import { ROLE_LABEL } from "@/lib/roles";
 
@@ -60,7 +59,7 @@ export function ArchivedAccountsClient({ initialUsers }: Props) {
     );
   }, [searchQuery, users]);
 
-  function formatDate(dVal: any) {
+  function formatDate(dVal: Date | string | null) {
     if (!dVal) return "-";
     const d = new Date(dVal);
     return new Intl.DateTimeFormat("id-ID", {
@@ -85,8 +84,8 @@ export function ArchivedAccountsClient({ initialUsers }: Props) {
           // Remove from local list of archived users
           setUsers(users.filter((u) => u.id !== id));
         }
-      } catch (err: any) {
-        alert(err.message || "Gagal memulihkan akun.");
+      } catch (err: unknown) {
+        alert(err instanceof Error ? err.message : "Gagal memulihkan akun.");
       }
     });
   };

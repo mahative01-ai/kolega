@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Megaphone, X } from "lucide-react";
 
 type Props = {
@@ -10,21 +10,17 @@ type Props = {
 };
 
 export function AnnouncementBanner({ id, title, message }: Props) {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const dismissed = localStorage.getItem(`announcement_dismissed_${id}`);
-    if (!dismissed) {
-      setVisible(true);
-    }
-  }, [id]);
+  const dismissedKey = `announcement_dismissed_${id}`;
+  const [dismissed, setDismissed] = useState(() =>
+    typeof window === "undefined" ? true : localStorage.getItem(dismissedKey) === "true"
+  );
 
   function handleDismiss() {
-    localStorage.setItem(`announcement_dismissed_${id}`, "true");
-    setVisible(false);
+    localStorage.setItem(dismissedKey, "true");
+    setDismissed(true);
   }
 
-  if (!visible) return null;
+  if (dismissed) return null;
 
   return (
     <div className="relative overflow-hidden mb-6 rounded-xl border border-blue-200 dark:border-blue-900 bg-blue-50/50 dark:bg-blue-950/20 p-4 shadow-sm animate-in slide-in-from-top-4 duration-300">

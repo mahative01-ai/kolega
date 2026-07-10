@@ -7,7 +7,6 @@ import {
   ChevronRight,
   ArrowLeftRight,
   Loader2,
-  XCircle
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";

@@ -36,8 +36,8 @@ export function ProfileSettingsClient({ initialUser }: Props) {
       const confirmPwdInput = form.elements.namedItem("confirmNewPassword") as HTMLInputElement;
       if (newPwdInput) newPwdInput.value = "";
       if (confirmPwdInput) confirmPwdInput.value = "";
-    } catch (error: any) {
-      toast.error(error?.message || "Gagal memperbarui profil.");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Gagal memperbarui profil.");
     } finally {
       setLoading(false);
     }

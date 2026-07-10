@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useState, useTransition, useMemo } from "react";
+import { useState, useTransition, useMemo } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -23,8 +22,6 @@ import {
   CalendarDays,
   User,
   Users,
-  Settings,
-  FolderLock,
   Brush,
   Megaphone,
   Check,
@@ -184,6 +181,10 @@ function formatFullDate(date: Date) {
   }).format(date);
 }
 
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
+
 export function AdminDashboardClient({
   defaultTab,
   data,
@@ -193,7 +194,7 @@ export function AdminDashboardClient({
   todayKey,
   scheduleByDateMap,
 }: Props) {
-  const [activeTab, setActiveTab] = useState<"personal" | "studio">(defaultTab ?? "personal");
+  const [activeTab, setActiveTab] = useState<"personal" | "studio">(() => defaultTab ?? "personal");
   const isWfhMode = data.todaySchedule?.workMode === "WFH" || data.todayRecord?.workMode === "WFH";
 
   const adminHolidaysMap = useMemo(() => {
@@ -242,12 +243,6 @@ export function AdminDashboardClient({
     }
     return map;
   }, [data.apiHolidays, data.calendarEvents, data.selectedMonth, days]);
-
-  useEffect(() => {
-    if (defaultTab) {
-      setActiveTab(defaultTab);
-    }
-  }, [defaultTab]);
 
   // Category 4 - State & Transitions
   const [isPending, startTransition] = useTransition();
@@ -340,8 +335,8 @@ export function AdminDashboardClient({
           setAnnouncementMsg("");
           setTimeout(() => setBroadcastSucc(""), 3000);
         }
-      } catch (err: any) {
-        setBroadcastErr(err.message || "Gagal menyebarkan pengumuman.");
+      } catch (err: unknown) {
+        setBroadcastErr(getErrorMessage(err, "Gagal menyebarkan pengumuman."));
       }
     });
   }
@@ -353,8 +348,8 @@ export function AdminDashboardClient({
         const todayStr = new Date().toISOString().split("T")[0];
         await quickAssignPicketAction(picketUserId, todayStr);
         setPicketUserId("");
-      } catch (err: any) {
-        alert(err.message || "Gagal menunjuk petugas piket.");
+      } catch (err: unknown) {
+        alert(getErrorMessage(err, "Gagal menunjuk petugas piket."));
       }
     });
   }
@@ -364,8 +359,8 @@ export function AdminDashboardClient({
     startTransition(async () => {
       try {
         await quickRemovePicketAction(picketId);
-      } catch (err: any) {
-        alert(err.message || "Gagal menghapus piket.");
+      } catch (err: unknown) {
+        alert(getErrorMessage(err, "Gagal menghapus piket."));
       } finally {
         setRemovingPickets((prev) => ({ ...prev, [picketId]: false }));
       }
@@ -377,8 +372,8 @@ export function AdminDashboardClient({
     startTransition(async () => {
       try {
         await quickReviewRequestAction(requestId, approve);
-      } catch (err: any) {
-        alert(err.message || "Gagal memproses pengajuan.");
+      } catch (err: unknown) {
+        alert(getErrorMessage(err, "Gagal memproses pengajuan."));
       } finally {
         setReviewingRequests((prev) => ({ ...prev, [requestId]: false }));
       }
@@ -390,8 +385,8 @@ export function AdminDashboardClient({
     startTransition(async () => {
       try {
         await quickReviewCorrectionAction(correctionId, approve);
-      } catch (err: any) {
-        alert(err.message || "Gagal memproses koreksi.");
+      } catch (err: unknown) {
+        alert(getErrorMessage(err, "Gagal memproses koreksi."));
       } finally {
         setReviewingCorrections((prev) => ({ ...prev, [correctionId]: false }));
       }
@@ -740,7 +735,7 @@ export function AdminDashboardClient({
                               <p className="text-[10px] text-zinc-500 font-medium">
                                 Tanggal: {new Date(req.startDate).toLocaleDateString("id-ID", { day: "numeric", month: "short" })} - {new Date(req.endDate).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
                               </p>
-                              <p className="text-zinc-600 dark:text-zinc-400 mt-2 font-normal italic">"{req.reason}"</p>
+                              <p className="text-zinc-600 dark:text-zinc-400 mt-2 font-normal italic">&ldquo;{req.reason}&rdquo;</p>
                             </div>
                             <div className="flex justify-end gap-2 border-t border-zinc-100 dark:border-zinc-800 pt-2.5">
                               <Button
@@ -785,7 +780,7 @@ export function AdminDashboardClient({
                                 <span className="font-semibold text-zinc-800 dark:text-zinc-200">{corr.requestedBy.name}</span>
                                 <Badge variant="outline" className="text-[10px] border-amber-300 bg-amber-50 text-amber-800 font-semibold">Koreksi: {corr.newStatus}</Badge>
                               </div>
-                              <p className="text-zinc-600 dark:text-zinc-400 mt-2 font-normal italic">"{corr.reason}"</p>
+                              <p className="text-zinc-600 dark:text-zinc-400 mt-2 font-normal italic">&ldquo;{corr.reason}&rdquo;</p>
                             </div>
                             <div className="flex justify-end gap-2 border-t border-zinc-100 dark:border-zinc-800 pt-2.5">
                               <Button

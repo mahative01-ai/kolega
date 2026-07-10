@@ -298,7 +298,8 @@ export default async function MemberDashboardPage({
   const picketDaysSet = new Set(
     data.picketCalendar.map((p) => formatDateKey(p.picketDate))
   );
-  const todayKey = formatDateKey(dateOnly());
+  const today = dateOnly();
+  const todayKey = formatDateKey(today);
   const memberHolidaysMap = new Map<string, { title: string; type: string }[]>();
 
   const mappedApiHolidays = data.apiHolidays
@@ -591,15 +592,15 @@ export default async function MemberDashboardPage({
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-zinc-500">Masa Magang</span>
                     <span className="font-semibold text-zinc-700 dark:text-zinc-300">
-                      {Math.max(0, Math.ceil((new Date(data.internProfile.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} Hari Lagi
+                      {Math.max(0, Math.ceil((new Date(data.internProfile.endDate).getTime() - today.getTime()) / (1000 * 60 * 60 * 24)))} Hari Lagi
                     </span>
                   </div>
                   {(() => {
                     const start = new Date(data.internProfile.startDate).getTime();
                     const end = new Date(data.internProfile.endDate).getTime();
-                    const today = Date.now();
+                    const todayTime = today.getTime();
                     const totalDays = Math.max(1, end - start);
-                    const passedDays = Math.max(0, today - start);
+                    const passedDays = Math.max(0, todayTime - start);
                     const percent = Math.min(100, Math.round((passedDays / totalDays) * 100));
 
                     return (

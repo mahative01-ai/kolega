@@ -9,7 +9,6 @@ import {
   hashPassword,
   requireAnyRole,
   verifyPassword,
-  clearSession,
 } from "@/lib/auth";
 import {
   dateOnlyFromKey,

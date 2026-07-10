@@ -1,8 +1,5 @@
 import React from "react";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import { ROLE_LABEL } from "@/lib/roles";
 import { prisma } from "@/lib/prisma";
 import { NotificationBellClient } from "@/app/notifications/notification-bell-client";

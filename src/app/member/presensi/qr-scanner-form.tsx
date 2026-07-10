@@ -52,37 +52,16 @@ export function QrScannerForm({
   const [geoError, setGeoError] = useState<string | null>(null);
   const [isLoadingGeo, setIsLoadingGeo] = useState(true);
 
-  useEffect(() => {
-    if (typeof window !== "undefined" && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setCoords({
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-          });
-          setIsLoadingGeo(false);
-        },
-        (err) => {
-          console.error(err);
-          setGeoError(
-            err.code === 1
-              ? "Akses lokasi ditolak. Harap aktifkan GPS & izin lokasi browser."
-              : "Gagal mendapatkan koordinat GPS. Pastikan GPS aktif."
-          );
-          setIsLoadingGeo(false);
-        },
-        { enableHighAccuracy: true, timeout: 10000 }
-      );
-    } else {
-      setGeoError("Browser Anda tidak mendukung Geolocation.");
-      setIsLoadingGeo(false);
-    }
-  }, []);
-
   function refreshLocation() {
     setIsLoadingGeo(true);
     setGeoError(null);
     setCoords(null);
+    if (!navigator.geolocation) {
+      setGeoError("Browser Anda tidak mendukung Geolocation.");
+      setIsLoadingGeo(false);
+      return;
+    }
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setCoords({
@@ -103,6 +82,11 @@ export function QrScannerForm({
       { enableHighAccuracy: true, timeout: 10000 }
     );
   }
+
+  useEffect(() => {
+    const timer = window.setTimeout(refreshLocation, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const canSubmit = Boolean(scanValue.trim()) && !disabled && Boolean(coords);
 

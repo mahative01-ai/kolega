@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Clock3, ArrowLeft, ShieldAlert, QrCode } from "lucide-react";
 import { Badge } from "@/components/ui/badge";

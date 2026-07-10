@@ -212,8 +212,8 @@ export async function createUserAction(formData: FormData) {
     revalidatePath("/roles");
     revalidatePath("/super-admin");
     return { success: true };
-  } catch (err: any) {
-    return { success: false, error: err.message || "Gagal membuat user." };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Gagal membuat user." };
   }
 }
 
@@ -449,7 +449,7 @@ export async function updateUserAction(formData: FormData) {
     revalidatePath("/roles");
     revalidatePath("/super-admin");
     return { success: true };
-  } catch (err: any) {
-    return { success: false, error: err.message || "Gagal memperbarui user." };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Gagal memperbarui user." };
   }
 }

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAnyRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@/generated/prisma/client";
 
 type PlacementInput = {
   userId: string;
@@ -90,7 +91,7 @@ export async function updatePlacementStatusAction(
 
   const updatedPlacement = await prisma.$transaction(async (tx) => {
     // If completing, we can cap the endDate to today if it is not set or in the future
-    const dataToUpdate: any = { status };
+    const dataToUpdate: Prisma.PlacementUpdateInput = { status };
     if (status === "COMPLETED") {
       dataToUpdate.endDate = new Date();
     }

@@ -95,7 +95,7 @@ async function main() {
       passwordHash: hashPassword("owner123", "owner-preview-salt"),
     });
 
-    const ownerKipaId = await upsertUser(client, {
+    await upsertUser(client, {
       name: "Owner Kipa",
       email: "owner.kipa@kolega.local",
       role: "SUPER_ADMIN",
@@ -113,7 +113,7 @@ async function main() {
       passwordHash: hashPassword("admin123", "admin-preview-salt"),
     });
 
-    const adminKipaId = await upsertUser(client, {
+    await upsertUser(client, {
       name: "Admin Kipa",
       email: "admin.kipa@kolega.local",
       role: "ADMIN",

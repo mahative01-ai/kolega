@@ -74,6 +74,11 @@ export type IndonesianHoliday = {
   isCutiBersama: boolean;
 };
 
+type HolidayApiItem = {
+  date: string;
+  description: string;
+};
+
 export async function getIndonesianHolidays(year: number): Promise<IndonesianHoliday[]> {
   try {
     const res = await fetch(`https://api-hari-libur.vercel.app/api?year=${year}`, {
@@ -82,7 +87,7 @@ export async function getIndonesianHolidays(year: number): Promise<IndonesianHol
     if (res.ok) {
       const data = await res.json();
       if (data.status === "success" && Array.isArray(data.data)) {
-        return data.data.map((item: any) => ({
+        return (data.data as HolidayApiItem[]).map((item) => ({
           dateKey: item.date,
           label: item.description,
           isCutiBersama: item.description.toLowerCase().includes("cuti bersama"),

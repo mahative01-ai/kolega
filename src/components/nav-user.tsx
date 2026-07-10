@@ -20,9 +20,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { ChevronsUpDown, Settings, LogOut, ShieldCheck, MapPin } from "lucide-react";
-import { logoutAction } from "@/app/login/actions";
 import { ROLE_LABEL } from "@/lib/roles";
-import Link from "next/link";
 
 type SidebarUser = {
   id: string;
@@ -96,13 +94,18 @@ export function NavUser({ user }: { user: SidebarUser }) {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem render={<Link href="/settings" className="w-full flex items-center gap-2" />}>
+              <DropdownMenuItem onClick={() => { window.location.href = "/settings"; }}>
                 <Settings className="size-4" />
                 <span>Pengaturan</span>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem render={<a href="/api/auth/logout" className="w-full flex items-center gap-2 text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400" />}>
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => {
+                window.location.href = "/api/auth/logout";
+              }}
+            >
               <LogOut className="size-4" />
               <span>Keluar</span>
             </DropdownMenuItem>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState, useTransition, useEffect, useRef } from "react";
-import { Building2, Edit2, MapPin, Plus, Search, Navigation, Loader2 } from "lucide-react";
+import { Building2, Edit2, Plus, Search, Navigation, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,10 +32,30 @@ import {
 import { cn } from "@/lib/utils";
 import { createStudioAction, updateStudioAction, toggleStudioActiveAction } from "./actions";
 
+type LeafletLatLng = { lat: number; lng: number };
+type LeafletMarker = {
+  setLatLng: (pos: [number, number] | LeafletLatLng) => void;
+  getLatLng: () => LeafletLatLng;
+  on: (event: string, handler: () => void) => void;
+};
+type LeafletMap = {
+  setView: (coords: [number, number], zoom: number) => LeafletMap;
+  on: (event: string, handler: (event: { latlng: LeafletLatLng }) => void) => void;
+  panTo: (coords: [number, number]) => void;
+  remove: () => void;
+};
+type LeafletApi = {
+  icon: (options: Record<string, unknown>) => unknown;
+  Marker: { prototype: { options: { icon?: unknown } } };
+  map: (element: HTMLElement) => LeafletMap;
+  tileLayer: (url: string, options: Record<string, unknown>) => { addTo: (map: LeafletMap) => void };
+  marker: (coords: [number, number], options: Record<string, unknown>) => { addTo: (map: LeafletMap) => LeafletMarker };
+};
+
 // Leaflet window declaration
 declare global {
   interface Window {
-    L: any;
+    L?: LeafletApi;
   }
 }
 
@@ -66,8 +86,8 @@ function LeafletMapPicker({
   onChange: (lat: number, lng: number) => void;
 }) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<any>(null);
-  const markerRef = useRef<any>(null);
+  const mapRef = useRef<LeafletMap | null>(null);
+  const markerRef = useRef<LeafletMarker | null>(null);
 
   useEffect(() => {
     // 1. Add Leaflet CSS
@@ -96,6 +116,7 @@ function LeafletMapPicker({
     function initMap() {
       if (!mapContainerRef.current || mapRef.current) return;
       const L = window.L;
+      if (!L) return;
 
       // Custom marker icon to avoid default Leaflet webpack assets path issue
       const DefaultIcon = L.icon({
@@ -124,7 +145,7 @@ function LeafletMapPicker({
       });
 
       // Update lat/lng on map click
-      map.on("click", (e: any) => {
+      map.on("click", (e) => {
         const pos = e.latlng;
         marker.setLatLng(pos);
         onChange(pos.lat, pos.lng);
@@ -139,7 +160,7 @@ function LeafletMapPicker({
         markerRef.current = null;
       }
     };
-  }, []);
+  }, [lat, lng, onChange]);
 
   // Update marker position when prop lat/lng change from outside (e.g. typing)
   useEffect(() => {
@@ -213,7 +234,7 @@ export function StudiosClient({ initialStudios }: Props) {
         setAddLng(position.coords.longitude.toFixed(6));
         setAddGpsLoading(false);
       },
-      (err) => {
+      () => {
         setAddGpsLoading(false);
         alert("Gagal mendeteksi lokasi. Pastikan izin lokasi diberikan dan GPS aktif.");
       },
@@ -233,7 +254,7 @@ export function StudiosClient({ initialStudios }: Props) {
         setEditLng(position.coords.longitude.toFixed(6));
         setEditGpsLoading(false);
       },
-      (err) => {
+      () => {
         setEditGpsLoading(false);
         alert("Gagal mendeteksi lokasi. Pastikan izin lokasi diberikan dan GPS aktif.");
       },
@@ -295,8 +316,8 @@ export function StudiosClient({ initialStudios }: Props) {
           setAddRadius("100");
           setAddWeekStart("1");
         }
-      } catch (err: any) {
-        setAddError(err.message || "Gagal menyimpan studio.");
+      } catch (err: unknown) {
+        setAddError(err instanceof Error ? err.message : "Gagal menyimpan studio.");
       }
     });
   };
@@ -338,8 +359,8 @@ export function StudiosClient({ initialStudios }: Props) {
           setEditOpen(false);
           setEditingStudio(null);
         }
-      } catch (err: any) {
-        setEditError(err.message || "Gagal memperbarui studio.");
+      } catch (err: unknown) {
+        setEditError(err instanceof Error ? err.message : "Gagal memperbarui studio.");
       }
     });
   };
@@ -351,8 +372,8 @@ export function StudiosClient({ initialStudios }: Props) {
         if (res.success) {
           setStudios(studios.map((s) => (s.id === id ? res.studio : s)));
         }
-      } catch (err: any) {
-        alert(err.message || "Gagal mengubah status aktif studio.");
+      } catch (err: unknown) {
+        alert(err instanceof Error ? err.message : "Gagal mengubah status aktif studio.");
       }
     });
   };

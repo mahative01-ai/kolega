@@ -15,7 +15,7 @@ function escapeXml(value: string) {
     .replace(/'/g, "&apos;");
 }
 
-export async function GET(request: Request) {
+export async function GET() {
   // Set FONTCONFIG_PATH so Sharp can locate Windows fonts inside Next.js process
   process.env.FONTCONFIG_PATH = path.join(process.cwd(), "fonts");
 
