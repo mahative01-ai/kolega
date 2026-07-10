@@ -17,6 +17,30 @@ import {
 } from "@/lib/attendance-time";
 import { prisma } from "@/lib/prisma";
 
+type QrAttendanceInput = {
+  action?: string;
+  latitude?: number;
+  longitude?: number;
+};
+
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const earthRadiusMeters = 6371e3;
+  const phi1 = (lat1 * Math.PI) / 180;
+  const phi2 = (lat2 * Math.PI) / 180;
+  const deltaPhi = ((lat2 - lat1) * Math.PI) / 180;
+  const deltaLambda = ((lon2 - lon1) * Math.PI) / 180;
+
+  const a =
+    Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+    Math.cos(phi1) *
+      Math.cos(phi2) *
+      Math.sin(deltaLambda / 2) *
+      Math.sin(deltaLambda / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return earthRadiusMeters * c;
+}
+
 export async function loginAction(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
@@ -60,8 +84,12 @@ function formatDate(date: Date) {
 
 // ─── Login and Attend via Office QR Scanner ────────────────────────────────
 
-export async function loginAndAttendWithQrAction(qrUid: string, action?: string) {
+export async function loginAndAttendWithQrAction(
+  qrUid: string,
+  input: QrAttendanceInput = {}
+) {
   const cleanQrUid = qrUid.trim();
+  const action = input.action;
 
   const credential = await prisma.qrCredential.findUnique({
     where: { qrUid: cleanQrUid },
@@ -103,6 +131,13 @@ export async function loginAndAttendWithQrAction(qrUid: string, action?: string)
     return { success: true, redirectUrl: getDashboardPath(user.role) };
   }
 
+  const userLat = typeof input.latitude === "number" ? input.latitude : null;
+  const userLng = typeof input.longitude === "number" ? input.longitude : null;
+
+  if (userLat === null || userLng === null || Number.isNaN(userLat) || Number.isNaN(userLng)) {
+    return { success: false, error: "Lokasi wajib diaktifkan untuk presensi WFO." };
+  }
+
   const now = new Date();
   const todayKey = getJakartaDateKey(now);
   const attendanceDate = dateOnlyFromKey(todayKey);
@@ -130,7 +165,7 @@ export async function loginAndAttendWithQrAction(qrUid: string, action?: string)
   }
 
   // 3. Ambil data jadwal, aturan libur, pengajuan, dan status kehadiran hari ini
-  const [personalSchedule, weeklyRule, holiday, replacementWorkday, approvedRequest, existingRecord, policy] = await Promise.all([
+  const [personalSchedule, weeklyRule, holiday, replacementWorkday, approvedRequest, existingRecord, policy, studio] = await Promise.all([
     prisma.personalWorkSchedule.findUnique({
       where: {
         userId_workDate: {
@@ -209,7 +244,24 @@ export async function loginAndAttendWithQrAction(qrUid: string, action?: string)
         alphaCutoffTime: true,
       },
     }),
+    prisma.studio.findUnique({
+      where: { id: currentStudioId },
+      select: {
+        latitude: true,
+        longitude: true,
+        radiusMeters: true,
+      },
+    }),
   ]);
+
+  if (!studio || studio.latitude === null || studio.longitude === null) {
+    return { success: false, error: "Lokasi studio belum lengkap. Hubungi Admin." };
+  }
+
+  const distance = calculateDistance(userLat, userLng, studio.latitude, studio.longitude);
+  const radiusMeters = studio.radiusMeters ?? 100;
+  const locationValidationStatus =
+    distance > radiusMeters ? "OUTSIDE_RADIUS" : "INSIDE_RADIUS";
 
   // A. Jika sudah melakukan check-in WFH hari ini, blok WFO scan
   if (existingRecord?.workMode === "WFH" && existingRecord.checkInAt) {
@@ -257,7 +309,10 @@ export async function loginAndAttendWithQrAction(qrUid: string, action?: string)
           locationStudioId: currentStudioId,
           workMode: "WFO",
           status: "ALPHA",
-          locationValidationStatus: "NOT_REQUIRED",
+          locationValidationStatus,
+          checkInLatitude: userLat,
+          checkInLongitude: userLng,
+          distanceMeters: distance,
           createdById: user.id,
         },
       });
@@ -282,7 +337,10 @@ export async function loginAndAttendWithQrAction(qrUid: string, action?: string)
         workMode: "WFO",
         status,
         checkInAt: now,
-        locationValidationStatus: "NOT_REQUIRED",
+        locationValidationStatus,
+        checkInLatitude: userLat,
+        checkInLongitude: userLng,
+        distanceMeters: distance,
         lateMinutes,
         createdById: user.id,
       },
@@ -314,6 +372,10 @@ export async function loginAndAttendWithQrAction(qrUid: string, action?: string)
           where: { id: existingRecord.id },
           data: {
             checkOutAt: now,
+            checkOutLatitude: userLat,
+            checkOutLongitude: userLng,
+            locationValidationStatus,
+            distanceMeters: distance,
             updatedAt: now,
           },
         });

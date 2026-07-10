@@ -35,6 +35,20 @@ export function QrLoginScanner({
   const [message, setMessage] = useState(defaultMsg);
   const [statusType, setStatusType] = useState<"info" | "success" | "error" | null>(null);
 
+  async function getCurrentPosition() {
+    if (!navigator.geolocation) {
+      throw new Error("Akses lokasi tidak didukung di browser ini.");
+    }
+
+    return new Promise<GeolocationPosition>((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: true,
+        timeout: 12000,
+        maximumAge: 0,
+      });
+    });
+  }
+
   async function stopScanner() {
     const scanner = scannerRef.current;
     if (!scanner) {
@@ -85,12 +99,20 @@ export function QrLoginScanner({
           if (!qrUid) return;
 
           setLoading(true);
-          setMessage("QR terdeteksi. Memproses masuk...");
+          setMessage("QR terdeteksi. Mengambil lokasi...");
           setStatusType("info");
           await stopScanner();
 
           try {
-            const res = (await loginAndAttendWithQrAction(qrUid, action)) as {
+            const position = await getCurrentPosition();
+
+            setMessage("Lokasi didapat. Memproses presensi...");
+
+            const res = (await loginAndAttendWithQrAction(qrUid, {
+              action,
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            })) as {
               success: boolean;
               error?: string;
               warning?: string;

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/password-input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -21,10 +22,14 @@ const errorMessages: Record<string, string> = {
   "need-presence": "Akses dasbor terkunci. Silakan lakukan scan QR Card presensi atau verifikasi izin terlebih dahulu hari ini.",
 };
 
+const successMessages: Record<string, string> = {
+  "reset-password": "Password berhasil diperbarui. Silakan masuk dengan password baru.",
+};
+
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; registered?: string; action?: string }>;
+  searchParams: Promise<{ error?: string; registered?: string; action?: string; success?: string }>;
 }) {
   const [currentUser, params] = await Promise.all([
     getCurrentUser(),
@@ -37,6 +42,7 @@ export default async function LoginPage({
 
   const isRegistered = params.registered === "1";
   const errorMessage = params.error ? errorMessages[params.error] : null;
+  const successMessage = params.success ? successMessages[params.success] : null;
 
   let statusText = "Belum Check-in WFO";
   let statusColor = "bg-zinc-100 text-zinc-500 border-zinc-200 dark:bg-zinc-950 dark:border-zinc-800 dark:text-zinc-400";
@@ -147,6 +153,12 @@ export default async function LoginPage({
           </p>
         )}
 
+        {successMessage && (
+          <p className="rounded-lg bg-emerald-50 dark:bg-emerald-950/20 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/50">
+            {successMessage}
+          </p>
+        )}
+
         {/* Content Tabs / Scanner */}
         {currentUser ? (
           <div className="grid gap-4">
@@ -191,10 +203,9 @@ export default async function LoginPage({
                   
                   <Field>
                     <FieldLabel htmlFor="password">Password</FieldLabel>
-                    <Input
+                    <PasswordInput
                       id="password"
                       name="password"
-                      type="password"
                       placeholder="Masukkan password"
                       required
                       className="dark:bg-zinc-950 dark:border-zinc-800"
@@ -214,6 +225,15 @@ export default async function LoginPage({
                     >
                       Ingat saya (30 hari)
                     </label>
+                  </div>
+
+                  <div className="text-right">
+                    <a
+                      href="/forgot-password"
+                      className="text-xs font-medium text-zinc-600 underline-offset-4 hover:text-zinc-950 hover:underline dark:text-zinc-400 dark:hover:text-zinc-50"
+                    >
+                      Lupa password?
+                    </a>
                   </div>
 
                   <Field className="mt-1">

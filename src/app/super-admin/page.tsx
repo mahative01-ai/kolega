@@ -76,14 +76,12 @@ type TrendPoint = {
   count: number;
 };
 
-async function getSuperAdminDashboardData(actor: { id: string; role: string; defaultStudioId: string | null }) {
+async function getSuperAdminDashboardData() {
   const month = normalizeReportMonth();
   const { start: monthStart, endExclusive: monthEnd } = getMonthRange(month);
 
   const todayKey = getJakartaDateKey();
   const todayDate = dateOnlyFromKey(todayKey);
-
-  const isGlobalSuperAdmin = actor.role === "SUPER_ADMIN" && actor.defaultStudioId === null;
 
   // Last 7 days for daily trend chart
   const trendStart = new Date();
@@ -102,7 +100,6 @@ async function getSuperAdminDashboardData(actor: { id: string; role: string; def
     prisma.studio.findMany({
       where: {
         isActive: true,
-        ...(isGlobalSuperAdmin ? {} : { id: actor.defaultStudioId ?? "__none__" }),
       },
       orderBy: { name: "asc" },
       select: {
@@ -117,14 +114,6 @@ async function getSuperAdminDashboardData(actor: { id: string; role: string; def
       by: ["status"],
       where: {
         attendanceDate: { gte: monthStart, lt: monthEnd },
-        ...(isGlobalSuperAdmin
-          ? {}
-          : {
-              OR: [
-                { ownerStudioId: actor.defaultStudioId ?? "__none__" },
-                { locationStudioId: actor.defaultStudioId ?? "__none__" },
-              ],
-            }),
       },
       _count: { _all: true },
     }),
@@ -132,42 +121,16 @@ async function getSuperAdminDashboardData(actor: { id: string; role: string; def
       where: {
         attendanceDate: { gte: monthStart, lt: monthEnd },
         locationValidationStatus: "OUTSIDE_RADIUS",
-        ...(isGlobalSuperAdmin
-          ? {}
-          : {
-              OR: [
-                { ownerStudioId: actor.defaultStudioId ?? "__none__" },
-                { locationStudioId: actor.defaultStudioId ?? "__none__" },
-              ],
-            }),
       },
     }),
     prisma.request.count({
       where: {
         status: "PENDING",
-        ...(isGlobalSuperAdmin
-          ? {}
-          : {
-              user: {
-                OR: [
-                  { defaultStudioId: actor.defaultStudioId ?? "__none__" },
-                  { placements: { some: { studioId: actor.defaultStudioId ?? "__none__", status: "ACTIVE" as const } } },
-                ],
-              },
-            }),
       },
     }),
     prisma.attendanceRecord.findMany({
       where: {
         attendanceDate: todayDate,
-        ...(isGlobalSuperAdmin
-          ? {}
-          : {
-              OR: [
-                { ownerStudioId: actor.defaultStudioId ?? "__none__" },
-                { locationStudioId: actor.defaultStudioId ?? "__none__" },
-              ],
-            }),
       },
       orderBy: [{ checkInAt: "desc" }, { createdAt: "desc" }],
       include: {
@@ -193,7 +156,6 @@ async function getSuperAdminDashboardData(actor: { id: string; role: string; def
     prisma.picketSchedule.findMany({
       where: {
         picketDate: todayDate,
-        ...(isGlobalSuperAdmin ? {} : { studioId: actor.defaultStudioId ?? "__none__" }),
       },
       include: {
         user: {
@@ -212,14 +174,6 @@ async function getSuperAdminDashboardData(actor: { id: string; role: string; def
       by: ["attendanceDate"],
       where: {
         attendanceDate: { gte: trendStart },
-        ...(isGlobalSuperAdmin
-          ? {}
-          : {
-              OR: [
-                { ownerStudioId: actor.defaultStudioId ?? "__none__" },
-                { locationStudioId: actor.defaultStudioId ?? "__none__" },
-              ],
-            }),
       },
       _count: { _all: true },
       orderBy: { attendanceDate: "asc" },
@@ -326,7 +280,7 @@ async function getSuperAdminDashboardData(actor: { id: string; role: string; def
 export default async function SuperAdminDashboardPage() {
   const currentUser = await requireRole("SUPER_ADMIN");
 
-  const data = await getSuperAdminDashboardData(currentUser);
+  const data = await getSuperAdminDashboardData();
   const metrics = [
     {
       label: `Jumlah Presensi ${data.monthLabel}`,
