@@ -603,6 +603,15 @@ export function AdminDashboardClient({
                     const schedule = scheduleByDateMap[day.dateKey];
                     const isToday = day.dateKey === todayKey;
                     const dayHolidays = adminHolidaysMap.get(day.dateKey) ?? [];
+
+                    const hasHoliday = dayHolidays.some(h => 
+                      h.type === "NATIONAL_HOLIDAY" || 
+                      h.type === "COMPANY_LEAVE" || 
+                      h.type === "REGULAR_OFF_DAY"
+                    );
+                    const hasReplacement = dayHolidays.some(h => h.type === "REPLACEMENT_WORKDAY");
+                    const isRealHoliday = hasHoliday && !hasReplacement;
+
                     return (
                       <div
                         key={day.dateKey}
@@ -640,7 +649,11 @@ export function AdminDashboardClient({
                             </div>
                           ))}
 
-                          {schedule && (
+                          {isRealHoliday ? (
+                            <div className="text-[8px] font-bold px-1 py-0.5 rounded border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 text-center select-none font-semibold">
+                              Libur
+                            </div>
+                          ) : schedule ? (
                             <div
                               className={cn(
                                 "text-[8px] font-bold px-1 py-0.5 rounded border truncate text-center select-none",
@@ -650,7 +663,11 @@ export function AdminDashboardClient({
                             >
                               {schedule.workMode}
                             </div>
-                          )}
+                          ) : hasReplacement ? (
+                            <div className="text-[8px] font-bold px-1 py-0.5 rounded border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 text-center select-none font-semibold">
+                              WFO
+                            </div>
+                          ) : null}
                         </div>
                       </div>
                     );

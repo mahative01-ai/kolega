@@ -11,8 +11,9 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { DashboardShell } from "@/components/dashboard-shell";
-import { requireAnyRole, requireRole } from "@/lib/auth";
+import { requireAnyRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import Link from "next/link";
 
 import {
   dateOnly,
@@ -33,10 +34,12 @@ async function getScheduleData({
   actor,
   monthKey,
   selectedUserId,
+  filterStudioId,
 }: {
   actor: Awaited<ReturnType<typeof requireAnyRole>>;
   monthKey: string;
   selectedUserId?: string;
+  filterStudioId?: string;
 }) {
   const { year, monthIndex } = parseMonthKey(monthKey);
   const monthStart = dateOnly(new Date(year, monthIndex, 1));
@@ -49,6 +52,14 @@ async function getScheduleData({
           role: {
             not: "SUPER_ADMIN" as const,
           },
+          ...(filterStudioId
+            ? {
+                OR: [
+                  { defaultStudioId: filterStudioId },
+                  { placements: { some: { studioId: filterStudioId, status: "ACTIVE" as const } } }
+                ]
+              }
+            : {})
         }
       : {
           accountStatus: "ACTIVE" as const,
@@ -126,7 +137,14 @@ async function getScheduleData({
             startDate: { lte: monthEnd },
             endDate: { gte: monthStart },
             ...(isSuperAdmin
-              ? {}
+              ? filterStudioId
+                ? {
+                    OR: [
+                      { studioId: null },
+                      { studioId: filterStudioId },
+                    ]
+                  }
+                : {}
               : {
                   OR: [
                     { studioId: null },
@@ -157,7 +175,7 @@ async function getScheduleData({
 export default async function WorkSchedulesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ month?: string; userId?: string }>;
+  searchParams: Promise<{ month?: string; userId?: string; studioId?: string }>;
 }) {
   const [currentUser, params] = await Promise.all([
     requireAnyRole(["SUPER_ADMIN", "ADMIN"]),
@@ -169,11 +187,24 @@ export default async function WorkSchedulesPage({
     month.monthIndex
   );
   
+  const isSuperAdmin = currentUser.role === "SUPER_ADMIN";
+
+  const studios = await prisma.studio.findMany({
+    where: { isActive: true },
+    select: { id: true, name: true },
+    orderBy: { name: "asc" },
+  });
+
+  const filterStudioId = isSuperAdmin
+    ? params.studioId || (studios[0]?.id ?? "")
+    : currentUser.defaultStudioId ?? "__none__";
+
   const [data, apiHolidays] = await Promise.all([
     getScheduleData({
       actor: currentUser,
       monthKey: month.monthKey,
       selectedUserId: params.userId,
+      filterStudioId,
     }),
     getIndonesianHolidays(month.year),
   ]);
@@ -250,6 +281,23 @@ export default async function WorkSchedulesPage({
       }
     >
       <div className="space-y-6">
+        {isSuperAdmin && (
+          <div className="flex border-b border-zinc-200 dark:border-zinc-800">
+            {studios.map((s) => (
+              <Link
+                key={s.id}
+                href={`?studioId=${s.id}&month=${month.monthKey}`}
+                className={`px-4 py-2.5 text-sm font-bold border-b-2 transition-all ${
+                  filterStudioId === s.id
+                    ? "border-blue-700 text-blue-700 dark:border-blue-400 dark:text-blue-400"
+                    : "border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+                }`}
+              >
+                {s.name}
+              </Link>
+            ))}
+          </div>
+        )}
         <section className="grid gap-3 sm:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
@@ -301,6 +349,7 @@ export default async function WorkSchedulesPage({
         </CardHeader>
         <CardContent>
           <form className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
+            <input type="hidden" name="studioId" value={filterStudioId} />
             <div className="flex flex-col gap-2">
               <label htmlFor="month" className="text-sm font-medium">
                 Bulan
@@ -375,53 +424,79 @@ export default async function WorkSchedulesPage({
               const isWfh = schedule?.workMode === "WFH";
               const isToday = day.dateKey === todayKey;
 
+              const dayHolidays = holidayMap.get(day.dateKey) ?? [];
+              const hasHoliday = dayHolidays.some(h => 
+                h.type === "NATIONAL_HOLIDAY" || 
+                h.type === "COMPANY_LEAVE" || 
+                h.type === "REGULAR_OFF_DAY"
+              );
+              const hasReplacement = dayHolidays.some(h => h.type === "REPLACEMENT_WORKDAY");
+              const isRealHoliday = hasHoliday && !hasReplacement;
+
               return (
                 <div
                   key={day.dateKey}
-                  className="min-h-32 border-b border-r border-zinc-100 dark:border-zinc-800 p-2 bg-transparent"
+                  className="min-h-32 border-b border-r border-zinc-100 dark:border-zinc-800 p-2 bg-transparent flex flex-col justify-between"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <span
-                      className={
-                        isToday
-                          ? "flex size-7 items-center justify-center rounded-full bg-zinc-950 dark:bg-zinc-100 text-sm font-semibold text-white dark:text-zinc-950"
-                          : "text-sm font-semibold text-zinc-900 dark:text-zinc-100"
-                      }
-                    >
-                      {day.dayNumber}
-                    </span>
-                    <Badge
-                      variant="secondary"
-                      className={
-                        isWfh
-                          ? "bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-900"
-                          : "bg-zinc-100 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800"
-                      }
-                    >
-                      {isWfh ? "WFH" : "WFO"}
-                    </Badge>
+                  <div>
+                    <div className="flex items-start justify-between gap-2">
+                      <span
+                        className={
+                          isToday
+                            ? "flex size-7 items-center justify-center rounded-full bg-zinc-950 dark:bg-zinc-100 text-sm font-semibold text-white dark:text-zinc-950"
+                            : "text-sm font-semibold text-zinc-900 dark:text-zinc-100"
+                        }
+                      >
+                        {day.dayNumber}
+                      </span>
+                      {isRealHoliday ? (
+                        <Badge
+                          variant="secondary"
+                          className="bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-300 border-red-200 dark:border-red-900 font-semibold"
+                        >
+                          Libur
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="secondary"
+                          className={
+                            isWfh
+                              ? "bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-900"
+                              : "bg-zinc-100 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800"
+                          }
+                        >
+                          {isWfh ? "WFH" : "WFO"}
+                        </Badge>
+                      )}
+                    </div>
+
+                    <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+                      {isRealHoliday ? (
+                        "Hari Libur"
+                      ) : isWfh ? (
+                        schedule?.note ?? "WFH dari jadwal bulanan"
+                      ) : hasReplacement ? (
+                        "Hari Pengganti (WFO)"
+                      ) : (
+                        "Default WFO"
+                      )}
+                    </p>
+
+                    {/* ── Holiday badges ── */}
+                    {dayHolidays.map((ev, i) => (
+                      <div
+                        key={i}
+                        className={`mt-1 truncate rounded px-1.5 py-0.5 text-[10px] font-semibold leading-tight ${
+                          EVENT_COLORS[ev.type] ?? "bg-zinc-100 text-zinc-600"
+                        }`}
+                        title={ev.title}
+                      >
+                        {ev.title}
+                      </div>
+                    ))}
                   </div>
 
-                  <p className="mt-2 min-h-6 text-xs text-zinc-500 dark:text-zinc-400">
-                    {isWfh
-                      ? schedule?.note ?? "WFH dari jadwal bulanan"
-                      : "Default WFO"}
-                  </p>
-
-                  {/* ── Holiday badges ── */}
-                  {(holidayMap.get(day.dateKey) ?? []).map((ev, i) => (
-                    <div
-                      key={i}
-                      className={`mt-1 truncate rounded px-1.5 py-0.5 text-[10px] font-medium leading-tight ${
-                        EVENT_COLORS[ev.type] ?? "bg-zinc-100 text-zinc-600"
-                      }`}
-                      title={ev.title}
-                    >
-                      {ev.title}
-                    </div>
-                  ))}
-
-                  {canManage && data.selectedUser ? (
+                  {!isRealHoliday && canManage && data.selectedUser ? (
                     <div className="mt-3">
                       <ToggleScheduleButton
                         userId={data.selectedUser.id}

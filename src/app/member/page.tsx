@@ -668,6 +668,14 @@ export default async function MemberDashboardPage({
                 const isPicket = picketDaysSet.has(day.dateKey);
                 const dayHolidays = memberHolidaysMap.get(day.dateKey) ?? [];
 
+                const hasHoliday = dayHolidays.some(h => 
+                  h.type === "NATIONAL_HOLIDAY" || 
+                  h.type === "COMPANY_LEAVE" || 
+                  h.type === "REGULAR_OFF_DAY"
+                );
+                const hasReplacement = dayHolidays.some(h => h.type === "REPLACEMENT_WORKDAY");
+                const isRealHoliday = hasHoliday && !hasReplacement;
+
                 return (
                   <div
                     key={day.dateKey}
@@ -693,16 +701,24 @@ export default async function MemberDashboardPage({
                             🧹 Piket
                           </span>
                         )}
-                        <span
-                          className={cn(
-                            "rounded px-1 py-0.5 text-[9px] font-medium border",
-                            isWfh
-                              ? "bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-900"
-                              : "bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800"
-                          )}
-                        >
-                          {isWfh ? "WFH" : "WFO"}
-                        </span>
+                        {isRealHoliday ? (
+                          <span
+                            className="rounded px-1 py-0.5 text-[9px] font-semibold border bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-300 border-red-200 dark:border-red-900"
+                          >
+                            Libur
+                          </span>
+                        ) : (
+                          <span
+                            className={cn(
+                              "rounded px-1 py-0.5 text-[9px] font-medium border",
+                              isWfh
+                                ? "bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-900"
+                                : "bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800"
+                            )}
+                          >
+                            {isWfh ? "WFH" : "WFO"}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="mt-1 space-y-1">
@@ -722,9 +738,17 @@ export default async function MemberDashboardPage({
                           {h.title}
                         </div>
                       ))}
-                      {schedule?.note ? (
+                      {isRealHoliday ? (
+                        <p className="truncate text-[9px] text-zinc-400 font-medium">
+                          Hari Libur
+                        </p>
+                      ) : schedule?.note ? (
                         <p className="truncate text-[9px] text-zinc-400" title={schedule.note}>
                           {schedule.note}
+                        </p>
+                      ) : hasReplacement ? (
+                        <p className="truncate text-[9px] text-zinc-500 font-semibold" title="Hari Kerja Pengganti">
+                          Pengganti (WFO)
                         </p>
                       ) : (
                         <p className="truncate text-[9px] text-zinc-300 dark:text-zinc-600">

@@ -155,7 +155,6 @@ export function QrScannerForm({
         {
           fps: 10,
           qrbox: { width: 240, height: 240 },
-          aspectRatio: 1.777778,
         },
         (decodedText) => {
           const qrValue = decodedText.trim();
@@ -189,10 +188,10 @@ export function QrScannerForm({
 
   return (
     <div className="grid gap-3">
-      <div className="relative min-h-64 overflow-hidden rounded-md border border-zinc-200 bg-zinc-950">
+      <div className="relative min-h-64 overflow-hidden rounded-md border border-zinc-200 bg-zinc-950 flex items-center justify-center">
         <div
           id={scannerId}
-          className="min-h-64 text-sm text-zinc-100 [&_button]:rounded-md [&_button]:border [&_button]:border-zinc-300 [&_button]:bg-white [&_button]:px-3 [&_button]:py-2 [&_button]:text-zinc-900 [&_img]:mx-auto [&_video]:w-full"
+          className="w-full text-sm text-zinc-100 [&_button]:rounded-md [&_button]:border [&_button]:border-zinc-300 [&_button]:bg-white [&_button]:px-3 [&_button]:py-2 [&_button]:text-zinc-900 [&_img]:mx-auto [&_video]:w-full [&_video]:h-auto [&_video]:max-h-[400px] [&_video]:object-contain"
         />
         {!isScanning ? (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-zinc-300">

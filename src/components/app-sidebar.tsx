@@ -94,8 +94,7 @@ function getMenuGroups(role: SidebarUser["role"]): MenuGroup[] {
         label: "Monitoring",
         items: [
           { label: "Laporan Presensi", href: "/laporan-presensi", icon: Clipboard },
-          { label: "Approval Izin", href: "/admin/requests", icon: MessageSquare },
-          { label: "Approval Koreksi", href: "/admin/corrections", icon: FileCheck },
+          { label: "Persetujuan", href: "/admin/requests", icon: MessageSquare },
           { label: "Audit Trail", href: "/super-admin/audit-logs", icon: FileWarning },
           { label: "Arsip Akun", href: "/super-admin/archived-accounts", icon: Archive },
           { label: "Pengaturan", href: "/settings", icon: Settings },
@@ -121,8 +120,7 @@ function getMenuGroups(role: SidebarUser["role"]): MenuGroup[] {
         items: [
           { label: "User Studio", href: "/roles", icon: UserRound },
           { label: "Jadwal Tim", href: "/schedules", icon: CalendarClock },
-          { label: "Izin/Sakit/Cuti", href: "/admin/requests", icon: MessageSquare },
-          { label: "Koreksi Presensi", href: "/admin/corrections", icon: ClipboardCheck },
+          { label: "Persetujuan", href: "/admin/requests", icon: MessageSquare },
           { label: "Piket & Pengingat", href: "/piket", icon: BrushCleaning },
         ],
       },

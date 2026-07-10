@@ -12,6 +12,7 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { PicketFormClient } from "./piket-form-client";
 import { deletePicketAction } from "./actions";
 import { Label } from "@/components/ui/label";
@@ -121,34 +122,32 @@ export default async function PicketPage({
       <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
         {/* ── main Column: Jadwal Bulanan ── */}
         <div className="space-y-6">
-          {/* Studio Filter (Global Super Admin only) */}
           {isSuperAdmin && (
-            <Card>
-              <CardContent className="pt-6">
-                <form className="flex flex-wrap items-center gap-3">
-                  <input type="hidden" name="month" value={`${year}-${String(month).padStart(2, "0")}`} />
-                  <Label htmlFor="studio-select" className="text-sm font-semibold">
-                    Studio Aktif:
-                  </Label>
-                  <select
-                    id="studio-select"
-                    name="studioId"
-                    defaultValue={filterStudioId}
-                    className="h-9 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 px-3 text-sm focus:outline-none"
-                  >
-                    <option value="">🌐 Semua Studio</option>
-                    {studios.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
-                  <Button type="submit" size="sm">
-                    Tampilkan
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+            <div className="flex border-b border-zinc-200 dark:border-zinc-800">
+              <Link
+                href={`?studioId=&month=${year}-${String(month).padStart(2, "0")}`}
+                className={`px-4 py-2.5 text-sm font-bold border-b-2 transition-all ${
+                  filterStudioId === ""
+                    ? "border-blue-700 text-blue-700 dark:border-blue-400 dark:text-blue-400"
+                    : "border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+                }`}
+              >
+                🌐 Semua Studio
+              </Link>
+              {studios.map((s) => (
+                <Link
+                  key={s.id}
+                  href={`?studioId=${s.id}&month=${year}-${String(month).padStart(2, "0")}`}
+                  className={`px-4 py-2.5 text-sm font-bold border-b-2 transition-all ${
+                    filterStudioId === s.id
+                      ? "border-blue-700 text-blue-700 dark:border-blue-400 dark:text-blue-400"
+                      : "border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+                  }`}
+                >
+                  {s.name}
+                </Link>
+              ))}
+            </div>
           )}
 
           {/* Monthly Pickets Card */}

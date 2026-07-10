@@ -54,6 +54,7 @@ type Props = {
   dayEvents: Record<number, CalendarEvent[]>;
   studios: Studio[];
   isSuperAdmin: boolean;
+  activeStudioId?: string;
   prevMonthKey: string;
   nextMonthKey: string;
   monthLabel: string;
@@ -69,6 +70,7 @@ export function CalendarGridClient({
   dayEvents,
   studios,
   isSuperAdmin,
+  activeStudioId,
   prevMonthKey,
   nextMonthKey,
   monthLabel,
@@ -79,7 +81,7 @@ export function CalendarGridClient({
   const [success, setSuccess] = useState("");
 
   // Form State
-  const [studioId, setStudioId] = useState("");
+  const [studioId, setStudioId] = useState(activeStudioId || "");
   const [holidayName, setHolidayName] = useState("");
   const [originalDate, setOriginalDate] = useState("");
   const [newDate, setNewDate] = useState("");
@@ -99,6 +101,7 @@ export function CalendarGridClient({
       (ev) => ev.type === "NATIONAL_HOLIDAY" || ev.type === "COMPANY_LEAVE"
     );
 
+    setStudioId(activeStudioId || "");
     setOriginalDate(clickedDateStr);
     setNewDate(clickedDateStr);
     setHolidayName(holidayEvent ? holidayEvent.title : "");
@@ -108,7 +111,7 @@ export function CalendarGridClient({
   }
 
   function resetForm() {
-    setStudioId("");
+    setStudioId(activeStudioId || "");
     setHolidayName("");
     setOriginalDate("");
     setNewDate("");
@@ -169,14 +172,14 @@ export function CalendarGridClient({
           </div>
           <div className="flex items-center gap-1">
             <a
-              href={`?month=${prevMonthKey}`}
+              href={`?month=${prevMonthKey}${activeStudioId ? `&studioId=${activeStudioId}` : ""}`}
               className={buttonVariants({ variant: "outline", size: "icon" })}
               aria-label="Bulan sebelumnya"
             >
               <ChevronLeft className="size-4" />
             </a>
             <a
-              href={`?month=${nextMonthKey}`}
+              href={`?month=${nextMonthKey}${activeStudioId ? `&studioId=${activeStudioId}` : ""}`}
               className={buttonVariants({ variant: "outline", size: "icon" })}
               aria-label="Bulan berikutnya"
             >

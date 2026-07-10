@@ -21,6 +21,7 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { CalendarGridClient } from "./calendar-grid-client";
 import { getJakartaDateKey } from "@/lib/attendance-time";
 import { getIndonesianHolidays } from "@/lib/calendar";
@@ -84,7 +85,7 @@ function nextMonthKey(year: number, month: number) {
 export default async function CalendarPage({
   searchParams,
 }: {
-  searchParams: Promise<{ month?: string }>;
+  searchParams: Promise<{ month?: string; studioId?: string }>;
 }) {
   const [user, params] = await Promise.all([getCurrentUser(), searchParams]);
 
@@ -98,25 +99,37 @@ export default async function CalendarPage({
   const startDate = dateOnly(new Date(Date.UTC(year, month - 1, 1)));
   const endDate = dateOnly(new Date(Date.UTC(year, month, 0)));
 
-  const [studios, events, apiHolidays] = await Promise.all([
-    isGlobalSuperAdmin
+  const studios = await (isGlobalSuperAdmin
+    ? prisma.studio.findMany({
+        where: { isActive: true },
+        select: { id: true, name: true },
+        orderBy: { name: "asc" },
+      })
+    : user.defaultStudioId
       ? prisma.studio.findMany({
-          where: { isActive: true },
+          where: { id: user.defaultStudioId, isActive: true },
           select: { id: true, name: true },
-          orderBy: { name: "asc" },
         })
-      : user.defaultStudioId
-        ? prisma.studio.findMany({
-            where: { id: user.defaultStudioId, isActive: true },
-            select: { id: true, name: true },
-          })
-        : Promise.resolve([]),
+      : Promise.resolve([]));
+
+  const filterStudioId = isGlobalSuperAdmin
+    ? params.studioId || (studios[0]?.id ?? "")
+    : user.defaultStudioId ?? "__none__";
+
+  const [events, apiHolidays] = await Promise.all([
     prisma.calendarEvent.findMany({
       where: {
         AND: [
           { startDate: { lte: endDate }, endDate: { gte: startDate } },
           ...(isGlobalSuperAdmin
-            ? []
+            ? filterStudioId
+              ? [{
+                  OR: [
+                    { studioId: null },
+                    { studioId: filterStudioId },
+                  ]
+                }]
+              : []
             : [{
               OR: [
                 { studioId: null },
@@ -193,7 +206,25 @@ export default async function CalendarPage({
       title="Kalender Studio"
       description="Lihat dan kelola libur nasional, cuti bersama, hari kerja pengganti, dan kegiatan studio."
     >
-      <div className="w-full">
+      <div className="w-full space-y-6">
+        {isGlobalSuperAdmin && (
+          <div className="flex border-b border-zinc-200 dark:border-zinc-800">
+            {studios.map((s) => (
+              <Link
+                key={s.id}
+                href={`?studioId=${s.id}&month=${year}-${String(month).padStart(2, "0")}`}
+                className={`px-4 py-2.5 text-sm font-bold border-b-2 transition-all ${
+                  filterStudioId === s.id
+                    ? "border-blue-700 text-blue-700 dark:border-blue-400 dark:text-blue-400"
+                    : "border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+                }`}
+              >
+                {s.name}
+              </Link>
+            ))}
+          </div>
+        )}
+
         <CalendarGridClient
           year={year}
           month={month}
@@ -204,6 +235,7 @@ export default async function CalendarPage({
           dayEvents={dayEvents}
           studios={studios}
           isSuperAdmin={isSuperAdmin}
+          activeStudioId={filterStudioId}
           prevMonthKey={prevMonthKey(year, month)}
           nextMonthKey={nextMonthKey(year, month)}
           monthLabel={formatMonthLabel(year, month)}
