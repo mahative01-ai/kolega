@@ -99,7 +99,7 @@ export default async function CalendarPage({
   const startDate = dateOnly(new Date(Date.UTC(year, month - 1, 1)));
   const endDate = dateOnly(new Date(Date.UTC(year, month, 0)));
 
-  let studios = await (isGlobalSuperAdmin
+  const studios = await (isGlobalSuperAdmin
     ? prisma.studio.findMany({
         where: { isActive: true },
         select: { id: true, name: true },
@@ -112,12 +112,9 @@ export default async function CalendarPage({
         })
       : Promise.resolve([]));
 
-  if (isSuperAdmin) {
-    studios = studios.filter((s) => s.name.toLowerCase().includes("mahative"));
-  }
-
+  const defaultStudio = studios.find((s) => s.name.toLowerCase().includes("mahative")) || studios[0];
   const filterStudioId = isGlobalSuperAdmin
-    ? params.studioId || (studios[0]?.id ?? "")
+    ? params.studioId || (defaultStudio?.id ?? "")
     : user.defaultStudioId ?? "__none__";
 
   const [events, apiHolidays] = await Promise.all([
