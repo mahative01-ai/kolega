@@ -233,16 +233,6 @@ export default async function LoginPage({
             </TabsContent>
           </Tabs>
         )}
-
-        {/* Demo Credentials Info Help */}
-        {!currentUser && (
-          <div className="rounded-lg bg-zinc-50 dark:bg-zinc-900/60 p-3 text-[10px] text-zinc-500 dark:text-zinc-400 space-y-1 border border-zinc-100 dark:border-zinc-800/50">
-            <p className="font-semibold text-zinc-700 dark:text-zinc-300">Info Akun Preview:</p>
-            <p>Super Admin: owner@kolega.local / owner123</p>
-            <p>Admin: admin.mahative@kolega.local / admin123</p>
-            <p>Member: member@kolega.local / member123</p>
-          </div>
-        )}
       </div>
     </main>
   );
