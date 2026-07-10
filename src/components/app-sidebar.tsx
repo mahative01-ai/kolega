@@ -20,8 +20,6 @@ import {
   Archive,
   CalendarDays,
   Home,
-  LogOut,
-  MapPin,
   Settings,
   UsersRound,
   LayoutGrid,
@@ -29,11 +27,10 @@ import {
   MessageSquare,
   FileText,
   Receipt,
-  CircleHelp,
   Terminal,
 } from "lucide-react";
-import { logoutAction } from "@/app/login/actions";
 import { ROLE_LABEL } from "@/lib/roles";
+import { NavUser } from "@/components/nav-user";
 
 type SidebarUser = {
   id: string;
@@ -200,6 +197,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                       <SidebarMenuButton
                         isActive={isActive}
                         render={<Link href={item.href} />}
+                        tooltip={item.label}
                         className={isActive ? "bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 font-medium group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2!" : "text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2!"}
                       >
                         <Icon className="size-4 shrink-0" />
@@ -221,6 +219,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                     ) : (
                       <SidebarMenuButton
                         disabled
+                        tooltip={item.label}
                         className="opacity-55 cursor-not-allowed text-zinc-700 dark:text-zinc-300 flex w-full items-center gap-2 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2!"
                       >
                         <Icon className="size-4 shrink-0" />
@@ -244,64 +243,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
       </SidebarContent>
 
       <SidebarFooter>
-        {state === "collapsed" ? (
-          <div className="flex flex-col items-center gap-4 py-2 border-t border-zinc-200 dark:border-zinc-800">
-            {/* Settings (Gear) link */}
-            <Link
-              href="/settings"
-              className="flex size-8 items-center justify-center rounded-md text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
-              title="Pengaturan"
-            >
-              <Settings className="size-4" />
-            </Link>
-            
-            {/* Logout button (CircleHelp icon to match ? icon at bottom) */}
-            <form action={logoutAction}>
-              <button
-                type="submit"
-                className="flex size-8 items-center justify-center rounded-md text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
-                title="Keluar"
-              >
-                <CircleHelp className="size-4" />
-              </button>
-            </form>
-          </div>
-        ) : (
-          <div className="border-t border-zinc-200 dark:border-zinc-800 p-2.5 space-y-2.5">
-            <div className="rounded-lg bg-zinc-50 dark:bg-zinc-900 p-2.5">
-              <div className="flex items-center gap-2">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-zinc-200 dark:bg-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                  {user.name.slice(0, 1).toUpperCase()}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-medium text-zinc-900 dark:text-zinc-100">{user.name}</p>
-                  <p className="truncate text-[10px] text-zinc-500 dark:text-zinc-400">{user.email}</p>
-                </div>
-              </div>
-              <div className="mt-2 flex flex-wrap gap-1">
-                <Badge variant="secondary" className="text-[9px] px-1 py-0">
-                  {ROLE_LABEL[user.role]}
-                </Badge>
-                {user.defaultStudio?.name && (
-                  <Badge variant="outline" className="bg-white dark:bg-zinc-950 text-zinc-700 dark:text-zinc-300 text-[9px] px-1 py-0">
-                    <MapPin className="size-2.5 mr-0.5" />
-                    {user.defaultStudio.name}
-                  </Badge>
-                )}
-              </div>
-            </div>
-
-            <form action={logoutAction}>
-              <button
-                type="submit"
-                className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-xs text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors font-medium"
-              >
-                <LogOut className="size-3.5" />
-                <span>Keluar</span>
-              </button>
-            </form>
-          </div>
-        )}
+        <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
   );
