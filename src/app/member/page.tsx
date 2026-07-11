@@ -414,19 +414,19 @@ export default async function MemberDashboardPage({
           const hasSubValue = 'subValue' in metric && metric.subValue;
 
           return (
-            <Card key={metric.label} className="shadow-none h-full flex flex-col justify-between">
+            <Card key={metric.label} className="shadow-none h-full flex flex-col justify-between overflow-hidden">
               <CardHeader className="pb-2">
-                <CardDescription className="flex items-center gap-2">
+                <CardDescription className="flex min-w-0 items-center gap-2 text-balance leading-snug">
                   <Icon className={cn("size-4", metric.color)} />
-                  {metric.label}
+                  <span className="min-w-0 break-words">{metric.label}</span>
                 </CardDescription>
               </CardHeader>
-              <CardContent className="flex items-baseline justify-between gap-2">
+              <CardContent className="flex flex-wrap items-center justify-between gap-2 pt-0">
                 <p className={cn("text-3xl font-semibold", metric.color)}>
                   {metric.value.toLocaleString("id-ID")}
                 </p>
                 {hasSubValue && (
-                  <Badge variant="outline" className="text-[10px] bg-orange-50 dark:bg-orange-950/20 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-900 px-1.5 py-0">
+                  <Badge variant="outline" className="shrink-0 text-[10px] bg-orange-50 dark:bg-orange-950/20 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-900 px-1.5 py-0">
                     {metric.subValue}
                   </Badge>
                 )}

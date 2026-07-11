@@ -1,6 +1,5 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import {
   clearSession,
@@ -45,6 +44,7 @@ export async function loginAction(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
   const rememberMe = formData.get("rememberMe") === "on";
+  const intent = String(formData.get("intent") ?? "");
 
   const user = await prisma.user.findUnique({
     where: { email },
@@ -65,6 +65,17 @@ export async function loginAction(formData: FormData) {
   }
 
   await setSession(user.id, rememberMe);
+
+  if (intent === "request") {
+    if (user.role === "ADMIN") {
+      redirect("/admin/requests");
+    }
+
+    if (user.role === "MEMBER") {
+      redirect("/member/requests");
+    }
+  }
+
   redirect(getDashboardPath(user.role));
 }
 
@@ -406,13 +417,3 @@ export async function loginAndAttendWithQrAction(
   }
 }
 
-export async function unlockRequestsAction() {
-  const cookieStore = await cookies();
-  cookieStore.set("kolega_unlocked_requests", "1", {
-    maxAge: 15 * 60, // 15 minutes
-    path: "/",
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-  });
-  redirect("/member/requests");
-}

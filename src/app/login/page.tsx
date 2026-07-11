@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getJakartaDateKey, dateOnlyFromKey } from "@/lib/attendance-time";
-import { loginAction, unlockRequestsAction } from "./actions";
+import { loginAction } from "./actions";
 import { QrLoginScanner } from "./qr-login-scanner";
 import { Terminal } from "lucide-react";
 import {
@@ -173,11 +173,6 @@ export default async function LoginPage({
                 statusColor,
               }}
             />
-            <form action={unlockRequestsAction}>
-              <Button type="submit" variant="secondary" className="w-full text-xs">
-                🤒 / ✈️ Saya Sedang Sakit / Cuti
-              </Button>
-            </form>
           </div>
         ) : (
           <Tabs defaultValue="qr" className="w-full">
@@ -236,12 +231,21 @@ export default async function LoginPage({
                     </a>
                   </div>
 
-                  <Field className="mt-1">
+                  <Field className="mt-1 gap-2">
                     <Button
                       type="submit"
                       className="w-full bg-zinc-950 hover:bg-zinc-900 text-white dark:bg-zinc-50 dark:hover:bg-zinc-200 dark:text-zinc-950 font-medium"
                     >
                       Masuk dengan Kredensial
+                    </Button>
+                    <Button
+                      type="submit"
+                      name="intent"
+                      value="request"
+                      variant="secondary"
+                      className="w-full font-medium"
+                    >
+                      Ajukan Izin, Sakit, atau Cuti
                     </Button>
                   </Field>
                 </FieldGroup>
@@ -257,3 +261,4 @@ export default async function LoginPage({
     </main>
   );
 }
+
