@@ -41,8 +41,14 @@ export async function sendEmail({ to, subject, text, html }: SendEmailParams) {
       return { success: true };
     } catch (error) {
       console.error("[Email Error] Failed to send email via SMTP:", error);
-      // Fallback to console print if SMTP fails
+      if (process.env.NODE_ENV === "production") {
+        throw new Error("Gagal mengirim email melalui SMTP.");
+      }
     }
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("Konfigurasi SMTP belum lengkap.");
   }
 
   // Fallback / Development Mock Print

@@ -256,7 +256,7 @@ export async function swapHolidayAction(input: {
 }
 
 export async function deleteSwappedHolidayAction(eventId: string) {
-  const user = await requireRole("SUPER_ADMIN");
+  await requireRole("SUPER_ADMIN");
   if (typeof eventId !== "string" || !eventId) throw new Error("Event tidak valid.");
 
   const event = await prisma.calendarEvent.findUnique({

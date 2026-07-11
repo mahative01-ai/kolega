@@ -9,7 +9,7 @@ import {
 import { prisma } from "@/lib/prisma";
 
 function getAppUrl() {
-  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  return (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/+$/, "");
 }
 
 export async function requestPasswordResetAction(formData: FormData) {
