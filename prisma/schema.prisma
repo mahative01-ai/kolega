@@ -346,6 +346,7 @@ model Request {
   status        RequestStatus @default(PENDING)
   startDate     DateTime      @db.Date
   endDate       DateTime      @db.Date
+  replacementDate DateTime?   @db.Date
   reason        String
   attachmentUrl String?
   reviewerId    String?
@@ -438,6 +439,10 @@ model Payslip {
   deductions  Float    @default(0)
   netSalary   Float
   notes       String?
+  pdfFileName String?
+  pdfMimeType String?
+  pdfDataUrl  String?  @db.Text
+  uploadedAt  DateTime?
   status      String   @default("SENT")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

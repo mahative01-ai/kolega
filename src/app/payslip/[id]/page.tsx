@@ -53,6 +53,38 @@ export default async function PrintablePayslipPage({
 
   const periodName = `${MONTH_NAMES[payslip.month - 1]} ${payslip.year}`;
 
+  if (payslip.pdfDataUrl) {
+    return (
+      <div className="min-h-screen bg-zinc-50 p-4 font-sans dark:bg-zinc-900/40 md:p-8">
+        <div className="mx-auto mb-6 flex w-full max-w-5xl items-center justify-between print:hidden">
+          <Link
+            href={isSuperAdmin ? "/super-admin/payslips" : "/member/payslips"}
+            className="inline-flex items-center gap-2 text-sm text-zinc-500 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+          >
+            <ArrowLeft className="size-4" />
+            Kembali ke Dashboard
+          </Link>
+          <PrintButton />
+        </div>
+        <div className="mx-auto w-full max-w-5xl rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 print:border-none print:p-0 print:shadow-none">
+          <div className="mb-4 print:hidden">
+            <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
+              Slip Gaji {periodName}
+            </h1>
+            <p className="text-sm text-zinc-500">
+              {payslip.user.name} · {payslip.pdfFileName ?? "Dokumen PDF"}
+            </p>
+          </div>
+          <iframe
+            title={`Slip Gaji ${periodName}`}
+            src={payslip.pdfDataUrl}
+            className="h-[80vh] w-full rounded-lg border border-zinc-200 dark:border-zinc-800 print:h-screen print:border-none"
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900/40 p-4 md:p-8 font-sans flex flex-col items-center">
       {/* Action Buttons (Hidden when printing) */}

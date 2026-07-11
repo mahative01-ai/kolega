@@ -16,6 +16,8 @@ type SerializedRecord = {
   checkOutAt: string | null;
   lateMinutes: number;
   earlyCheckoutMinutes: number;
+  locationValidationStatus: string;
+  distanceMeters: number | null;
   wfhPlan?: string | null;
   wfhReport?: string | null;
   user: {
@@ -56,6 +58,13 @@ function formatDate(dateStr: string) {
   }).format(new Date(dateStr));
 }
 
+function formatLocationValidation(status: string) {
+  if (status === "INSIDE_RADIUS") return "Dalam radius";
+  if (status === "OUTSIDE_RADIUS") return "Diluar jangkauan";
+  if (status === "NOT_REQUIRED") return "Tidak perlu";
+  return "Belum tersedia";
+}
+
 export function AttendanceTableBodyClient({ records, statusColor, statusLabel }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -67,7 +76,7 @@ export function AttendanceTableBodyClient({ records, statusColor, statusLabel }:
     return (
       <TableBody>
         <TableRow>
-          <TableCell colSpan={9} className="h-24 text-center text-sm text-zinc-500">
+          <TableCell colSpan={12} className="h-24 text-center text-sm text-zinc-500">
             Tidak ada data presensi untuk filter ini.
           </TableCell>
         </TableRow>
@@ -92,6 +101,21 @@ export function AttendanceTableBodyClient({ records, statusColor, statusLabel }:
               <TableCell>{formatDate(record.attendanceDate)}</TableCell>
               <TableCell>{record.ownerStudio.name}</TableCell>
               <TableCell>{record.locationStudio?.name ?? "Tidak perlu lokasi"}</TableCell>
+              <TableCell>
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "text-[10px]",
+                    record.locationValidationStatus === "OUTSIDE_RADIUS" &&
+                      "border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/20 dark:text-amber-300",
+                    record.locationValidationStatus === "INSIDE_RADIUS" &&
+                      "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/20 dark:text-emerald-300"
+                  )}
+                >
+                  {formatLocationValidation(record.locationValidationStatus)}
+                </Badge>
+              </TableCell>
+              <TableCell>{typeof record.distanceMeters === "number" ? `${Math.round(record.distanceMeters)} m` : "-"}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-1.5">
                   <Badge variant="outline" className="dark:bg-zinc-950 dark:border-zinc-800 dark:text-zinc-300">
@@ -124,7 +148,7 @@ export function AttendanceTableBodyClient({ records, statusColor, statusLabel }:
             {/* Collapsible WFH Details row */}
             {isExpanded && hasDetails && (
               <TableRow className="bg-zinc-50/40 dark:bg-zinc-900/5 hover:bg-zinc-50/40 dark:hover:bg-zinc-900/5">
-                <TableCell colSpan={10} className="p-4 border-t border-zinc-100 dark:border-zinc-800">
+                <TableCell colSpan={12} className="p-4 border-t border-zinc-100 dark:border-zinc-800">
                   <div className="grid gap-4 md:grid-cols-2 max-w-5xl mx-auto">
                     {/* WFH Plan details */}
                     <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-3 space-y-1">

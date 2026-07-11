@@ -33,14 +33,12 @@ export const dynamic = "force-dynamic";
 const requestTypeLabel: Record<string, string> = {
   PERMISSION: "Izin",
   SICK: "Sakit",
-  LEAVE: "Cuti",
   WFH: "WFH",
 };
 
 const requestTypeColor: Record<string, string> = {
   PERMISSION: "bg-amber-100 text-amber-800",
   SICK: "bg-violet-100 text-violet-800",
-  LEAVE: "bg-sky-100 text-sky-800",
   WFH: "bg-indigo-100 text-indigo-800",
 };
 
@@ -78,7 +76,9 @@ const errorMessages: Record<string, string> = {
   "date-range": "Tanggal selesai tidak boleh sebelum tanggal mulai.",
   "file-size": "Ukuran file lampiran terlalu besar (maksimal 2MB).",
   "upload-failed": "Gagal memproses lampiran berkas.",
-  "leave-notice": "Pengajuan Cuti Tahunan hanya dapat diajukan minimal H-1.",
+  "leave-notice": "Pengajuan Izin/Ganti Hari hanya dapat diajukan minimal H-1.",
+  "missing-replacement": "Tanggal ganti hari wajib diisi untuk pengajuan izin.",
+  "replacement-date": "Tanggal ganti hari harus setelah rentang izin.",
   "sick-notice": "Pengajuan Sakit hari ini harus dilakukan maksimal 1 jam sebelum jam masuk (sebelum 07:00 pagi).",
   "past-date": "Tanggal mulai pengajuan tidak boleh berada di masa lampau.",
   "intern-wfh": "Intern tidak diperbolehkan mengajukan WFH. Hanya Anggota Team dan Admin yang dapat mengajukan WFH.",
@@ -96,7 +96,7 @@ export default async function MemberRequestsPage({
   const requests = await prisma.request.findMany({
     where: {
       userId: currentUser.id,
-      type: { in: ["PERMISSION", "SICK", "LEAVE", "WFH"] },
+      type: { in: ["PERMISSION", "SICK", "WFH"] },
     },
     orderBy: { createdAt: "desc" },
     include: {
@@ -111,8 +111,8 @@ export default async function MemberRequestsPage({
       user={currentUser}
       currentPath="/member/requests"
       badge="Formulir Member"
-      title="Pengajuan Izin / Sakit / Cuti"
-      description="Ajukan perizinan tidak masuk kerja, sakit dengan surat dokter, atau cuti tahunan di halaman ini."
+      title="Pengajuan Izin / Sakit / WFH"
+      description="Ajukan izin dengan ganti hari, sakit, atau WFH di halaman ini."
     >
       {params.success && successMessages[params.success] ? (
         <div className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
@@ -154,10 +154,21 @@ export default async function MemberRequestsPage({
                   className="h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-3 text-sm outline-none focus:border-zinc-950 dark:focus:border-zinc-300 focus:ring-1 focus:ring-zinc-950 dark:focus:ring-zinc-300"
                   required
                 >
-                  <option value="LEAVE">Cuti Tahunan (Min H-1)</option>
+                  <option value="PERMISSION">Izin / Ganti Hari (Min H-1)</option>
                   <option value="SICK">Sakit (Keterangan Dokter, Maks H-H 07:00)</option>
                   <option value="WFH">Pengajuan WFH</option>
                 </select>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="replacement-date" className="text-sm font-medium">
+                  Tanggal Ganti Hari <span className="text-xs font-normal text-zinc-500">(khusus izin)</span>
+                </label>
+                <Input
+                  id="replacement-date"
+                  name="replacementDate"
+                  type="date"
+                />
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -226,7 +237,7 @@ export default async function MemberRequestsPage({
               Riwayat Pengajuan
             </CardTitle>
             <CardDescription>
-              Daftar izin, sakit, dan cuti yang pernah Anda ajukan beserta status terkininya.
+              Daftar izin, sakit, dan WFH yang pernah Anda ajukan beserta status terkininya.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -236,6 +247,7 @@ export default async function MemberRequestsPage({
                   <TableHead>Tipe</TableHead>
                   <TableHead>Mulai</TableHead>
                   <TableHead>Selesai</TableHead>
+                  <TableHead>Ganti Hari</TableHead>
                   <TableHead>Alasan / Catatan</TableHead>
                   <TableHead>Lampiran</TableHead>
                   <TableHead>Status</TableHead>
@@ -246,7 +258,7 @@ export default async function MemberRequestsPage({
                 {requests.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={7}
+                      colSpan={8}
                       className="h-24 text-center text-sm text-zinc-500"
                     >
                       Belum ada riwayat pengajuan perizinan.
@@ -265,6 +277,7 @@ export default async function MemberRequestsPage({
                       </TableCell>
                       <TableCell>{formatDate(req.startDate)}</TableCell>
                       <TableCell>{formatDate(req.endDate)}</TableCell>
+                      <TableCell>{req.replacementDate ? formatDate(req.replacementDate) : "-"}</TableCell>
                       <TableCell className="max-w-[200px] truncate" title={req.reason}>
                         {req.reason}
                       </TableCell>

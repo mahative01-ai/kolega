@@ -14,6 +14,7 @@ import {
   getJakartaMinutes,
   timeToMinutes,
 } from "@/lib/attendance-time";
+import { formatMinutesAsClock, getCheckoutEligibility } from "@/lib/checkout-policy";
 import { prisma } from "@/lib/prisma";
 
 type QrAttendanceInput = {
@@ -380,9 +381,18 @@ export async function loginAndAttendWithQrAction(
 
     if (existingRecord.checkInAt && !existingRecord.checkOutAt) {
       if (action === "checkout") {
-        const scheduledCheckoutMinutes = timeToMinutes(policy?.checkOutTime, "16:00");
-        const currentMinutes = getJakartaMinutes(now);
-        const earlyCheckoutMinutes = Math.max(0, scheduledCheckoutMinutes - currentMinutes);
+        const checkoutEligibility = getCheckoutEligibility({
+          checkInAt: existingRecord.checkInAt,
+          now,
+          policy,
+        });
+
+        if (!checkoutEligibility.isAllowed) {
+          return {
+            success: false,
+            error: `Check-out baru dibuka pukul ${formatMinutesAsClock(checkoutEligibility.allowedCheckoutMinutes)}. Sisa ${checkoutEligibility.remainingMinutes} menit.`,
+          };
+        }
 
         await prisma.attendanceRecord.update({
           where: { id: existingRecord.id },
@@ -392,7 +402,7 @@ export async function loginAndAttendWithQrAction(
             checkOutLongitude: userLng,
             locationValidationStatus,
             distanceMeters: distance,
-            earlyCheckoutMinutes,
+            earlyCheckoutMinutes: checkoutEligibility.earlyCheckoutMinutes,
             updatedAt: now,
           },
         });

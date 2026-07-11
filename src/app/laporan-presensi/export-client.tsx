@@ -14,9 +14,18 @@ type RecordItem = {
   checkOutAt: string | null;
   lateMinutes: number;
   earlyCheckoutMinutes: number;
+  locationValidationStatus: string;
+  distanceMeters: number | null;
   user: { name: string; email: string };
   ownerStudio: { name: string };
   locationStudio: { name: string } | null;
+};
+
+const LOCATION_VALIDATION_LABELS: Record<string, string> = {
+  INSIDE_RADIUS: "Dalam radius",
+  OUTSIDE_RADIUS: "Diluar jangkauan",
+  UNAVAILABLE: "Belum tersedia",
+  NOT_REQUIRED: "Tidak perlu",
 };
 
 type Props = {
@@ -69,6 +78,8 @@ export function AttendanceReportExportClient({ records, monthLabel }: Props) {
         "Tanggal": formatDate(r.attendanceDate),
         "Studio Asal": r.ownerStudio.name,
         "Lokasi Check-in": r.locationStudio?.name || "Tidak perlu lokasi",
+        "Validasi Lokasi": LOCATION_VALIDATION_LABELS[r.locationValidationStatus] || r.locationValidationStatus,
+        "Jarak Scan": typeof r.distanceMeters === "number" ? `${Math.round(r.distanceMeters)} meter` : "-",
         "Mode Kerja": r.workMode,
         "Status": STATUS_LABELS[r.status] || r.status,
         "Check-in": formatTime(r.checkInAt),

@@ -37,7 +37,7 @@ export const dynamic = "force-dynamic";
 const requestTypeLabel: Record<string, string> = {
   PERMISSION: "Izin",
   SICK: "Sakit",
-  LEAVE: "Cuti",
+  LEAVE: "Cuti Legacy",
   WFH: "WFH",
 };
 
@@ -120,9 +120,9 @@ export default async function AdminApprovalsPage({
 
   const scopedWhereRequests: Prisma.RequestWhereInput =
     currentUser.role === "SUPER_ADMIN"
-      ? { type: { in: ["PERMISSION", "SICK", "LEAVE", "WFH"] } }
+      ? { type: { in: ["PERMISSION", "SICK", "WFH"] } }
       : {
-          type: { in: ["PERMISSION", "SICK", "LEAVE", "WFH"] },
+          type: { in: ["PERMISSION", "SICK", "WFH"] },
           user: {
             defaultStudioId: currentUser.defaultStudioId,
             role: {
@@ -237,7 +237,7 @@ export default async function AdminApprovalsPage({
                 Menunggu Persetujuan Izin ({pendingRequests.length})
               </CardTitle>
               <CardDescription>
-                Daftar izin, sakit, WFH, dan cuti baru yang diajukan oleh member.
+                Daftar izin/ganti hari, sakit, dan WFH baru yang diajukan oleh member.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -249,6 +249,7 @@ export default async function AdminApprovalsPage({
                     <TableHead>Tipe</TableHead>
                     <TableHead>Mulai</TableHead>
                     <TableHead>Selesai</TableHead>
+                    <TableHead>Ganti Hari</TableHead>
                     <TableHead>Alasan / Catatan</TableHead>
                     <TableHead>Lampiran</TableHead>
                     <TableHead className="text-right">Aksi</TableHead>
@@ -258,7 +259,7 @@ export default async function AdminApprovalsPage({
                   {pendingRequests.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={8}
+                        colSpan={9}
                         className="h-24 text-center text-sm text-zinc-500"
                       >
                         Tidak ada pengajuan perizinan yang membutuhkan tindakan Anda.
@@ -282,6 +283,7 @@ export default async function AdminApprovalsPage({
                         </TableCell>
                         <TableCell>{formatDate(req.startDate)}</TableCell>
                         <TableCell>{formatDate(req.endDate)}</TableCell>
+                        <TableCell>{req.replacementDate ? formatDate(req.replacementDate) : "-"}</TableCell>
                         <TableCell className="max-w-[200px] truncate" title={req.reason}>
                           {req.reason}
                         </TableCell>
@@ -343,7 +345,7 @@ export default async function AdminApprovalsPage({
                 Riwayat Persetujuan Izin
               </CardTitle>
               <CardDescription>
-                Daftar pengajuan izin, sakit, WFH, dan cuti yang sudah diproses.
+                Daftar pengajuan izin/ganti hari, sakit, dan WFH yang sudah diproses.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -354,6 +356,7 @@ export default async function AdminApprovalsPage({
                     <TableHead>Studio</TableHead>
                     <TableHead>Tipe</TableHead>
                     <TableHead>Mulai - Selesai</TableHead>
+                    <TableHead>Ganti Hari</TableHead>
                     <TableHead>Alasan</TableHead>
                     <TableHead>Lampiran</TableHead>
                     <TableHead>Status</TableHead>
@@ -364,7 +367,7 @@ export default async function AdminApprovalsPage({
                   {reviewedRequests.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={8}
+                        colSpan={9}
                         className="h-24 text-center text-sm text-zinc-500"
                       >
                         Belum ada riwayat persetujuan perizinan.
@@ -389,6 +392,7 @@ export default async function AdminApprovalsPage({
                         <TableCell>
                           {formatDate(req.startDate)} - {formatDate(req.endDate)}
                         </TableCell>
+                        <TableCell>{req.replacementDate ? formatDate(req.replacementDate) : "-"}</TableCell>
                         <TableCell className="max-w-[200px] truncate" title={req.reason}>
                           {req.reason}
                         </TableCell>

@@ -1,6 +1,6 @@
 import { DashboardShell } from "@/components/dashboard-shell";
 import { requireRole } from "@/lib/auth";
-import { getPayslips, getMembers } from "./actions";
+import { getPayslips, getMembers, getPayslipStudios } from "./actions";
 import { PayslipClient } from "./payslip-client";
 
 export const dynamic = "force-dynamic";
@@ -8,9 +8,10 @@ export const dynamic = "force-dynamic";
 export default async function PayslipsPage() {
   const actor = await requireRole("SUPER_ADMIN");
   
-  const [initialPayslips, members] = await Promise.all([
+  const [initialPayslips, members, studios] = await Promise.all([
     getPayslips(),
     getMembers(),
+    getPayslipStudios(),
   ]);
 
   const dashboardUser = {
@@ -40,6 +41,7 @@ export default async function PayslipsPage() {
             createdAt: p.createdAt,
           }))}
           members={members}
+          studios={studios}
         />
       </div>
     </DashboardShell>

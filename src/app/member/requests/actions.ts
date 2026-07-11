@@ -12,10 +12,11 @@ export async function createRequestAction(formData: FormData) {
   const type = String(formData.get("type") ?? "");
   const startDateStr = String(formData.get("startDate") ?? "");
   const endDateStr = String(formData.get("endDate") ?? "");
+  const replacementDateStr = String(formData.get("replacementDate") ?? "");
   const reason = String(formData.get("reason") ?? "").trim();
 
   // Validate fields
-  if (!["SICK", "LEAVE", "WFH"].includes(type)) {
+  if (!["PERMISSION", "SICK", "WFH"].includes(type)) {
     redirect("/member/requests?error=invalid-type");
   }
 
@@ -39,7 +40,7 @@ export async function createRequestAction(formData: FormData) {
     where: {
       userId: currentUser.id,
       status: { in: ["PENDING", "APPROVED"] },
-      type: { in: ["SICK", "LEAVE", "WFH"] },
+      type: { in: ["PERMISSION", "SICK", "WFH"] },
       startDate: { lte: endDate },
       endDate: { gte: startDate },
     },
@@ -62,9 +63,24 @@ export async function createRequestAction(formData: FormData) {
     redirect("/member/requests?error=past-date");
   }
 
-  // 3. Validasi Cuti (LEAVE): minimal H-1
-  if (type === "LEAVE" && startDateTime < tomorrowDate) {
+  // 3. Validasi Izin/Ganti Hari: minimal H-1 dan wajib memilih tanggal pengganti.
+  if (type === "PERMISSION" && startDateTime < tomorrowDate) {
     redirect("/member/requests?error=leave-notice");
+  }
+
+  let replacementDate: Date | null = null;
+  if (type === "PERMISSION") {
+    if (!replacementDateStr) {
+      redirect("/member/requests?error=missing-replacement");
+    }
+
+    replacementDate = new Date(replacementDateStr);
+    if (isNaN(replacementDate.getTime())) {
+      redirect("/member/requests?error=invalid-dates");
+    }
+    if (replacementDate <= endDate) {
+      redirect("/member/requests?error=replacement-date");
+    }
   }
 
   // 4. Validasi Sakit (SICK): maksimal 1 jam sebelum jam masuk jika diajukan hari H
@@ -105,10 +121,11 @@ export async function createRequestAction(formData: FormData) {
   await prisma.request.create({
     data: {
       userId: currentUser.id,
-      type: type as "SICK" | "LEAVE" | "WFH",
+      type: type as "PERMISSION" | "SICK" | "WFH",
       status: "PENDING",
       startDate,
       endDate,
+      replacementDate,
       reason,
       attachmentUrl,
     },

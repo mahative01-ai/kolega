@@ -15,6 +15,8 @@ type SerializedRecord = {
   checkOutAt: string | null;
   lateMinutes: number;
   earlyCheckoutMinutes: number;
+  locationValidationStatus: string;
+  distanceMeters: number | null;
   user: {
     id: string;
     name: string;
@@ -91,6 +93,8 @@ export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }:
                   <TableHead>Tanggal</TableHead>
                   <TableHead>Default Studio</TableHead>
                   <TableHead>Lokasi</TableHead>
+                  <TableHead>Validasi Lokasi</TableHead>
+                  <TableHead>Jarak</TableHead>
                   <TableHead>Mode</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Check-in</TableHead>

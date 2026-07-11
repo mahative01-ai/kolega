@@ -17,6 +17,7 @@ import {
   getJakartaMinutes,
   timeToMinutes,
 } from "@/lib/attendance-time";
+import { formatMinutesAsClock, getCheckoutEligibility } from "@/lib/checkout-policy";
 import { prisma } from "@/lib/prisma";
 
 function createQrUid() {
@@ -235,12 +236,8 @@ export async function submitWfoAttendanceAction(formData: FormData) {
 
   const distance = calculateDistance(userLat, userLng, studio.latitude, studio.longitude);
   const maxRadius = studio.radiusMeters ?? 100;
-
-  if (distance > maxRadius) {
-    redirect(
-      `/member/presensi?error=out-of-range&distance=${Math.round(distance)}&radius=${maxRadius}`
-    );
-  }
+  const locationValidationStatus =
+    distance > maxRadius ? "OUTSIDE_RADIUS" : "INSIDE_RADIUS";
 
   const isWeekendOrHoliday = (holiday && !replacementWorkday) || (weeklyRule?.isWorkday === false && personalSchedule?.workMode !== "WFO" && !replacementWorkday);
 
@@ -266,9 +263,17 @@ export async function submitWfoAttendanceAction(formData: FormData) {
   }
 
   if (existingRecord?.checkInAt && !existingRecord.checkOutAt) {
-    const scheduledCheckoutMinutes = timeToMinutes(policy?.checkOutTime, "16:00");
-    const currentMinutes = getJakartaMinutes(now);
-    const earlyCheckoutMinutes = Math.max(0, scheduledCheckoutMinutes - currentMinutes);
+    const checkoutEligibility = getCheckoutEligibility({
+      checkInAt: existingRecord.checkInAt,
+      now,
+      policy,
+    });
+
+    if (!checkoutEligibility.isAllowed) {
+      redirect(
+        `/member/presensi?error=checkout-too-early&time=${formatMinutesAsClock(checkoutEligibility.allowedCheckoutMinutes)}&remaining=${checkoutEligibility.remainingMinutes}`
+      );
+    }
 
     const result = await prisma.attendanceRecord.updateMany({
       where: {
@@ -280,8 +285,8 @@ export async function submitWfoAttendanceAction(formData: FormData) {
         checkOutLatitude: userLat,
         checkOutLongitude: userLng,
         distanceMeters: distance,
-        locationValidationStatus: "INSIDE_RADIUS",
-        earlyCheckoutMinutes,
+        locationValidationStatus,
+        earlyCheckoutMinutes: checkoutEligibility.earlyCheckoutMinutes,
         updatedAt: now,
       },
     });
@@ -329,7 +334,7 @@ export async function submitWfoAttendanceAction(formData: FormData) {
           locationStudioId: currentStudioId,
           workMode: "WFO",
           status: "ALPHA",
-          locationValidationStatus: "INSIDE_RADIUS",
+          locationValidationStatus,
           checkInLatitude: userLat,
           checkInLongitude: userLng,
           distanceMeters: distance,
@@ -366,7 +371,7 @@ export async function submitWfoAttendanceAction(formData: FormData) {
         checkInAt: now,
         ownerStudioId: currentUser.defaultStudioId ?? currentStudioId,
         locationStudioId: currentStudioId,
-        locationValidationStatus: "INSIDE_RADIUS",
+        locationValidationStatus,
         checkInLatitude: userLat,
         checkInLongitude: userLng,
         distanceMeters: distance,
@@ -384,7 +389,7 @@ export async function submitWfoAttendanceAction(formData: FormData) {
           workMode: "WFO",
           status,
           checkInAt: now,
-          locationValidationStatus: "INSIDE_RADIUS",
+          locationValidationStatus,
           checkInLatitude: userLat,
           checkInLongitude: userLng,
           distanceMeters: distance,

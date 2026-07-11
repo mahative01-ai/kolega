@@ -8,7 +8,8 @@ export const dynamic = "force-dynamic";
 export default async function MemberPayslipsPage() {
   const actor = await requireUser();
   
-  const initialPayslips = await getMemberPayslips();
+  const isEligible = actor.memberStatus === "TEAM" && actor.role !== "SUPER_ADMIN";
+  const initialPayslips = isEligible ? await getMemberPayslips() : [];
 
   const dashboardUser = {
     id: actor.id,
@@ -31,12 +32,18 @@ export default async function MemberPayslipsPage() {
       badge="Keuangan"
     >
       <div className="p-6">
-        <MemberPayslipClient
-          initialPayslips={initialPayslips.map((p) => ({
-            ...p,
-            createdAt: p.createdAt,
-          }))}
-        />
+        {isEligible ? (
+          <MemberPayslipClient
+            initialPayslips={initialPayslips.map((p) => ({
+              ...p,
+              createdAt: p.createdAt,
+            }))}
+          />
+        ) : (
+          <div className="rounded-xl border border-zinc-200 bg-white p-6 text-sm text-zinc-600 shadow-none dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
+            Slip gaji hanya tersedia untuk Admin/Member dengan status Team.
+          </div>
+        )}
       </div>
     </DashboardShell>
   );

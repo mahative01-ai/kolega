@@ -20,6 +20,8 @@ export async function getPayslips() {
           name: true,
           email: true,
           username: true,
+          defaultStudioId: true,
+          memberStatus: true,
         }
       }
     },
@@ -36,17 +38,31 @@ export async function getMembers() {
   
   return prisma.user.findMany({
     where: {
-      role: "MEMBER",
+      role: { in: ["ADMIN", "MEMBER"] },
+      memberStatus: "TEAM",
       accountStatus: "ACTIVE",
     },
     select: {
       id: true,
       name: true,
       email: true,
+      role: true,
+      defaultStudioId: true,
+      defaultStudio: { select: { id: true, name: true } },
     },
     orderBy: {
       name: "asc"
     }
+  });
+}
+
+export async function getPayslipStudios() {
+  await requireRole("SUPER_ADMIN");
+
+  return prisma.studio.findMany({
+    where: { isActive: true },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true },
   });
 }
 
@@ -58,6 +74,11 @@ export async function createPayslip(formData: {
   allowances: number;
   deductions: number;
   notes?: string;
+  pdfFile?: {
+    name: string;
+    type: string;
+    dataUrl: string;
+  } | null;
 }) {
   await requireRole("SUPER_ADMIN");
 
@@ -78,6 +99,20 @@ export async function createPayslip(formData: {
     throw new Error("Slip gaji untuk member ini pada periode tersebut sudah ada.");
   }
 
+  const targetUser = await prisma.user.findFirst({
+    where: {
+      id: formData.userId,
+      accountStatus: "ACTIVE",
+      role: { in: ["ADMIN", "MEMBER"] },
+      memberStatus: "TEAM",
+    },
+    select: { id: true },
+  });
+
+  if (!targetUser) {
+    throw new Error("Slip gaji hanya bisa dikirim ke Admin/Member dengan status Team.");
+  }
+
   const payslip = await prisma.payslip.create({
     data: {
       userId: formData.userId,
@@ -88,6 +123,10 @@ export async function createPayslip(formData: {
       deductions: formData.deductions,
       netSalary,
       notes: formData.notes || null,
+      pdfFileName: formData.pdfFile?.name ?? null,
+      pdfMimeType: formData.pdfFile?.type ?? null,
+      pdfDataUrl: formData.pdfFile?.dataUrl ?? null,
+      uploadedAt: formData.pdfFile ? new Date() : null,
       status: "SENT"
     }
   });

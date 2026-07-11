@@ -57,12 +57,13 @@ const errorMessages: Record<string, string> = {
   alpha: "Waktu cutoff presensi sudah terlewati. Anda ditandai Alpa.",
   "location-required": "GPS / Lokasi diperlukan untuk memverifikasi presensi WFO.",
   "studio-location-missing": "Lokasi GPS Studio penempatan belum dikonfigurasi oleh admin.",
+  "checkout-too-early": "Check-out belum dibuka. Durasi kerja hari ini belum terpenuhi.",
 };
 
 export default async function MemberPresensiPage({
   searchParams,
 }: {
-  searchParams: Promise<{ success?: string; error?: string; distance?: string; radius?: string }>;
+  searchParams: Promise<{ success?: string; error?: string; time?: string; remaining?: string }>;
 }) {
   const currentUser = await requireAnyRole(["ADMIN", "MEMBER"]);
   const dashboardPath = currentUser.role === "ADMIN" ? "/admin" : "/member";
@@ -118,9 +119,10 @@ export default async function MemberPresensiPage({
 
         {params.error ? (
           <div className="rounded-md border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/20 px-4 py-3 text-sm text-red-700 dark:text-red-400">
-            {params.error === "out-of-range" ? (
+            {params.error === "checkout-too-early" ? (
               <span>
-                Anda berada di luar jangkauan studio (jarak Anda: <strong>{params.distance} meter</strong>, batas jangkauan: <strong>{params.radius} meter</strong>). Silakan mendekat ke lokasi studio.
+                Check-out baru dibuka pukul <strong>{params.time}</strong>
+                {params.remaining ? `, sisa ${params.remaining} menit.` : "."}
               </span>
             ) : (
               errorMessages[params.error] || "Terjadi kesalahan saat memproses presensi."

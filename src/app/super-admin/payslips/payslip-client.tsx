@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -24,12 +25,20 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner"; // Wait, is sonner or toast imported? In roles-client.tsx it was imported from sonner or toast. Let's check!
 import { createPayslip, deletePayslip } from "./actions";
-import { Plus, Trash2, Printer, Loader2 } from "lucide-react";
+import { Plus, Trash2, Printer, Loader2, FileText } from "lucide-react";
 
 type Member = {
   id: string;
   name: string;
   email: string;
+  role: string;
+  defaultStudioId: string | null;
+  defaultStudio: { id: string; name: string } | null;
+};
+
+type Studio = {
+  id: string;
+  name: string;
 };
 
 type Payslip = {
@@ -41,10 +50,13 @@ type Payslip = {
   deductions: number;
   netSalary: number;
   notes: string | null;
+  pdfFileName: string | null;
+  pdfDataUrl: string | null;
   createdAt: Date;
   user: {
     name: string;
     email: string;
+    defaultStudioId: string | null;
   };
 };
 
@@ -64,9 +76,11 @@ function localFormatCurrency(amount: number) {
 export function PayslipClient({
   initialPayslips,
   members,
+  studios,
 }: {
   initialPayslips: Payslip[];
   members: Member[];
+  studios: Studio[];
 }) {
   const [payslips, setPayslips] = useState<Payslip[]>(initialPayslips);
   const [isOpen, setIsOpen] = useState(false);
@@ -80,6 +94,7 @@ export function PayslipClient({
   const [allowances, setAllowances] = useState(0);
   const [deductions, setDeductions] = useState(0);
   const [notes, setNotes] = useState("");
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
 
   const netSalary = basicSalary + allowances - deductions;
 
@@ -93,9 +108,28 @@ export function PayslipClient({
       toast.error("Gaji pokok harus lebih besar dari 0.");
       return;
     }
+    if (!pdfFile) {
+      toast.error("PDF slip gaji wajib diupload.");
+      return;
+    }
+    if (pdfFile.type !== "application/pdf") {
+      toast.error("File slip gaji harus berupa PDF.");
+      return;
+    }
+    if (pdfFile.size > 2 * 1024 * 1024) {
+      toast.error("Ukuran PDF maksimal 2MB.");
+      return;
+    }
 
     startTransition(async () => {
       try {
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = () => reject(new Error("Gagal membaca file PDF."));
+          reader.readAsDataURL(pdfFile);
+        });
+
         const newPayslip = await createPayslip({
           userId: selectedMemberId,
           month,
@@ -104,6 +138,11 @@ export function PayslipClient({
           allowances,
           deductions,
           notes,
+          pdfFile: {
+            name: pdfFile.name,
+            type: pdfFile.type,
+            dataUrl,
+          },
         });
 
         const member = members.find((m) => m.id === selectedMemberId);
@@ -112,6 +151,7 @@ export function PayslipClient({
           user: {
             name: member?.name || "",
             email: member?.email || "",
+            defaultStudioId: member?.defaultStudioId ?? null,
           },
         };
 
@@ -124,6 +164,7 @@ export function PayslipClient({
         setAllowances(0);
         setDeductions(0);
         setNotes("");
+        setPdfFile(null);
       } catch (err) {
         const errMsg = err instanceof Error ? err.message : "Gagal membuat slip gaji.";
         toast.error(errMsg);
@@ -180,7 +221,7 @@ export function PayslipClient({
                   <option value="">-- Pilih Anggota --</option>
                   {members.map((m) => (
                     <option key={m.id} value={m.id}>
-                      {m.name} ({m.email})
+                      {m.name} ({m.defaultStudio?.name ?? "Tanpa Studio"})
                     </option>
                   ))}
                 </select>
@@ -264,6 +305,17 @@ export function PayslipClient({
                 />
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="pdfFile">Upload PDF Slip Gaji</Label>
+                <Input
+                  id="pdfFile"
+                  type="file"
+                  accept="application/pdf"
+                  onChange={(e) => setPdfFile(e.target.files?.[0] ?? null)}
+                />
+                <p className="text-xs text-zinc-500">PDF maksimal 2MB. File akan tampil di halaman Slip Gaji Saya.</p>
+              </div>
+
               <div className="p-3 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-1">
                 <p className="text-xs text-zinc-500">Estimasi Kalkulasi Gaji Bersih:</p>
                 <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
@@ -300,7 +352,24 @@ export function PayslipClient({
         </Dialog>
       </div>
 
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-950">
+      <Tabs defaultValue={studios[0]?.id ?? "all"} className="w-full">
+        <TabsList className="mb-4 flex w-fit flex-wrap">
+          {studios.map((studio) => (
+            <TabsTrigger key={studio.id} value={studio.id}>
+              {studio.name}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        {studios.map((studio) => {
+          const studioMembers = members.filter((member) => member.defaultStudioId === studio.id);
+          const studioPayslips = payslips.filter((payslip) => payslip.user.defaultStudioId === studio.id);
+
+          return (
+            <TabsContent key={studio.id} value={studio.id}>
+              <div className="mb-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/30 dark:text-zinc-300">
+                {studioMembers.length} Team aktif di {studio.name}. {studioPayslips.length} slip sudah diterbitkan.
+              </div>
+              <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-950">
         <Table>
           <TableHeader>
             <TableRow>
@@ -314,14 +383,14 @@ export function PayslipClient({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {payslips.length === 0 ? (
+            {studioPayslips.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8 text-zinc-500">
                   Belum ada data slip gaji yang diterbitkan.
                 </TableCell>
               </TableRow>
             ) : (
-              payslips.map((p) => (
+              studioPayslips.map((p) => (
                 <TableRow key={p.id}>
                   <TableCell className="font-medium text-zinc-950 dark:text-zinc-50">
                     {p.user.name}
@@ -341,6 +410,16 @@ export function PayslipClient({
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
+                      {p.pdfDataUrl ? (
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          title="Lihat PDF"
+                          onClick={() => window.open(`/payslip/${p.id}`, "_blank")}
+                        >
+                          <FileText className="size-4" />
+                        </Button>
+                      ) : null}
                       <Button
                         size="icon"
                         variant="outline"
@@ -366,6 +445,10 @@ export function PayslipClient({
           </TableBody>
         </Table>
       </div>
+            </TabsContent>
+          );
+        })}
+      </Tabs>
     </div>
   );
 }
