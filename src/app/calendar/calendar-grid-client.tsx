@@ -28,7 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { swapHolidayAction, deleteSwappedHolidayAction } from "./actions";
+import { swapHolidayAction, deleteSwappedHolidayAction, deleteCalendarEventAction } from "./actions";
 import { EVENT_TYPE_CONFIG } from "./page-config";
 import { cn } from "@/lib/utils";
 
@@ -103,11 +103,11 @@ export function CalendarGridClient({
       (ev) => ev.type === "NATIONAL_HOLIDAY" || ev.type === "COMPANY_LEAVE"
     );
 
-    // Filter swap events
-    const swapEvents = cellEvents.filter(
-      (ev) => ev.type === "REPLACEMENT_WORKDAY" || ev.type === "COMPANY_LEAVE"
+    // Filter database events (exclude API holidays)
+    const dbEvents = cellEvents.filter(
+      (ev) => !ev.id.startsWith("api-holiday-")
     );
-    setActiveSwaps(swapEvents);
+    setActiveSwaps(dbEvents);
 
     setStudioId(activeStudioId || "");
     setOriginalDate(clickedDateStr);
@@ -141,6 +141,24 @@ export function CalendarGridClient({
       try {
         await deleteSwappedHolidayAction(eventId);
         setSuccess("Pengalihan libur berhasil dihapus!");
+        setTimeout(() => {
+          setDialogOpen(false);
+          resetForm();
+          window.location.reload();
+        }, 1500);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Terjadi kesalahan saat menghapus.");
+      }
+    });
+  };
+
+  const handleDeleteRegular = async (eventId: string) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus hari libur/agenda ini?")) return;
+
+    startTransition(async () => {
+      try {
+        await deleteCalendarEventAction(eventId);
+        setSuccess("Hari libur/agenda berhasil dihapus!");
         setTimeout(() => {
           setDialogOpen(false);
           resetForm();
@@ -395,7 +413,7 @@ export function CalendarGridClient({
               {activeSwaps.length > 0 && (
                 <div className="space-y-2 border-t border-zinc-200 dark:border-zinc-800 pt-4 mt-2">
                   <Label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
-                    Daftar Pengalihan Libur Aktif di Hari Ini
+                    Daftar Hari Libur / Agenda Aktif di Hari Ini
                   </Label>
                   <div className="space-y-1.5">
                     {activeSwaps.map((ev) => (
@@ -416,8 +434,16 @@ export function CalendarGridClient({
                           size="icon"
                           variant="ghost"
                           className="h-7 w-7 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 shrink-0"
-                          title="Hapus Pengalihan"
-                          onClick={() => handleDeleteSwap(ev.id)}
+                          title={
+                            ev.type === "REPLACEMENT_WORKDAY" || ev.type === "COMPANY_LEAVE"
+                              ? "Hapus Pengalihan Libur"
+                              : "Hapus Hari Libur/Agenda"
+                          }
+                          onClick={() =>
+                            ev.type === "REPLACEMENT_WORKDAY" || ev.type === "COMPANY_LEAVE"
+                              ? handleDeleteSwap(ev.id)
+                              : handleDeleteRegular(ev.id)
+                          }
                           disabled={isPending}
                         >
                           <Trash2 className="size-4" />
