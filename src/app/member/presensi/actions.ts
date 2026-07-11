@@ -167,6 +167,7 @@ export async function submitWfoAttendanceAction(formData: FormData) {
           checkInTime: true,
           graceMinutes: true,
           alphaCutoffTime: true,
+          checkOutTime: true,
         },
       }),
       prisma.personalWorkSchedule.findUnique({
@@ -265,6 +266,10 @@ export async function submitWfoAttendanceAction(formData: FormData) {
   }
 
   if (existingRecord?.checkInAt && !existingRecord.checkOutAt) {
+    const scheduledCheckoutMinutes = timeToMinutes(policy?.checkOutTime, "16:00");
+    const currentMinutes = getJakartaMinutes(now);
+    const earlyCheckoutMinutes = Math.max(0, scheduledCheckoutMinutes - currentMinutes);
+
     const result = await prisma.attendanceRecord.updateMany({
       where: {
         id: existingRecord.id,
@@ -276,6 +281,7 @@ export async function submitWfoAttendanceAction(formData: FormData) {
         checkOutLongitude: userLng,
         distanceMeters: distance,
         locationValidationStatus: "INSIDE_RADIUS",
+        earlyCheckoutMinutes,
         updatedAt: now,
       },
     });
@@ -513,6 +519,23 @@ export async function submitWfhAttendanceAction(formData: FormData) {
       throw new Error("Laporan kerja WFH wajib diisi.");
     }
 
+    const policy = await prisma.attendancePolicy.findFirst({
+      where: {
+        studioId: currentStudioId,
+        isActive: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        checkOutTime: true,
+      },
+    });
+
+    const scheduledCheckoutMinutes = timeToMinutes(policy?.checkOutTime, "16:00");
+    const currentMinutes = getJakartaMinutes(now);
+    const earlyCheckoutMinutes = Math.max(0, scheduledCheckoutMinutes - currentMinutes);
+
     await prisma.attendanceRecord.update({
       where: {
         id: existingRecord.id,
@@ -520,6 +543,7 @@ export async function submitWfhAttendanceAction(formData: FormData) {
       data: {
         checkOutAt: now,
         wfhReport,
+        earlyCheckoutMinutes,
         updatedAt: now,
       },
     });

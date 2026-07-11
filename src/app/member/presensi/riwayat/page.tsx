@@ -131,6 +131,7 @@ async function getPersonalAttendanceHistory(userId: string) {
         checkInAt: true,
         checkOutAt: true,
         lateMinutes: true,
+        earlyCheckoutMinutes: true,
         ownerStudio: { select: { name: true } },
         locationStudio: { select: { name: true } },
       },
@@ -228,6 +229,7 @@ export default async function PersonalAttendanceHistoryPage() {
                   <TableHead>Check-in</TableHead>
                   <TableHead>Check-out</TableHead>
                   <TableHead>Terlambat</TableHead>
+                  <TableHead>Pulang Cepat</TableHead>
                   <TableHead>Default Studio</TableHead>
                   <TableHead>Lokasi</TableHead>
                   <TableHead className="text-right">Aksi</TableHead>
@@ -237,7 +239,7 @@ export default async function PersonalAttendanceHistoryPage() {
                 {data.records.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={9}
+                      colSpan={10}
                       className="h-24 text-center text-sm text-zinc-500"
                     >
                       Belum ada data presensi.
@@ -263,6 +265,11 @@ export default async function PersonalAttendanceHistoryPage() {
                       <TableCell>
                         {record.lateMinutes > 0
                           ? `${record.lateMinutes} menit`
+                          : "-"}
+                      </TableCell>
+                      <TableCell>
+                        {record.earlyCheckoutMinutes > 0
+                          ? `${record.earlyCheckoutMinutes} menit`
                           : "-"}
                       </TableCell>
                       <TableCell>{record.ownerStudio.name}</TableCell>

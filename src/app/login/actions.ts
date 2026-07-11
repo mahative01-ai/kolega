@@ -242,6 +242,7 @@ export async function loginAndAttendWithQrAction(
         checkInTime: true,
         graceMinutes: true,
         alphaCutoffTime: true,
+        checkOutTime: true,
       },
     }),
     prisma.studio.findUnique({
@@ -368,6 +369,10 @@ export async function loginAndAttendWithQrAction(
 
     if (existingRecord.checkInAt && !existingRecord.checkOutAt) {
       if (action === "checkout") {
+        const scheduledCheckoutMinutes = timeToMinutes(policy?.checkOutTime, "16:00");
+        const currentMinutes = getJakartaMinutes(now);
+        const earlyCheckoutMinutes = Math.max(0, scheduledCheckoutMinutes - currentMinutes);
+
         await prisma.attendanceRecord.update({
           where: { id: existingRecord.id },
           data: {
@@ -376,6 +381,7 @@ export async function loginAndAttendWithQrAction(
             checkOutLongitude: userLng,
             locationValidationStatus,
             distanceMeters: distance,
+            earlyCheckoutMinutes,
             updatedAt: now,
           },
         });

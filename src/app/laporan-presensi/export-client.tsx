@@ -13,6 +13,7 @@ type RecordItem = {
   checkInAt: string | null;
   checkOutAt: string | null;
   lateMinutes: number;
+  earlyCheckoutMinutes: number;
   user: { name: string; email: string };
   ownerStudio: { name: string };
   locationStudio: { name: string } | null;
@@ -73,6 +74,7 @@ export function AttendanceReportExportClient({ records, monthLabel }: Props) {
         "Check-in": formatTime(r.checkInAt),
         "Check-out": formatTime(r.checkOutAt),
         "Keterlambatan": r.lateMinutes > 0 ? `${r.lateMinutes} menit` : "-",
+        "Pulang Cepat": r.earlyCheckoutMinutes > 0 ? `${r.earlyCheckoutMinutes} menit` : "-",
       }));
 
       const ws = XLSX.utils.json_to_sheet(data);

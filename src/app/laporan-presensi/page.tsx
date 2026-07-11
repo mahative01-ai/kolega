@@ -118,6 +118,7 @@ export default async function AttendanceReportPage({
         checkInAt: true,
         checkOutAt: true,
         lateMinutes: true,
+        earlyCheckoutMinutes: true,
         locationValidationStatus: true,
         user: {
           select: { id: true, name: true, email: true, role: true },
@@ -178,6 +179,7 @@ export default async function AttendanceReportPage({
     checkInAt: r.checkInAt ? r.checkInAt.toISOString() : null,
     checkOutAt: r.checkOutAt ? r.checkOutAt.toISOString() : null,
     lateMinutes: r.lateMinutes,
+    earlyCheckoutMinutes: r.earlyCheckoutMinutes,
     user: r.user,
     ownerStudio: r.ownerStudio,
     locationStudio: r.locationStudio,

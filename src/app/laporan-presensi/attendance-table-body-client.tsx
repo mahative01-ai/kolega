@@ -15,6 +15,7 @@ type SerializedRecord = {
   checkInAt: string | null;
   checkOutAt: string | null;
   lateMinutes: number;
+  earlyCheckoutMinutes: number;
   wfhPlan?: string | null;
   wfhReport?: string | null;
   user: {
@@ -117,12 +118,13 @@ export function AttendanceTableBodyClient({ records, statusColor, statusLabel }:
               <TableCell>{formatTime(record.checkInAt)}</TableCell>
               <TableCell>{formatTime(record.checkOutAt)}</TableCell>
               <TableCell>{record.lateMinutes > 0 ? `${record.lateMinutes} menit` : "-"}</TableCell>
+              <TableCell>{record.earlyCheckoutMinutes > 0 ? `${record.earlyCheckoutMinutes} menit` : "-"}</TableCell>
             </TableRow>
 
             {/* Collapsible WFH Details row */}
             {isExpanded && hasDetails && (
               <TableRow className="bg-zinc-50/40 dark:bg-zinc-900/5 hover:bg-zinc-50/40 dark:hover:bg-zinc-900/5">
-                <TableCell colSpan={9} className="p-4 border-t border-zinc-100 dark:border-zinc-800">
+                <TableCell colSpan={10} className="p-4 border-t border-zinc-100 dark:border-zinc-800">
                   <div className="grid gap-4 md:grid-cols-2 max-w-5xl mx-auto">
                     {/* WFH Plan details */}
                     <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-3 space-y-1">

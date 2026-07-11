@@ -14,6 +14,7 @@ type SerializedRecord = {
   checkInAt: string | null;
   checkOutAt: string | null;
   lateMinutes: number;
+  earlyCheckoutMinutes: number;
   user: {
     id: string;
     name: string;
@@ -95,6 +96,7 @@ export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }:
                   <TableHead>Check-in</TableHead>
                   <TableHead>Check-out</TableHead>
                   <TableHead>Terlambat</TableHead>
+                  <TableHead>Pulang Cepat</TableHead>
                 </TableRow>
               </TableHeader>
               <AttendanceTableBodyClient
