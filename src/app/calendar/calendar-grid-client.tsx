@@ -7,6 +7,7 @@ import {
   ChevronRight,
   ArrowLeftRight,
   Loader2,
+  Trash2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -27,7 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { swapHolidayAction } from "./actions";
+import { swapHolidayAction, deleteSwappedHolidayAction } from "./actions";
 import { EVENT_TYPE_CONFIG } from "./page-config";
 import { cn } from "@/lib/utils";
 
@@ -89,6 +90,8 @@ export function CalendarGridClient({
 
   const monthStr = String(month).padStart(2, "0");
 
+  const [activeSwaps, setActiveSwaps] = useState<CalendarEvent[]>([]);
+
   function handleDayClick(dayNumber: number) {
     if (!isSuperAdmin) return;
 
@@ -99,6 +102,12 @@ export function CalendarGridClient({
     const holidayEvent = cellEvents.find(
       (ev) => ev.type === "NATIONAL_HOLIDAY" || ev.type === "COMPANY_LEAVE"
     );
+
+    // Filter swap events
+    const swapEvents = cellEvents.filter(
+      (ev) => ev.type === "REPLACEMENT_WORKDAY" || ev.type === "COMPANY_LEAVE"
+    );
+    setActiveSwaps(swapEvents);
 
     setStudioId(activeStudioId || "");
     setOriginalDate(clickedDateStr);
@@ -116,7 +125,32 @@ export function CalendarGridClient({
     setNewDate("");
     setError("");
     setSuccess("");
+    setActiveSwaps([]);
   }
+
+  const handleDeleteSwap = async (eventId: string) => {
+    if (
+      !confirm(
+        "Apakah Anda yakin ingin menghapus pengalihan libur ini? Seluruh jadwal kerja dan hari libur pengganti terkait akan dibatalkan."
+      )
+    ) {
+      return;
+    }
+
+    startTransition(async () => {
+      try {
+        await deleteSwappedHolidayAction(eventId);
+        setSuccess("Pengalihan libur berhasil dihapus!");
+        setTimeout(() => {
+          setDialogOpen(false);
+          resetForm();
+          window.location.reload();
+        }, 1500);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Terjadi kesalahan saat menghapus.");
+      }
+    });
+  };
 
   function handleSubmit() {
     if (!holidayName.trim()) {
@@ -354,6 +388,43 @@ export function CalendarGridClient({
               {success && (
                 <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900 px-3 py-2.5 text-xs text-emerald-700 dark:text-emerald-400">
                   {success}
+                </div>
+              )}
+
+              {/* Active Swaps on this Day */}
+              {activeSwaps.length > 0 && (
+                <div className="space-y-2 border-t border-zinc-200 dark:border-zinc-800 pt-4 mt-2">
+                  <Label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                    Daftar Pengalihan Libur Aktif di Hari Ini
+                  </Label>
+                  <div className="space-y-1.5">
+                    {activeSwaps.map((ev) => (
+                      <div
+                        key={ev.id}
+                        className="flex items-center justify-between p-2 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs"
+                      >
+                        <div className="flex-1 min-w-0 pr-2 text-left">
+                          <p className="font-semibold text-zinc-800 dark:text-zinc-200 truncate">
+                            {ev.title}
+                          </p>
+                          <p className="text-[10px] text-zinc-500 truncate">
+                            {ev.studio ? `Studio: ${ev.studio.name}` : "Semua Studio (Global)"}
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 shrink-0"
+                          title="Hapus Pengalihan"
+                          onClick={() => handleDeleteSwap(ev.id)}
+                          disabled={isPending}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

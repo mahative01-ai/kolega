@@ -254,3 +254,52 @@ export async function swapHolidayAction(input: {
   revalidatePath("/schedules");
   revalidatePath("/settings");
 }
+
+export async function deleteSwappedHolidayAction(eventId: string) {
+  const user = await requireRole("SUPER_ADMIN");
+  if (typeof eventId !== "string" || !eventId) throw new Error("Event tidak valid.");
+
+  const event = await prisma.calendarEvent.findUnique({
+    where: { id: eventId },
+  });
+
+  if (!event) throw new Error("Event tidak ditemukan.");
+
+  if (event.type !== "REPLACEMENT_WORKDAY" && event.type !== "COMPANY_LEAVE") {
+    throw new Error("Event ini bukan merupakan bagian dari pengalihan libur.");
+  }
+
+  // Extract the holiday name from the title
+  const holidayName = event.title
+    .replace("Kerja Pengganti: ", "")
+    .replace("Libur Pengganti: ", "")
+    .trim();
+
+  // Find all swapped events for the same holiday name and studio (or global null)
+  const relatedEvents = await prisma.calendarEvent.findMany({
+    where: {
+      studioId: event.studioId,
+      OR: [
+        { title: `Kerja Pengganti: ${holidayName}` },
+        { title: `Libur Pengganti: ${holidayName}` },
+      ],
+    },
+  });
+
+  const idsToDelete = relatedEvents.map((e) => e.id);
+
+  if (idsToDelete.length > 0) {
+    await prisma.calendarEvent.deleteMany({
+      where: {
+        id: { in: idsToDelete },
+      },
+    });
+  }
+
+  revalidatePath("/calendar");
+  revalidatePath("/schedules");
+  revalidatePath("/settings");
+
+  return { success: true, deletedCount: idsToDelete.length };
+}
+
