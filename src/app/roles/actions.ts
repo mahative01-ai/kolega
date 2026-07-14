@@ -1,13 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireRole, requireAnyRole, hashPassword } from "@/lib/auth";
+import { requireAnyRole, hashPassword } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { dateOnly } from "@/lib/calendar";
-
-async function requireSuperAdminActor() {
-  return requireRole("SUPER_ADMIN");
-}
 
 const ACCOUNT_STATUSES = ["ACTIVE", "INACTIVE", "ARCHIVED"] as const;
 

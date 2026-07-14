@@ -18,19 +18,25 @@ export function QrLoginScanner({
   autoStart = false,
   currentUser,
   action,
+  disabled = false,
+  disabledMessage = "Aksi scan belum tersedia.",
 }: {
   autoStart?: boolean;
   currentUser?: CurrentUserProp;
   action?: string;
+  disabled?: boolean;
+  disabledMessage?: string;
 }) {
   const scannerId = `login-qr-scanner-${useId().replace(/:/g, "")}`;
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const defaultMsg = currentUser
-    ? "Arahkan kartu QR Card Anda ke kamera webcam untuk presensi harian WFO."
-    : "Arahkan kartu QR Card Anda ke kamera webcam untuk login & presensi otomatis.";
+  const defaultMsg = disabled
+    ? disabledMessage
+    : currentUser
+      ? "Arahkan kartu QR Card Anda ke kamera webcam untuk presensi harian WFO."
+      : "Arahkan kartu QR Card Anda ke kamera webcam untuk login & presensi otomatis.";
 
   const [message, setMessage] = useState(defaultMsg);
   const [statusType, setStatusType] = useState<"info" | "success" | "error" | null>(null);
@@ -69,6 +75,12 @@ export function QrLoginScanner({
   }
 
   async function startScanner() {
+    if (disabled) {
+      setMessage(disabledMessage);
+      setStatusType("info");
+      return;
+    }
+
     if (loading) return;
 
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -171,7 +183,7 @@ export function QrLoginScanner({
   }
 
   useEffect(() => {
-    if (autoStart) {
+    if (autoStart && !disabled) {
       const timer = setTimeout(() => {
         void startScanner();
       }, 300);
@@ -185,7 +197,7 @@ export function QrLoginScanner({
     };
     // Kamera auto-start hanya mengikuti perubahan mode halaman.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoStart]);
+  }, [autoStart, disabled]);
 
   return (
     <div className="grid gap-3">
@@ -229,7 +241,7 @@ export function QrLoginScanner({
             type="button"
             variant="outline"
             onClick={() => void startScanner()}
-            disabled={isScanning || loading}
+            disabled={disabled || isScanning || loading}
             className="w-full"
           >
             <Camera aria-hidden="true" className="mr-1.5 size-4" />

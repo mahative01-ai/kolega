@@ -56,6 +56,7 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
     studioMembers,
     calendarEvents,
     apiHolidays,
+    attendancePolicy,
   ] = await Promise.all([
     prisma.studio.findUnique({
       where: { id: defaultStudioId ?? "__none__" },
@@ -245,6 +246,21 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
       },
     }),
     getIndonesianHolidays(month.year),
+    defaultStudioId
+      ? prisma.attendancePolicy.findFirst({
+          where: {
+            studioId: defaultStudioId,
+            isActive: true,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+          select: {
+            checkInTime: true,
+            checkOutTime: true,
+          },
+        })
+      : Promise.resolve(null),
   ]);
 
   const dailyTrend: { dateLabel: string; count: number }[] = [];
@@ -287,6 +303,7 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
     studioMembers,
     calendarEvents,
     apiHolidays,
+    attendancePolicy,
     monthLabel: formatMonthLabel(reportMonth),
     selectedMonth: month,
   };

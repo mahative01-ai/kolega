@@ -97,6 +97,10 @@ export async function createRequestAction(formData: FormData) {
     redirect("/member/requests?error=intern-wfh");
   }
 
+  if (type === "LEAVE" && currentUser.memberStatus === "INTERN") {
+    redirect("/member/requests?error=intern-leave");
+  }
+
   // Handle optional file attachment (Base64 for serverless compatibility)
   const file = formData.get("attachment") as File | null;
   let attachmentUrl: string | null = null;
@@ -121,7 +125,7 @@ export async function createRequestAction(formData: FormData) {
   await prisma.request.create({
     data: {
       userId: currentUser.id,
-      type: type as "PERMISSION" | "SICK" | "WFH",
+      type: type as "PERMISSION" | "SICK" | "LEAVE" | "WFH",
       status: "PENDING",
       startDate,
       endDate,
