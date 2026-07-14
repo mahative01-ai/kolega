@@ -1,5 +1,4 @@
 import {
-  Archive,
   CheckCircle2,
   ClipboardList,
   Paperclip,
@@ -120,8 +119,9 @@ export default async function AdminApprovalsPage({
 
   const scopedWhereRequests: Prisma.RequestWhereInput =
     currentUser.role === "SUPER_ADMIN"
-      ? { type: { in: ["PERMISSION", "SICK", "LEAVE", "WFH"] } }
+      ? { status: "PENDING", type: { in: ["PERMISSION", "SICK", "LEAVE", "WFH"] } }
       : {
+          status: "PENDING",
           type: { in: ["PERMISSION", "SICK", "LEAVE", "WFH"] },
           user: {
             defaultStudioId: currentUser.defaultStudioId,
@@ -133,8 +133,9 @@ export default async function AdminApprovalsPage({
 
   const scopedWhereCorrections: Prisma.AttendanceCorrectionWhereInput =
     currentUser.role === "SUPER_ADMIN"
-      ? {}
+      ? { status: "PENDING" }
       : {
+          status: "PENDING",
           attendanceRecord: {
             ownerStudioId: currentUser.defaultStudioId ?? "__NO_STUDIO__",
             user: {
@@ -185,11 +186,8 @@ export default async function AdminApprovalsPage({
     }),
   ]);
 
-  const pendingRequests = requests.filter((r) => r.status === "PENDING");
-  const reviewedRequests = requests.filter((r) => r.status !== "PENDING");
-
-  const pendingCorrections = corrections.filter((c) => c.status === "PENDING");
-  const reviewedCorrections = corrections.filter((c) => c.status !== "PENDING");
+  const pendingRequests = requests;
+  const pendingCorrections = corrections;
 
   const defaultTab = params.tab || "requests";
 
@@ -338,97 +336,6 @@ export default async function AdminApprovalsPage({
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Archive className="size-5 text-zinc-600" />
-                Riwayat Persetujuan Izin
-              </CardTitle>
-              <CardDescription>
-                Daftar pengajuan izin/ganti hari, sakit, dan WFH yang sudah diproses.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nama / Email</TableHead>
-                    <TableHead>Studio</TableHead>
-                    <TableHead>Tipe</TableHead>
-                    <TableHead>Mulai - Selesai</TableHead>
-                    <TableHead>Ganti Hari</TableHead>
-                    <TableHead>Alasan</TableHead>
-                    <TableHead>Lampiran</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Reviewer</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {reviewedRequests.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={9}
-                        className="h-24 text-center text-sm text-zinc-500"
-                      >
-                        Belum ada riwayat persetujuan perizinan.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    reviewedRequests.map((req) => (
-                      <TableRow key={req.id}>
-                        <TableCell>
-                          <div className="font-medium">{req.user.name}</div>
-                          <div className="text-xs text-zinc-500">{req.user.email}</div>
-                        </TableCell>
-                        <TableCell>{req.user.defaultStudio?.name ?? "-"}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant="secondary"
-                            className={requestTypeColor[req.type]}
-                          >
-                            {requestTypeLabel[req.type] ?? req.type}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {formatDate(req.startDate)} - {formatDate(req.endDate)}
-                        </TableCell>
-                        <TableCell>{req.replacementDate ? formatDate(req.replacementDate) : "-"}</TableCell>
-                        <TableCell className="max-w-[200px] truncate" title={req.reason}>
-                          {req.reason}
-                        </TableCell>
-                        <TableCell>
-                          {req.attachmentUrl ? (
-                            <a
-                              href={req.attachmentUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline"
-                            >
-                              <Paperclip className="size-3" />
-                              Lihat File
-                            </a>
-                          ) : (
-                            <span className="text-xs text-zinc-400">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={requestStatusColor[req.status]}
-                          >
-                            {requestStatusLabel[req.status] ?? req.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-zinc-600 dark:text-zinc-400">
-                          {req.reviewer?.name ?? <span className="text-zinc-400 dark:text-zinc-500">-</span>}
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
         </TabsContent>
 
         <TabsContent value="corrections" className="space-y-6">
@@ -523,80 +430,6 @@ export default async function AdminApprovalsPage({
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Archive className="size-5 text-zinc-600" />
-                Riwayat Persetujuan Koreksi
-              </CardTitle>
-              <CardDescription>
-                Daftar permintaan koreksi data presensi yang sudah diproses sebelumnya.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nama / Email</TableHead>
-                    <TableHead>Studio</TableHead>
-                    <TableHead>Tanggal Presensi</TableHead>
-                    <TableHead>Status Lama</TableHead>
-                    <TableHead>Status Baru</TableHead>
-                    <TableHead>Alasan</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Reviewer</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {reviewedCorrections.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={8}
-                        className="h-24 text-center text-sm text-zinc-500"
-                      >
-                        Belum ada riwayat persetujuan koreksi.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    reviewedCorrections.map((corr) => (
-                      <TableRow key={corr.id}>
-                        <TableCell>
-                          <div className="font-medium">{corr.requestedBy.name}</div>
-                          <div className="text-xs text-zinc-500">{corr.requestedBy.email}</div>
-                        </TableCell>
-                        <TableCell>{corr.requestedBy.defaultStudio?.name ?? "-"}</TableCell>
-                        <TableCell>{formatDate(corr.attendanceRecord.attendanceDate)}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={corr.previousStatus ? statusColor[corr.previousStatus] : ""}>
-                            {corr.previousStatus ? (statusLabel[corr.previousStatus] ?? corr.previousStatus) : "-"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={corr.newStatus ? statusColor[corr.newStatus] : ""}>
-                            {corr.newStatus ? (statusLabel[corr.newStatus] ?? corr.newStatus) : "-"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="max-w-[200px] truncate" title={corr.reason}>
-                          {corr.reason}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={requestStatusColor[corr.status]}
-                          >
-                            {requestStatusLabel[corr.status] ?? corr.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-zinc-600 dark:text-zinc-400">
-                          {corr.approvedBy?.name ?? <span className="text-zinc-400 dark:text-zinc-500">-</span>}
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
     </DashboardShell>
