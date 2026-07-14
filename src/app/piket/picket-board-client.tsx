@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
-import { CalendarRange, UserCheck, HelpCircle } from "lucide-react";
+import { CalendarRange, UserCheck, HelpCircle, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -83,41 +83,35 @@ export function PicketBoardClient({ members, isManager }: Props) {
                   list.map((m) => (
                     <div
                       key={m.id}
-                      className="group rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-2 text-xs space-y-1.5 transition-all hover:shadow-sm"
+                      className="group rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-2 text-xs transition-all hover:shadow-sm"
                     >
-                      <div className="flex items-start justify-between gap-1">
+                      <div className="flex items-center justify-between gap-1">
                         <span className="font-semibold text-zinc-900 dark:text-zinc-100 break-words line-clamp-1" title={m.name}>
                           {m.name}
                         </span>
-                        <Badge
-                          variant="outline"
-                          className={`text-[8px] px-1 py-0 scale-90 origin-right border shadow-none ${
-                            m.memberStatus === "INTERN"
-                              ? "bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-900"
-                              : "bg-blue-50 dark:bg-blue-950/20 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-900"
-                          }`}
-                        >
-                          {m.memberStatus === "INTERN" ? "Intern" : "Team"}
-                        </Badge>
-                      </div>
-
-                      {isManager ? (
-                        <div className="relative">
-                          <select
-                            value={m.picketDay || "NONE"}
-                            disabled={isPending}
-                            onChange={(e) => handleDayChange(m.id, e.target.value)}
-                            className="w-full text-[10px] rounded border border-zinc-200 dark:border-zinc-800 p-1 bg-zinc-50 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 outline-none cursor-pointer focus:border-zinc-400"
+                        <div className="flex items-center gap-1.5">
+                          <Badge
+                            variant="outline"
+                            className={`text-[8px] px-1 py-0 scale-90 origin-right border shadow-none ${
+                              m.memberStatus === "INTERN"
+                                ? "bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-900"
+                                : "bg-blue-50 dark:bg-blue-950/20 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-900"
+                            }`}
                           >
-                            {DAYS.map((d) => (
-                              <option key={d.key} value={d.key}>
-                                Hari {d.label}
-                              </option>
-                            ))}
-                            <option value="NONE">Tidak Piket</option>
-                          </select>
+                            {m.memberStatus === "INTERN" ? "Intern" : "Team"}
+                          </Badge>
+                          {isManager && (
+                            <button
+                              disabled={isPending}
+                              onClick={() => handleDayChange(m.id, "NONE")}
+                              className="text-zinc-400 hover:text-red-500 rounded p-0.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                              title="Hapus dari Jadwal"
+                            >
+                              <X className="size-3" />
+                            </button>
+                          )}
                         </div>
-                      ) : null}
+                      </div>
                     </div>
                   ))
                 )}
