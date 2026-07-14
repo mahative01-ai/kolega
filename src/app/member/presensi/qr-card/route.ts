@@ -58,20 +58,20 @@ export async function GET() {
   <rect width="720" height="460" rx="28" fill="#ffffff"/>
   <rect x="24" y="24" width="672" height="412" rx="24" fill="#f8fafc" stroke="#d4d4d8"/>
   <rect x="48" y="48" width="624" height="76" rx="18" fill="#09090b"/>
-  <text x="76" y="82" fill="#ffffff" font-family="Geist" font-size="24" font-weight="700">Kolega QR Card</text>
-  <text x="76" y="106" fill="#d4d4d8" font-family="Geist" font-size="14">Kartu presensi WFO personal</text>
+  <text x="76" y="82" fill="#ffffff" font-family="sans-serif" font-size="24" font-weight="700">Kolega QR Card</text>
+  <text x="76" y="106" fill="#d4d4d8" font-family="sans-serif" font-size="14">Kartu presensi WFO personal</text>
   <g transform="translate(54 150)">
     ${qrSvg.replace("<svg", '<svg x="0" y="0"')}
   </g>
-  <text x="350" y="174" fill="#71717a" font-family="Geist" font-size="13" font-weight="700">NAMA</text>
-  <text x="350" y="202" fill="#18181b" font-family="Geist" font-size="28" font-weight="700">${name}</text>
-  <text x="350" y="235" fill="#71717a" font-family="Geist" font-size="13" font-weight="700">EMAIL</text>
-  <text x="350" y="260" fill="#27272a" font-family="Geist" font-size="17">${email}</text>
-  <text x="350" y="294" fill="#71717a" font-family="Geist" font-size="13" font-weight="700">DEFAULT STUDIO</text>
-  <text x="350" y="320" fill="#27272a" font-family="Geist" font-size="18">${studio}</text>
-  <text x="350" y="354" fill="#71717a" font-family="Geist" font-size="13" font-weight="700">QR UID</text>
-  <text x="350" y="381" fill="#09090b" font-family="Geist" font-size="20" font-weight="700">${qrUid}</text>
-  <text x="350" y="410" fill="#71717a" font-family="Geist" font-size="13">Aktif sejak ${escapeXml(issuedAt)}</text>
+  <text x="350" y="174" fill="#71717a" font-family="sans-serif" font-size="13" font-weight="700">NAMA</text>
+  <text x="350" y="202" fill="#18181b" font-family="sans-serif" font-size="28" font-weight="700">${name}</text>
+  <text x="350" y="235" fill="#71717a" font-family="sans-serif" font-size="13" font-weight="700">EMAIL</text>
+  <text x="350" y="260" fill="#27272a" font-family="sans-serif" font-size="17">${email}</text>
+  <text x="350" y="294" fill="#71717a" font-family="sans-serif" font-size="13" font-weight="700">DEFAULT STUDIO</text>
+  <text x="350" y="320" fill="#27272a" font-family="sans-serif" font-size="18">${studio}</text>
+  <text x="350" y="354" fill="#71717a" font-family="sans-serif" font-size="13" font-weight="700">QR UID</text>
+  <text x="350" y="381" fill="#09090b" font-family="sans-serif" font-size="20" font-weight="700">${qrUid}</text>
+  <text x="350" y="410" fill="#71717a" font-family="sans-serif" font-size="13">Aktif sejak ${escapeXml(issuedAt)}</text>
 </svg>`;
 
   const imagePipeline = sharp(Buffer.from(svg)).flatten({

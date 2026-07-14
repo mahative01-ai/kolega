@@ -110,6 +110,7 @@ function getMenuGroups(role: SidebarUser["role"]): MenuGroup[] {
           { label: "Ajukan Izin Saya", href: "/member/requests", icon: MessageSquare },
           { label: "Koreksi Presensi Saya", href: "/member/corrections", icon: ClipboardCheck },
           { label: "Laporan WFH Saya", href: "/member/laporan-wfh", icon: Clipboard },
+          { label: "Slip Gaji Saya", href: "/member/payslips", icon: ClipboardCheck },
         ],
       },
       {

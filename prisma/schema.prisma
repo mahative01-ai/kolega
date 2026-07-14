@@ -124,6 +124,7 @@ model User {
   memberStatus               MemberStatus           @default(TEAM)
   accountStatus              AccountStatus          @default(ACTIVE)
   annualLeaveBalance         Int                    @default(12)
+  picketDay                  String?
   defaultStudioId            String?
   defaultStudio              Studio?                @relation("DefaultStudioMembers", fields: [defaultStudioId], references: [id])
   createdAt                  DateTime               @default(now())

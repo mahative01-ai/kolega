@@ -130,3 +130,49 @@ export async function deletePicketAction(id: string) {
   revalidatePath("/piket");
   return { success: true };
 }
+
+export async function updateUserPicketDayAction(userId: string, picketDay: string | null) {
+  const actor = await requireAnyRole(["SUPER_ADMIN", "ADMIN"]);
+
+  const VALID_DAYS = ["SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU", "MINGGU", null];
+  const normalizedDay = picketDay ? picketDay.toUpperCase() : null;
+  if (!VALID_DAYS.includes(normalizedDay)) {
+    throw new Error("Hari piket tidak valid.");
+  }
+
+  const target = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { defaultStudioId: true, name: true },
+  });
+
+  if (!target) {
+    throw new Error("Staf tidak ditemukan.");
+  }
+
+  if (actor.role === "ADMIN" && actor.defaultStudioId && actor.defaultStudioId !== target.defaultStudioId) {
+    throw new Error("Anda hanya dapat mengatur hari piket untuk staf di studio asal Anda.");
+  }
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { picketDay: normalizedDay },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: actor.id,
+      entity: "User",
+      entityId: userId,
+      action: "USER_PICKET_DAY_UPDATED",
+      metadata: {
+        targetUserId: userId,
+        targetUserName: target.name,
+        picketDay: normalizedDay ?? "NONE",
+      },
+    },
+  });
+
+  revalidatePath("/piket");
+  return { success: true };
+}
+

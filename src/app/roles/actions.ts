@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireRole, hashPassword } from "@/lib/auth";
+import { requireRole, requireAnyRole, hashPassword } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { dateOnly } from "@/lib/calendar";
 
@@ -87,7 +87,13 @@ async function validateMentor(mentorId: string | null) {
 
 export async function createUserAction(formData: FormData) {
   try {
-    const actor = await requireSuperAdminActor();
+    const actor = await requireAnyRole(["SUPER_ADMIN", "ADMIN"]);
+    const role = String(formData.get("role") ?? "") === "ADMIN" ? "ADMIN" : "MEMBER";
+
+    // If Admin, they can only create MEMBER role
+    if (actor.role === "ADMIN" && role !== "MEMBER") {
+      throw new Error("Anda tidak diizinkan membuat akun dengan hak akses Admin.");
+    }
 
     const name = String(formData.get("name") ?? "").trim();
     const username =
@@ -95,12 +101,12 @@ export async function createUserAction(formData: FormData) {
     const email = String(formData.get("email") ?? "").trim().toLowerCase();
     const password = String(formData.get("password") ?? "");
     const birthDateStr = String(formData.get("birthDate") ?? "") || null;
-    const role = String(formData.get("role") ?? "") === "ADMIN" ? "ADMIN" : "MEMBER";
     const memberStatus = String(formData.get("memberStatus") ?? "") === "INTERN" ? "INTERN" : "TEAM";
     const defaultStudioId = String(formData.get("defaultStudioId") ?? "") || null;
     const annualLeaveBalanceInput = formData.get("annualLeaveBalance");
-    const annualLeaveBalance = annualLeaveBalanceInput ? Number(annualLeaveBalanceInput) : 12;
+    const annualLeaveBalance = memberStatus === "INTERN" ? 0 : (annualLeaveBalanceInput ? Number(annualLeaveBalanceInput) : 12);
     const placementStudioId = memberStatus === "INTERN" ? (String(formData.get("placementStudioId") ?? "") || null) : null;
+    const picketDay = String(formData.get("picketDay") ?? "") || null;
 
     if (!name || !email || password.length < 6) {
       throw new Error("Nama, email, dan password minimal 6 karakter wajib diisi.");
@@ -166,6 +172,7 @@ export async function createUserAction(formData: FormData) {
           accountStatus: "ACTIVE",
           annualLeaveBalance,
           defaultStudioId,
+          picketDay,
         },
         select: { id: true },
       });
@@ -222,7 +229,13 @@ export async function createUserAction(formData: FormData) {
 
 export async function updateUserAction(formData: FormData) {
   try {
-    const actor = await requireSuperAdminActor();
+    const actor = await requireAnyRole(["SUPER_ADMIN", "ADMIN"]);
+    const role = String(formData.get("role") ?? "") === "ADMIN" ? "ADMIN" : "MEMBER";
+
+    // If Admin, they can only update to MEMBER role
+    if (actor.role === "ADMIN" && role !== "MEMBER") {
+      throw new Error("Anda tidak diizinkan mengubah role anggota menjadi Admin.");
+    }
 
     const userId = String(formData.get("userId") ?? "");
     const name = String(formData.get("name") ?? "").trim();
@@ -230,7 +243,6 @@ export async function updateUserAction(formData: FormData) {
       String(formData.get("username") ?? "").trim().toLowerCase() || null;
     const email = String(formData.get("email") ?? "").trim().toLowerCase();
     const birthDateStr = String(formData.get("birthDate") ?? "") || null;
-    const role = String(formData.get("role") ?? "") === "ADMIN" ? "ADMIN" : "MEMBER";
     const memberStatus = String(formData.get("memberStatus") ?? "") === "INTERN" ? "INTERN" : "TEAM";
     const requestedAccountStatus = String(formData.get("accountStatus") ?? "");
     const accountStatus = ACCOUNT_STATUSES.find(
@@ -238,8 +250,9 @@ export async function updateUserAction(formData: FormData) {
     );
     const defaultStudioId = String(formData.get("defaultStudioId") ?? "") || null;
     const placementStudioId = memberStatus === "INTERN" ? (String(formData.get("placementStudioId") ?? "") || null) : null;
+    const picketDay = String(formData.get("picketDay") ?? "") || null;
     const annualLeaveBalanceInput = formData.get("annualLeaveBalance");
-    const annualLeaveBalance = annualLeaveBalanceInput ? Number(annualLeaveBalanceInput) : 12;
+    const annualLeaveBalance = memberStatus === "INTERN" ? 0 : (annualLeaveBalanceInput ? Number(annualLeaveBalanceInput) : 12);
 
     if (!userId || !name || !email || !accountStatus) {
       throw new Error("ID, Nama, dan Email wajib diisi.");
@@ -267,6 +280,15 @@ export async function updateUserAction(formData: FormData) {
 
     if (!target || target.role === "SUPER_ADMIN") {
       throw new Error("User tidak ditemukan atau tidak dapat diubah.");
+    }
+
+    if (actor.role === "ADMIN") {
+      if (target.role !== "MEMBER") {
+        throw new Error("Anda tidak diizinkan mengubah data Admin lainnya.");
+      }
+      if (role !== "MEMBER") {
+        throw new Error("Anda tidak diizinkan mengubah role anggota menjadi Admin.");
+      }
     }
 
     if (actor.role !== "SUPER_ADMIN" && actor.defaultStudioId) {
@@ -348,6 +370,7 @@ export async function updateUserAction(formData: FormData) {
           accountStatus,
           annualLeaveBalance,
           defaultStudioId,
+          picketDay,
         },
       });
 

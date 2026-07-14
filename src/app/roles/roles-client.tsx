@@ -42,6 +42,7 @@ type UserWithRelations = {
   accountStatus: "ACTIVE" | "INACTIVE" | "ARCHIVED";
   annualLeaveBalance: number;
   defaultStudioId: string | null;
+  picketDay: string | null;
   defaultStudio: { name: string } | null;
   placements: Array<{
     id: string;
@@ -291,7 +292,7 @@ export function RolesClient({
               ))}
             </div>
 
-            {isSuperAdmin && (
+            {(isSuperAdmin || currentUser.role === "ADMIN") && (
               <div className="ml-auto">
                 <Button
                   size="sm"
@@ -410,7 +411,7 @@ export function RolesClient({
                           {ROLE_LABEL[user.role]}
                         </Badge>
                       </TableCell>
-                      {isSuperAdmin && (
+                      {(isSuperAdmin || currentUser.role === "ADMIN") && (
                         <TableCell className="text-right flex items-center justify-end gap-1.5">
                           <Button
                             variant="outline"
@@ -421,15 +422,17 @@ export function RolesClient({
                             <Eye className="size-3" aria-hidden="true" />
                             Detail
                           </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleOpenEdit(user)}
-                            className="h-8 px-2 text-xs"
-                          >
-                            <Edit className="size-3" aria-hidden="true" />
-                            Edit
-                          </Button>
+                          {(isSuperAdmin || (currentUser.role === "ADMIN" && user.role === "MEMBER")) && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleOpenEdit(user)}
+                              className="h-8 px-2 text-xs"
+                            >
+                              <Edit className="size-3" aria-hidden="true" />
+                              Edit
+                            </Button>
+                          )}
                         </TableCell>
                       )}
                     </TableRow>
@@ -481,11 +484,12 @@ export function RolesClient({
                 <label className="text-xs font-semibold">Role *</label>
                 <select
                   name="role"
-                  className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2.5 text-sm outline-none"
+                  className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2.5 text-sm outline-none disabled:opacity-80"
                   defaultValue="MEMBER"
+                  disabled={!isSuperAdmin}
                 >
                   <option value="MEMBER">Member</option>
-                  <option value="ADMIN">Admin</option>
+                  {isSuperAdmin && <option value="ADMIN">Admin</option>}
                 </select>
               </div>
             </div>
@@ -519,12 +523,14 @@ export function RolesClient({
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold">Jatah Cuti Tahunan *</label>
-                <Input name="annualLeaveBalance" type="number" defaultValue={12} required min={0} />
+            {addMemberStatus === "TEAM" && (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold">Jatah Cuti Tahunan *</label>
+                  <Input name="annualLeaveBalance" type="number" defaultValue={12} required min={0} />
+                </div>
               </div>
-            </div>
+            )}
 
             {addMemberStatus === "INTERN" && (
               <div className="flex flex-col gap-1.5">
@@ -636,11 +642,12 @@ export function RolesClient({
                   <label className="text-xs font-semibold">Role *</label>
                   <select
                     name="role"
-                    className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2.5 text-sm outline-none"
+                    className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2.5 text-sm outline-none disabled:opacity-80"
                     defaultValue={selectedUser.role}
+                    disabled={!isSuperAdmin}
                   >
                     <option value="MEMBER">Member</option>
-                    <option value="ADMIN">Admin</option>
+                    {isSuperAdmin && <option value="ADMIN">Admin</option>}
                   </select>
                 </div>
                 <div className="flex flex-col gap-1.5">
@@ -697,13 +704,34 @@ export function RolesClient({
                   </select>
                 </div>
               </div>
-
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold">Jatah Cuti Tahunan *</label>
-                  <Input name="annualLeaveBalance" type="number" defaultValue={selectedUser.annualLeaveBalance} required min={0} />
+                  <label className="text-xs font-semibold">Hari Piket Default</label>
+                  <select
+                    name="picketDay"
+                    className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2.5 text-sm outline-none"
+                    defaultValue={selectedUser.picketDay ?? ""}
+                  >
+                    <option value="">Tidak ada piket</option>
+                    <option value="SENIN">Senin</option>
+                    <option value="SELASA">Selasa</option>
+                    <option value="RABU">Rabu</option>
+                    <option value="KAMIS">Kamis</option>
+                    <option value="JUMAT">Jumat</option>
+                    <option value="SABTU">Sabtu</option>
+                    <option value="MINGGU">Minggu</option>
+                  </select>
                 </div>
               </div>
+
+              {editMemberStatus === "TEAM" && (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold">Jatah Cuti Tahunan *</label>
+                    <Input name="annualLeaveBalance" type="number" defaultValue={selectedUser.annualLeaveBalance} required min={0} />
+                  </div>
+                </div>
+              )}
 
               {editMemberStatus === "INTERN" && (
                 <div className="flex flex-col gap-1.5">

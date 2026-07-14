@@ -1,4 +1,4 @@
-import { CalendarDays, ChevronLeft, ChevronRight, ClipboardList, Trash2, Info } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, ClipboardList, Trash2, Info, CalendarRange } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -14,6 +14,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { PicketFormClient } from "./piket-form-client";
+import { PicketBoardClient } from "./picket-board-client";
 import { deletePicketAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -96,7 +97,15 @@ export default async function PicketPage({
         role: { not: "SUPER_ADMIN" },
         ...(filterStudioId ? { defaultStudioId: filterStudioId } : {}),
       },
-      select: { id: true, name: true, defaultStudioId: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        memberStatus: true,
+        picketDay: true,
+        defaultStudioId: true,
+      },
       orderBy: { name: "asc" },
     }),
   ]);
@@ -115,50 +124,60 @@ export default async function PicketPage({
       user={user}
       currentPath="/piket"
       badge="Piket"
-      title="Jadwal Piket Studio"
-      description="Lihat dan kelola pembagian tugas kebersihan & piket harian studio."
+      title="Papan Piket Studio"
+      description="Lihat dan kelola pembagian tugas piket rutin mingguan serta pengecualian jadwal."
     >
-      <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
-        {/* ── main Column: Jadwal Bulanan ── */}
-        <div className="space-y-6">
-          {isSuperAdmin && (
-            <div className="flex border-b border-zinc-200 dark:border-zinc-800">
+      <div className="space-y-6">
+        {/* Studio Tabs (Super Admin only) */}
+        {isSuperAdmin && (
+          <div className="flex border-b border-zinc-200 dark:border-zinc-800">
+            <Link
+              href={`?studioId=&month=${year}-${String(month).padStart(2, "0")}`}
+              className={`px-4 py-2.5 text-sm font-bold border-b-2 transition-all ${
+                filterStudioId === ""
+                  ? "border-blue-700 text-blue-700 dark:border-blue-400 dark:text-blue-400"
+                  : "border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+              }`}
+            >
+              🌐 Semua Studio
+            </Link>
+            {studios.map((s) => (
               <Link
-                href={`?studioId=&month=${year}-${String(month).padStart(2, "0")}`}
+                key={s.id}
+                href={`?studioId=${s.id}&month=${year}-${String(month).padStart(2, "0")}`}
                 className={`px-4 py-2.5 text-sm font-bold border-b-2 transition-all ${
-                  filterStudioId === ""
+                  filterStudioId === s.id
                     ? "border-blue-700 text-blue-700 dark:border-blue-400 dark:text-blue-400"
                     : "border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
                 }`}
               >
-                🌐 Semua Studio
+                {s.name}
               </Link>
-              {studios.map((s) => (
-                <Link
-                  key={s.id}
-                  href={`?studioId=${s.id}&month=${year}-${String(month).padStart(2, "0")}`}
-                  className={`px-4 py-2.5 text-sm font-bold border-b-2 transition-all ${
-                    filterStudioId === s.id
-                      ? "border-blue-700 text-blue-700 dark:border-blue-400 dark:text-blue-400"
-                      : "border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
-                  }`}
-                >
-                  {s.name}
-                </Link>
-              ))}
-            </div>
-          )}
+            ))}
+          </div>
+        )}
 
-          {/* Monthly Pickets Card */}
-          <Card>
+        {/* 📅 SECTION 1: Weekly Picket Board */}
+        <div>
+          <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50 mb-3 flex items-center gap-2">
+            <CalendarRange className="size-5 text-blue-700 dark:text-blue-400" />
+            Jadwal Piket Rutin Mingguan
+          </h2>
+          <PicketBoardClient members={members} isManager={isManager} />
+        </div>
+
+        {/* 🛠️ SECTION 2: Exceptions & Overrides (Tanggal Khusus) */}
+        <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+          {/* Overrides Table */}
+          <Card className="shadow-none">
             <CardHeader className="flex-row items-center justify-between gap-2 pb-3">
               <div>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-base">
                   <CalendarDays className="size-5 text-blue-700" />
-                  {formatMonthLabel(year, month)}
+                  Pengecualian Tanggal (Overrides) - {formatMonthLabel(year, month)}
                 </CardTitle>
                 <CardDescription>
-                  Ada {pickets.length} jadwal tugas piket bulan ini
+                  Ada {pickets.length} jadwal pengecualian khusus untuk bulan ini
                 </CardDescription>
               </div>
               <div className="flex items-center gap-1">
@@ -180,19 +199,19 @@ export default async function PicketPage({
               {pickets.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center text-zinc-500">
                   <ClipboardList className="size-10 text-zinc-300 mb-2" />
-                  <p className="text-sm font-semibold">Tidak Ada Jadwal Piket</p>
-                  <p className="text-xs text-zinc-400 mt-1">Belum ada petugas piket yang ditugaskan untuk bulan ini.</p>
+                  <p className="text-sm font-semibold">Tidak Ada Pengecualian Tanggal</p>
+                  <p className="text-xs text-zinc-400 mt-1">Belum ada penugasan piket khusus di luar jadwal rutin untuk bulan ini.</p>
                 </div>
               ) : (
-                <div className="overflow-hidden rounded-lg border border-zinc-200">
+                <div className="overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
                   <table className="w-full text-left border-collapse text-sm">
                     <thead>
-                      <tr className="bg-zinc-50 border-b border-zinc-200">
-                        <th className="p-3 font-semibold text-zinc-700">Tanggal</th>
-                        <th className="p-3 font-semibold text-zinc-700">Petugas</th>
-                        {isSuperAdmin && <th className="p-3 font-semibold text-zinc-700">Studio</th>}
-                        <th className="p-3 font-semibold text-zinc-700">Catatan</th>
-                        {isManager && <th className="p-3 text-right font-semibold text-zinc-700">Aksi</th>}
+                      <tr className="bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
+                        <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">Tanggal</th>
+                        <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">Petugas</th>
+                        {isSuperAdmin && <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">Studio</th>}
+                        <th className="p-3 font-semibold text-zinc-700 dark:text-zinc-300">Catatan</th>
+                        {isManager && <th className="p-3 text-right font-semibold text-zinc-700 dark:text-zinc-300">Aksi</th>}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
@@ -250,36 +269,39 @@ export default async function PicketPage({
               )}
             </CardContent>
           </Card>
-        </div>
 
-        {/* ── Right Column: Assign form & Info ── */}
-        <div className="space-y-4">
-          {isManager && (
-            <PicketFormClient
-              members={members}
-              studioId={activeStudioId}
-              studios={studios}
-              monthKey={`${year}-${String(month).padStart(2, "0")}`}
-              isSuperAdmin={isSuperAdmin}
-            />
-          )}
+          {/* Form & Info */}
+          <div className="space-y-4">
+            {isManager && (
+              <PicketFormClient
+                members={members}
+                studioId={activeStudioId}
+                studios={studios}
+                monthKey={`${year}-${String(month).padStart(2, "0")}`}
+                isSuperAdmin={isSuperAdmin}
+              />
+            )}
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Info className="size-4 text-blue-700" />
-                Ketentuan Piket
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-xs text-zinc-600 space-y-2 leading-relaxed">
-              <p>
-                📌 **Penugasan**: Piket harian studio bertugas menjaga kerapian area kerja, ruang meeting, dan mematikan peralatan elektronik di akhir shift.
-              </p>
-              <p>
-                🔔 **Notifikasi**: Anggota yang ditugaskan akan langsung menerima notifikasi dalam aplikasi, serta pengingat email otomatis di hari H pukul 07.00 WIB.
-              </p>
-            </CardContent>
-          </Card>
+            <Card className="shadow-none">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Info className="size-4 text-blue-700" />
+                  Ketentuan Piket
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-xs text-zinc-600 dark:text-zinc-400 space-y-2 leading-relaxed">
+                <p>
+                  📌 **Piket Mingguan**: Setiap staf dijadwalkan piket tetap pada hari tertentu (misal: setiap hari Selasa) selama masa magang/kerja.
+                </p>
+                <p>
+                  🔄 **Pengecualian**: Gunakan form **Tambah Pengecualian Tanggal** jika terjadi pertukaran tugas sementara (misal: Budi izin sakit di hari Selasa piket rutinnya, dan Joko menggantikannya pada tanggal tersebut).
+                </p>
+                <p>
+                  🔔 **Notifikasi**: Sistem akan mengirim notifikasi internal ke staf terkait saat ditugaskan atau dijadwalkan piket pengganti.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </DashboardShell>

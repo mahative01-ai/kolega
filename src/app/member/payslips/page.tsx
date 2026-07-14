@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function MemberPayslipsPage() {
   const actor = await requireUser();
   
-  const isEligible = actor.memberStatus === "TEAM" && actor.role !== "SUPER_ADMIN";
+  const isEligible = (actor.role === "ADMIN" || actor.memberStatus === "TEAM") && actor.role !== "SUPER_ADMIN";
   const initialPayslips = isEligible ? await getMemberPayslips() : [];
 
   const dashboardUser = {

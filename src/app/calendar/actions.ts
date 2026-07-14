@@ -321,11 +321,15 @@ export async function syncHolidaysAction(year: number) {
     const dateVal = new Date(`${h.dateKey}T00:00:00.000Z`);
     const type = h.isCutiBersama ? "COMPANY_LEAVE" : "NATIONAL_HOLIDAY";
 
-    // Check if event already exists on this date with this type
+    // Check if event already exists on this date with this type or title
     const existing = await prisma.calendarEvent.findFirst({
       where: {
         startDate: dateVal,
-        type,
+        OR: [
+          { type: "NATIONAL_HOLIDAY" },
+          { type: "COMPANY_LEAVE" },
+          { title: h.label }
+        ]
       },
     });
 

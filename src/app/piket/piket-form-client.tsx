@@ -86,9 +86,9 @@ export function PicketFormClient({ members, studioId, studios, monthKey, isSuper
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Plus className="size-5 text-blue-700 dark:text-blue-400" />
-          Tambah Jadwal Piket
+          Tambah Pengecualian Tanggal
         </CardTitle>
-        <CardDescription>Pilih anggota dan tanggal piket.</CardDescription>
+        <CardDescription>Tukar atau tugaskan piket khusus untuk tanggal tertentu.</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-3">
         {/* Studio Select (Super Admin only) */}
