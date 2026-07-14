@@ -84,6 +84,7 @@ const errorMessages: Record<string, string> = {
   "sick-notice": "Pengajuan Sakit hari ini harus dilakukan maksimal 1 jam sebelum jam masuk (sebelum 07:00 pagi).",
   "past-date": "Tanggal mulai pengajuan tidak boleh berada di masa lampau.",
   "intern-wfh": "Intern tidak diperbolehkan mengajukan WFH. Hanya Anggota Team dan Admin yang dapat mengajukan WFH.",
+  "intern-leave": "Intern tidak memiliki akses pengajuan Cuti Tahunan. Gunakan Izin/Ganti Hari atau Sakit sesuai kebutuhan.",
   "overlapping-request": "Anda sudah memiliki pengajuan aktif (Menunggu/Disetujui) pada rentang tanggal tersebut.",
 };
 
@@ -94,6 +95,7 @@ export default async function MemberRequestsPage({
 }) {
   const currentUser = await requireAnyRole(["ADMIN", "MEMBER"]);
   const params = await searchParams;
+  const canRequestAnnualLeave = currentUser.memberStatus === "TEAM";
 
   const userWithBalance = await prisma.user.findUnique({
     where: { id: currentUser.id },
@@ -146,15 +148,17 @@ export default async function MemberRequestsPage({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="mb-4 rounded-lg border border-blue-200 dark:border-blue-900 bg-blue-50/50 dark:bg-blue-950/20 p-3 flex items-center justify-between">
-              <div className="space-y-0.5">
-                <p className="text-[10px] font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wide">Jatah Cuti Tahunan</p>
-                <p className="text-xs text-zinc-500">Sisa jatah cuti aktif Anda</p>
+            {canRequestAnnualLeave ? (
+              <div className="mb-4 rounded-lg border border-blue-200 dark:border-blue-900 bg-blue-50/50 dark:bg-blue-950/20 p-3 flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <p className="text-[10px] font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wide">Jatah Cuti Tahunan</p>
+                  <p className="text-xs text-zinc-500">Sisa jatah cuti aktif Anda</p>
+                </div>
+                <p className="text-2xl font-black text-blue-700 dark:text-blue-400">
+                  {leaveBalance} <span className="text-xs font-normal text-zinc-500">Hari</span>
+                </p>
               </div>
-              <p className="text-2xl font-black text-blue-700 dark:text-blue-400">
-                {leaveBalance} <span className="text-xs font-normal text-zinc-500">Hari</span>
-              </p>
-            </div>
+            ) : null}
             <form
               action={createRequestAction}
               method="POST"
@@ -173,7 +177,9 @@ export default async function MemberRequestsPage({
                 >
                   <option value="PERMISSION">Izin / Ganti Hari (Min H-1)</option>
                   <option value="SICK">Sakit (Keterangan Dokter, Maks H-H 07:00)</option>
-                  <option value="LEAVE">Cuti Tahunan (Min H-1, Potong Saldo)</option>
+                  {canRequestAnnualLeave ? (
+                    <option value="LEAVE">Cuti Tahunan (Min H-1, Potong Saldo)</option>
+                  ) : null}
                   <option value="WFH">Pengajuan WFH</option>
                 </select>
               </div>

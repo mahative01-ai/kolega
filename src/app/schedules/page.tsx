@@ -23,6 +23,7 @@ import {
   parseMonthKey,
   getIndonesianHolidays,
 } from "@/lib/calendar";
+import { dedupeCalendarEvents, isApiHolidayCoveredByDbEvent } from "@/lib/calendar-events";
 
 export const dynamic = "force-dynamic";
 
@@ -222,16 +223,11 @@ export default async function WorkSchedulesPage({
       };
     });
 
-  const filteredApiHolidays = mappedApiHolidays.filter((hEv) => {
-    const hDateStr = hEv.startDate.toISOString().slice(0, 10);
-    const hasReplacement = data.calendarEvents.some((dbEv) => {
-      const dbDateStr = dbEv.startDate.toISOString().slice(0, 10);
-      return dbDateStr === hDateStr && dbEv.type === "REPLACEMENT_WORKDAY";
-    });
-    return !hasReplacement;
-  });
+  const filteredApiHolidays = mappedApiHolidays.filter(
+    (hEv) => !isApiHolidayCoveredByDbEvent(hEv, data.calendarEvents)
+  );
 
-  const allCalendarEvents = [...data.calendarEvents, ...filteredApiHolidays];
+  const allCalendarEvents = dedupeCalendarEvents([...data.calendarEvents, ...filteredApiHolidays]);
 
   const canManage = currentUser.role === "SUPER_ADMIN";
   const scheduleByDate = new Map(

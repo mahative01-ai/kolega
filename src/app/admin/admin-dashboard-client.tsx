@@ -40,6 +40,7 @@ import {
 } from "./actions";
 import { quickReviewRequestAction } from "./requests/actions";
 import { quickReviewCorrectionAction } from "./corrections/actions";
+import { dedupeCalendarEvents, isApiHolidayCoveredByDbEvent } from "@/lib/calendar-events";
 
 type Props = {
   currentUser: {
@@ -217,16 +218,11 @@ export function AdminDashboardClient({
         };
       });
 
-    const filteredApiHolidays = mappedApiHolidays.filter((hEv) => {
-      const hDateStr = hEv.startDate.toISOString().slice(0, 10);
-      const hasReplacement = calendarEvents.some((dbEv) => {
-        const dbDateStr = new Date(dbEv.startDate).toISOString().slice(0, 10);
-        return dbDateStr === hDateStr && dbEv.type === "REPLACEMENT_WORKDAY";
-      });
-      return !hasReplacement;
-    });
+    const filteredApiHolidays = mappedApiHolidays.filter(
+      (hEv) => !isApiHolidayCoveredByDbEvent(hEv, calendarEvents)
+    );
 
-    const allCalendarEvents = [...calendarEvents, ...filteredApiHolidays];
+    const allCalendarEvents = dedupeCalendarEvents([...calendarEvents, ...filteredApiHolidays]);
 
     for (const ev of allCalendarEvents) {
       const start = new Date(ev.startDate).getTime();

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { CalendarGridClient } from "./calendar-grid-client";
 import { getJakartaDateKey } from "@/lib/attendance-time";
 import { getIndonesianHolidays } from "@/lib/calendar";
+import { dedupeCalendarEvents, isApiHolidayCoveredByDbEvent } from "@/lib/calendar-events";
 
 export const dynamic = "force-dynamic";
 
@@ -146,17 +147,10 @@ export default async function CalendarPage({
       };
     });
 
-  // Filter out any API holidays on dates where there is a REPLACEMENT_WORKDAY in database events
-  const filteredApiHolidays = mappedApiHolidays.filter((hEv) => {
-    const hDateStr = hEv.startDate.toISOString().slice(0, 10);
-    const hasReplacement = events.some((dbEv) => {
-      const dbDateStr = dbEv.startDate.toISOString().slice(0, 10);
-      return dbDateStr === hDateStr && dbEv.type === "REPLACEMENT_WORKDAY";
-    });
-    return !hasReplacement;
-  });
-
-  const allEvents = [...events, ...filteredApiHolidays];
+  const filteredApiHolidays = mappedApiHolidays.filter(
+    (hEv) => !isApiHolidayCoveredByDbEvent(hEv, events)
+  );
+  const allEvents = dedupeCalendarEvents([...events, ...filteredApiHolidays]);
 
   // Build day→events map
   const dayEvents: Record<number, typeof allEvents> = {};

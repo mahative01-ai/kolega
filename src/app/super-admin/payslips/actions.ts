@@ -1,5 +1,6 @@
 "use server";
 
+import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
@@ -239,7 +240,7 @@ export async function updatePayslipAction(
 
   const netSalary = formData.basicSalary + formData.allowances - formData.deductions;
 
-  const data: any = {
+  const data: Prisma.PayslipUpdateInput = {
     basicSalary: formData.basicSalary,
     allowances: formData.allowances,
     deductions: formData.deductions,

@@ -120,9 +120,9 @@ export default async function AdminApprovalsPage({
 
   const scopedWhereRequests: Prisma.RequestWhereInput =
     currentUser.role === "SUPER_ADMIN"
-      ? { type: { in: ["PERMISSION", "SICK", "WFH"] } }
+      ? { type: { in: ["PERMISSION", "SICK", "LEAVE", "WFH"] } }
       : {
-          type: { in: ["PERMISSION", "SICK", "WFH"] },
+          type: { in: ["PERMISSION", "SICK", "LEAVE", "WFH"] },
           user: {
             defaultStudioId: currentUser.defaultStudioId,
             role: {
