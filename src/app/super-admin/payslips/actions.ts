@@ -284,3 +284,14 @@ export async function updatePayslipAction(
 
   return updated;
 }
+
+export async function deleteAllPayslipsAction() {
+  await requireRole("SUPER_ADMIN");
+
+  const deleted = await prisma.payslip.deleteMany({});
+
+  revalidatePath("/super-admin/payslips");
+  revalidatePath("/member/payslips");
+
+  return { success: true, count: deleted.count };
+}

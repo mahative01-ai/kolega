@@ -24,7 +24,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner"; // Wait, is sonner or toast imported? In roles-client.tsx it was imported from sonner or toast. Let's check!
-import { createPayslip, deletePayslip, bulkGeneratePayslipsAction, updatePayslipAction } from "./actions";
+import { createPayslip, deletePayslip, bulkGeneratePayslipsAction, updatePayslipAction, deleteAllPayslipsAction } from "./actions";
 import { Plus, Trash2, Printer, Loader2, FileText, Pencil, RefreshCw } from "lucide-react";
 
 type Member = {
@@ -91,6 +91,25 @@ export function PayslipClient({
   const [bulkMonth, setBulkMonth] = useState(new Date().getMonth() + 1);
   const [bulkYear, setBulkYear] = useState(new Date().getFullYear());
   const [isBulkPending, startBulkTransition] = useTransition();
+  const [isDeleteAllPending, startDeleteAllTransition] = useTransition();
+
+  const handleDeleteAll = async () => {
+    if (!confirm("Apakah Anda yakin ingin menghapus SEMUA slip gaji yang ada di sistem? Tindakan ini tidak dapat dibatalkan!")) {
+      return;
+    }
+
+    startDeleteAllTransition(async () => {
+      try {
+        const res = await deleteAllPayslipsAction();
+        if (res.success) {
+          setPayslips([]);
+          toast.success("Semua slip gaji berhasil dihapus.");
+        }
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Gagal menghapus semua slip gaji.");
+      }
+    });
+  };
 
   // Edit Dialog State
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -307,6 +326,22 @@ export function PayslipClient({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {payslips.length > 0 && (
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAll}
+              disabled={isDeleteAllPending}
+              className="flex items-center gap-2"
+            >
+              {isDeleteAllPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Trash2 className="size-4" />
+              )}
+              Hapus Semua
+            </Button>
+          )}
+
           {/* Dialog Bulk Generate */}
           <Dialog open={isBulkOpen} onOpenChange={setIsBulkOpen}>
             <Button
