@@ -16,7 +16,7 @@ export async function createRequestAction(formData: FormData) {
   const reason = String(formData.get("reason") ?? "").trim();
 
   // Validate fields
-  if (!["PERMISSION", "SICK", "WFH"].includes(type)) {
+  if (!["PERMISSION", "SICK", "LEAVE", "WFH"].includes(type)) {
     redirect("/member/requests?error=invalid-type");
   }
 
@@ -40,7 +40,7 @@ export async function createRequestAction(formData: FormData) {
     where: {
       userId: currentUser.id,
       status: { in: ["PENDING", "APPROVED"] },
-      type: { in: ["PERMISSION", "SICK", "WFH"] },
+      type: { in: ["PERMISSION", "SICK", "LEAVE", "WFH"] },
       startDate: { lte: endDate },
       endDate: { gte: startDate },
     },
@@ -64,7 +64,7 @@ export async function createRequestAction(formData: FormData) {
   }
 
   // 3. Validasi Izin/Ganti Hari: minimal H-1 dan wajib memilih tanggal pengganti.
-  if (type === "PERMISSION" && startDateTime < tomorrowDate) {
+  if ((type === "PERMISSION" || type === "LEAVE") && startDateTime < tomorrowDate) {
     redirect("/member/requests?error=leave-notice");
   }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { Building2, Edit, Search, UserCog, UserPlus, Loader2 } from "lucide-react";
+import { Building2, Edit, Search, UserCog, UserPlus, Loader2, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +40,7 @@ type UserWithRelations = {
   role: "SUPER_ADMIN" | "ADMIN" | "MEMBER";
   memberStatus: "TEAM" | "INTERN";
   accountStatus: "ACTIVE" | "INACTIVE" | "ARCHIVED";
+  annualLeaveBalance: number;
   defaultStudioId: string | null;
   defaultStudio: { name: string } | null;
   placements: Array<{
@@ -104,6 +105,13 @@ export function RolesClient({
   const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithRelations | null>(null);
+  const [viewOpen, setViewOpen] = useState(false);
+  const [viewUser, setViewUser] = useState<UserWithRelations | null>(null);
+
+  const handleOpenView = (user: UserWithRelations) => {
+    setViewUser(user);
+    setViewOpen(true);
+  };
 
   const [addMemberStatus, setAddMemberStatus] = useState("TEAM");
   const [editMemberStatus, setEditMemberStatus] = useState("TEAM");
@@ -403,7 +411,16 @@ export function RolesClient({
                         </Badge>
                       </TableCell>
                       {isSuperAdmin && (
-                        <TableCell className="text-right">
+                        <TableCell className="text-right flex items-center justify-end gap-1.5">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenView(user)}
+                            className="h-8 px-2 text-xs border-zinc-200 text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                          >
+                            <Eye className="size-3" aria-hidden="true" />
+                            Detail
+                          </Button>
                           <Button
                             variant="outline"
                             size="sm"
@@ -499,6 +516,13 @@ export function RolesClient({
                     <option key={st.id} value={st.id}>{st.name}</option>
                   ))}
                 </select>
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold">Jatah Cuti Tahunan *</label>
+                <Input name="annualLeaveBalance" type="number" defaultValue={12} required min={0} />
               </div>
             </div>
 
@@ -674,6 +698,13 @@ export function RolesClient({
                 </div>
               </div>
 
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold">Jatah Cuti Tahunan *</label>
+                  <Input name="annualLeaveBalance" type="number" defaultValue={selectedUser.annualLeaveBalance} required min={0} />
+                </div>
+              </div>
+
               {editMemberStatus === "INTERN" && (
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-semibold">Placement Studio Aktif</label>
@@ -773,6 +804,101 @@ export function RolesClient({
               </DialogFooter>
             </form>
           )}
+        </DialogContent>
+      </Dialog>
+      {/* Dialog Detail Anggota */}
+      <Dialog open={viewOpen} onOpenChange={setViewOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Detail Anggota</DialogTitle>
+            <DialogDescription>
+              Informasi lengkap profil dan riwayat masa program anggota.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {viewUser && (
+            <div className="grid gap-4 py-2 text-sm">
+              <div className="grid grid-cols-3 gap-1 border-b border-zinc-100 dark:border-zinc-800 pb-2">
+                <span className="font-semibold text-zinc-500">Nama Lengkap</span>
+                <span className="col-span-2 text-zinc-900 dark:text-zinc-100">{viewUser.name}</span>
+              </div>
+              <div className="grid grid-cols-3 gap-1 border-b border-zinc-100 dark:border-zinc-800 pb-2">
+                <span className="font-semibold text-zinc-500">Username</span>
+                <span className="col-span-2 font-mono text-zinc-900 dark:text-zinc-100">@{viewUser.username || "-"}</span>
+              </div>
+              <div className="grid grid-cols-3 gap-1 border-b border-zinc-100 dark:border-zinc-800 pb-2">
+                <span className="font-semibold text-zinc-500">Email</span>
+                <span className="col-span-2 text-zinc-900 dark:text-zinc-100">{viewUser.email}</span>
+              </div>
+              <div className="grid grid-cols-3 gap-1 border-b border-zinc-100 dark:border-zinc-800 pb-2">
+                <span className="font-semibold text-zinc-500">Tanggal Lahir</span>
+                <span className="col-span-2 text-zinc-900 dark:text-zinc-100">{formatDate(viewUser.birthDate)}</span>
+              </div>
+              <div className="grid grid-cols-3 gap-1 border-b border-zinc-100 dark:border-zinc-800 pb-2">
+                <span className="font-semibold text-zinc-500">Role Sistem</span>
+                <span className="col-span-2 text-zinc-900 dark:text-zinc-100">{ROLE_LABEL[viewUser.role]}</span>
+              </div>
+              <div className="grid grid-cols-3 gap-1 border-b border-zinc-100 dark:border-zinc-800 pb-2">
+                <span className="font-semibold text-zinc-500">Default Studio</span>
+                <span className="col-span-2 text-zinc-900 dark:text-zinc-100">{viewUser.defaultStudio?.name || "Belum ditentukan"}</span>
+              </div>
+              <div className="grid grid-cols-3 gap-1 border-b border-zinc-100 dark:border-zinc-800 pb-2">
+                <span className="font-semibold text-zinc-500">Status Anggota</span>
+                <span className="col-span-2 text-zinc-900 dark:text-zinc-100">{viewUser.memberStatus}</span>
+              </div>
+              <div className="grid grid-cols-3 gap-1 border-b border-zinc-100 dark:border-zinc-800 pb-2">
+                <span className="font-semibold text-zinc-500">Status Akun</span>
+                <span className="col-span-2 text-zinc-900 dark:text-zinc-100">{accountStatusLabel[viewUser.accountStatus]}</span>
+              </div>
+              <div className="grid grid-cols-3 gap-1 border-b border-zinc-100 dark:border-zinc-800 pb-2">
+                <span className="font-semibold text-zinc-500">Jatah Cuti Tahunan</span>
+                <span className="col-span-2 font-semibold text-blue-600 dark:text-blue-400">{viewUser.annualLeaveBalance} Hari</span>
+              </div>
+
+              {viewUser.memberStatus === "INTERN" && viewUser.internProfile && (
+                <div className="mt-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/40 p-4 space-y-2">
+                  <h4 className="font-bold text-zinc-800 dark:text-zinc-200 text-xs uppercase tracking-wide">Profil Masa Magang (Intern)</h4>
+                  <div className="grid grid-cols-3 gap-1 text-xs">
+                    <span className="text-zinc-500 font-medium">Program</span>
+                    <span className="col-span-2 font-semibold text-zinc-900 dark:text-zinc-100">{viewUser.internProfile.program}</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1 text-xs">
+                    <span className="text-zinc-500 font-medium">Institusi Asal</span>
+                    <span className="col-span-2 text-zinc-900 dark:text-zinc-100">{viewUser.internProfile.institution}</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1 text-xs">
+                    <span className="text-zinc-500 font-medium">Periode Program</span>
+                    <span className="col-span-2 text-zinc-900 dark:text-zinc-100">
+                      {formatDate(viewUser.internProfile.startDate)} - {formatDate(viewUser.internProfile.endDate)}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1 text-xs">
+                    <span className="text-zinc-500 font-medium">Sisa Waktu</span>
+                    <span className="col-span-2 font-bold text-indigo-600 dark:text-indigo-400">
+                      {(() => {
+                        const today = new Date();
+                        today.setHours(0,0,0,0);
+                        const end = new Date(viewUser.internProfile.endDate);
+                        const diff = Math.max(0, Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+                        return `${diff} Hari Lagi`;
+                      })()}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1 text-xs">
+                    <span className="text-zinc-500 font-medium">Pembimbing / Mentor</span>
+                    <span className="col-span-2 text-zinc-900 dark:text-zinc-100">
+                      {mentors.find((m) => m.id === viewUser.internProfile?.mentorId)?.name || "Belum ditentukan"}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter className="mt-4">
+            <Button type="button" onClick={() => setViewOpen(false)}>
+              Tutup
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

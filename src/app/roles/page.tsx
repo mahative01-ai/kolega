@@ -37,6 +37,7 @@ async function getRoleData(actor: Awaited<ReturnType<typeof requireAnyRole>>) {
         role: true,
         memberStatus: true,
         accountStatus: true,
+        annualLeaveBalance: true,
         defaultStudioId: true,
         defaultStudio: {
           select: {

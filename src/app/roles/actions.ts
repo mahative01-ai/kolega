@@ -98,6 +98,8 @@ export async function createUserAction(formData: FormData) {
     const role = String(formData.get("role") ?? "") === "ADMIN" ? "ADMIN" : "MEMBER";
     const memberStatus = String(formData.get("memberStatus") ?? "") === "INTERN" ? "INTERN" : "TEAM";
     const defaultStudioId = String(formData.get("defaultStudioId") ?? "") || null;
+    const annualLeaveBalanceInput = formData.get("annualLeaveBalance");
+    const annualLeaveBalance = annualLeaveBalanceInput ? Number(annualLeaveBalanceInput) : 12;
     const placementStudioId = memberStatus === "INTERN" ? (String(formData.get("placementStudioId") ?? "") || null) : null;
 
     if (!name || !email || password.length < 6) {
@@ -162,6 +164,7 @@ export async function createUserAction(formData: FormData) {
           role,
           memberStatus,
           accountStatus: "ACTIVE",
+          annualLeaveBalance,
           defaultStudioId,
         },
         select: { id: true },
@@ -235,6 +238,8 @@ export async function updateUserAction(formData: FormData) {
     );
     const defaultStudioId = String(formData.get("defaultStudioId") ?? "") || null;
     const placementStudioId = memberStatus === "INTERN" ? (String(formData.get("placementStudioId") ?? "") || null) : null;
+    const annualLeaveBalanceInput = formData.get("annualLeaveBalance");
+    const annualLeaveBalance = annualLeaveBalanceInput ? Number(annualLeaveBalanceInput) : 12;
 
     if (!userId || !name || !email || !accountStatus) {
       throw new Error("ID, Nama, dan Email wajib diisi.");
@@ -341,6 +346,7 @@ export async function updateUserAction(formData: FormData) {
           role,
           memberStatus,
           accountStatus,
+          annualLeaveBalance,
           defaultStudioId,
         },
       });

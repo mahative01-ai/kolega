@@ -1,4 +1,6 @@
 "use server";
+import { getIndonesianHolidays } from "@/lib/calendar";
+
 
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
@@ -303,3 +305,48 @@ export async function deleteSwappedHolidayAction(eventId: string) {
   return { success: true, deletedCount: idsToDelete.length };
 }
 
+export async function syncHolidaysAction(year: number) {
+  await requireRole("SUPER_ADMIN");
+  if (!year || typeof year !== "number" || year < 2000 || year > 2100) {
+    throw new Error("Tahun tidak valid.");
+  }
+
+  const holidays = await getIndonesianHolidays(year);
+  if (!holidays || holidays.length === 0) {
+    throw new Error("Tidak ada data hari libur ditemukan dari API.");
+  }
+
+  let createdCount = 0;
+  for (const h of holidays) {
+    const dateVal = new Date(`${h.dateKey}T00:00:00.000Z`);
+    const type = h.isCutiBersama ? "COMPANY_LEAVE" : "NATIONAL_HOLIDAY";
+
+    // Check if event already exists on this date with this type
+    const existing = await prisma.calendarEvent.findFirst({
+      where: {
+        startDate: dateVal,
+        type,
+      },
+    });
+
+    if (!existing) {
+      await prisma.calendarEvent.create({
+        data: {
+          type,
+          title: h.label,
+          startDate: dateVal,
+          endDate: dateVal,
+          studioId: null,
+          note: "Disinkronkan dari Kalender Nasional",
+        },
+      });
+      createdCount++;
+    }
+  }
+
+  revalidatePath("/calendar");
+  revalidatePath("/schedules");
+  revalidatePath("/settings");
+
+  return { success: true, createdCount };
+}

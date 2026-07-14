@@ -8,6 +8,7 @@ import {
   ArrowLeftRight,
   Loader2,
   Trash2,
+  RefreshCw,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -28,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { swapHolidayAction, deleteSwappedHolidayAction, deleteCalendarEventAction } from "./actions";
+import { swapHolidayAction, deleteSwappedHolidayAction, deleteCalendarEventAction, syncHolidaysAction } from "./actions";
 import { EVENT_TYPE_CONFIG } from "./page-config";
 import { cn } from "@/lib/utils";
 
@@ -91,6 +92,21 @@ export function CalendarGridClient({
   const monthStr = String(month).padStart(2, "0");
 
   const [activeSwaps, setActiveSwaps] = useState<CalendarEvent[]>([]);
+  const [isSyncPending, startSyncTransition] = useTransition();
+
+  const handleSyncHolidays = () => {
+    if (!confirm(`Apakah Anda yakin ingin menyinkronkan hari libur nasional untuk tahun ${year}?`)) return;
+    
+    startSyncTransition(async () => {
+      try {
+        const res = await syncHolidaysAction(year);
+        alert(`Sinkronisasi berhasil! ${res.createdCount} hari libur nasional baru ditambahkan.`);
+        window.location.reload();
+      } catch (err: unknown) {
+        alert(err instanceof Error ? err.message : "Terjadi kesalahan saat menyinkronkan.");
+      }
+    });
+  };
 
   function handleDayClick(dayNumber: number) {
     if (!isSuperAdmin) return;
@@ -221,21 +237,39 @@ export function CalendarGridClient({
               {totalEventsCount} agenda di bulan ini
             </CardDescription>
           </div>
-          <div className="flex items-center gap-1">
-            <a
-              href={`?month=${prevMonthKey}${activeStudioId ? `&studioId=${activeStudioId}` : ""}`}
-              className={buttonVariants({ variant: "outline", size: "icon" })}
-              aria-label="Bulan sebelumnya"
-            >
-              <ChevronLeft className="size-4" />
-            </a>
-            <a
-              href={`?month=${nextMonthKey}${activeStudioId ? `&studioId=${activeStudioId}` : ""}`}
-              className={buttonVariants({ variant: "outline", size: "icon" })}
-              aria-label="Bulan berikutnya"
-            >
-              <ChevronRight className="size-4" />
-            </a>
+          <div className="flex items-center gap-2">
+            {isSuperAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSyncHolidays}
+                disabled={isSyncPending}
+                className="h-8 text-xs flex items-center gap-1 border-blue-200 hover:bg-blue-50 text-blue-700 dark:border-blue-900 dark:hover:bg-blue-950/30 dark:text-blue-400"
+              >
+                {isSyncPending ? (
+                  <Loader2 className="size-3 animate-spin" />
+                ) : (
+                  <RefreshCw className="size-3" />
+                )}
+                Sync Kalender
+              </Button>
+            )}
+            <div className="flex items-center gap-1">
+              <a
+                href={`?month=${prevMonthKey}${activeStudioId ? `&studioId=${activeStudioId}` : ""}`}
+                className={buttonVariants({ variant: "outline", size: "icon" })}
+                aria-label="Bulan sebelumnya"
+              >
+                <ChevronLeft className="size-4" />
+              </a>
+              <a
+                href={`?month=${nextMonthKey}${activeStudioId ? `&studioId=${activeStudioId}` : ""}`}
+                className={buttonVariants({ variant: "outline", size: "icon" })}
+                aria-label="Bulan berikutnya"
+              >
+                <ChevronRight className="size-4" />
+              </a>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
