@@ -78,11 +78,11 @@ function getMenuGroups(role: SidebarUser["role"]): MenuGroup[] {
       {
         label: "Manajemen",
         items: [
-          { label: "User & Role", href: "/roles", icon: UserRound },
-          { label: "Studio & Lokasi", href: "/super-admin/studios", icon: MapPin },
+          { label: "User", href: "/roles", icon: UserRound },
+          { label: "Studio", href: "/super-admin/studios", icon: MapPin },
           { label: "Placement", href: "/super-admin/placements", icon: BriefcaseBusiness },
-          { label: "Jadwal WFO/WFH", href: "/schedules", icon: CalendarClock },
-          { label: "Cuti & Kalender", href: "/calendar", icon: CalendarClock },
+          { label: "WFO/WFH", href: "/schedules", icon: CalendarClock },
+          { label: "Kalender", href: "/calendar", icon: CalendarClock },
           { label: "Jadwal Piket", href: "/piket", icon: BrushCleaning },
           { label: "Slip Gaji", href: "/super-admin/payslips", icon: ClipboardCheck },
         ],
@@ -90,7 +90,7 @@ function getMenuGroups(role: SidebarUser["role"]): MenuGroup[] {
       {
         label: "Monitoring",
         items: [
-          { label: "Laporan Presensi", href: "/laporan-presensi", icon: Clipboard },
+          { label: "Presensi", href: "/laporan-presensi", icon: Clipboard },
           { label: "Persetujuan", href: "/admin/requests", icon: MessageSquare },
           { label: "Audit Trail", href: "/super-admin/audit-logs", icon: FileWarning },
           { label: "Arsip Akun", href: "/super-admin/archived-accounts", icon: Archive },
