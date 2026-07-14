@@ -151,7 +151,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
   const { state } = useSidebar();
 
   return (
-    <Sidebar collapsible="icon" variant="inset" {...props}>
+    <Sidebar collapsible={user.role === "SUPER_ADMIN" ? "icon" : "offcanvas"} variant="inset" {...props}>
       <SidebarHeader className="relative overflow-visible">
         {state === "collapsed" ? (
           <div className="relative h-12 w-full flex items-center justify-center overflow-visible">
