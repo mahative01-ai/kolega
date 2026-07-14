@@ -566,63 +566,7 @@ export default async function MemberDashboardPage({
             </CardContent>
           </Card>
 
-          {/* Mentor & Progress Magang */}
-          {data.internProfile && (
-            <Card className="shadow-none">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-bold text-zinc-900 dark:text-zinc-50">
-                  Bimbingan Magang
-                </CardTitle>
-                <CardDescription className="text-xs text-zinc-500">Informasi pembimbing & sisa waktu magang</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Mentor Info */}
-                <div className="rounded-md border border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-3 flex flex-col gap-1">
-                  <p className="text-[10px] uppercase tracking-wider font-bold text-zinc-400">Pembimbing / Mentor</p>
-                  <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-                    {data.internProfile.mentor?.name ?? "Belum ditentukan"}
-                  </p>
-                  {data.internProfile.mentor?.email && (
-                    <p className="text-xs text-zinc-500">{data.internProfile.mentor.email}</p>
-                  )}
-                </div>
 
-                {/* Progress Bar */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-500">Masa Magang</span>
-                    <span className="font-semibold text-zinc-700 dark:text-zinc-300">
-                      {Math.max(0, Math.ceil((new Date(data.internProfile.endDate).getTime() - today.getTime()) / (1000 * 60 * 60 * 24)))} Hari Lagi
-                    </span>
-                  </div>
-                  {(() => {
-                    const start = new Date(data.internProfile.startDate).getTime();
-                    const end = new Date(data.internProfile.endDate).getTime();
-                    const todayTime = today.getTime();
-                    const totalDays = Math.max(1, end - start);
-                    const passedDays = Math.max(0, todayTime - start);
-                    const percent = Math.min(100, Math.round((passedDays / totalDays) * 100));
-
-                    return (
-                      <div className="space-y-1">
-                        <div className="h-2 w-full rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 transition-all"
-                            style={{ width: `${percent}%` }}
-                          />
-                        </div>
-                        <div className="flex justify-between text-[9px] text-zinc-400">
-                          <span>{new Date(data.internProfile.startDate).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}</span>
-                          <span className="font-bold text-zinc-600 dark:text-zinc-400">{percent}% selesai</span>
-                          <span>{new Date(data.internProfile.endDate).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}</span>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </div>
 
         <Card id="kalender-kerja" className="shadow-none">
@@ -765,60 +709,115 @@ export default async function MemberDashboardPage({
         </Card>
       </div>
 
-      <Card className="shadow-none">
-        <CardHeader>
-          <CardTitle className="text-zinc-900 dark:text-zinc-50">Riwayat Presensi Saya</CardTitle>
-          <CardDescription className="text-zinc-500 dark:text-zinc-400">
-            Data terbaru untuk akun yang sedang login.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Tanggal</TableHead>
-                <TableHead>Default Studio</TableHead>
-                <TableHead>Lokasi</TableHead>
-                <TableHead>Mode</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.recentAttendance.length === 0 ? (
+      <div className="grid gap-6 lg:grid-cols-[0.35fr_0.65fr] mt-6">
+        {data.internProfile ? (
+          <Card className="shadow-none flex flex-col justify-between">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-bold text-zinc-900 dark:text-zinc-50">
+                Bimbingan Magang
+              </CardTitle>
+              <CardDescription className="text-xs text-zinc-500">Informasi pembimbing & sisa waktu magang</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 flex-1 flex flex-col justify-between">
+              {/* Mentor Info */}
+              <div className="rounded-md border border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-3 flex flex-col gap-1">
+                <p className="text-[10px] uppercase tracking-wider font-bold text-zinc-400">Pembimbing / Mentor</p>
+                <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+                  {data.internProfile.mentor?.name ?? "Belum ditentukan"}
+                </p>
+                {data.internProfile.mentor?.email && (
+                  <p className="text-xs text-zinc-500">{data.internProfile.mentor.email}</p>
+                )}
+              </div>
+
+              {/* Progress Bar */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-zinc-500">Masa Magang</span>
+                  <span className="font-semibold text-zinc-700 dark:text-zinc-300">
+                    {Math.max(0, Math.ceil((new Date(data.internProfile.endDate).getTime() - today.getTime()) / (1000 * 60 * 60 * 24)))} Hari Lagi
+                  </span>
+                </div>
+                {(() => {
+                  const start = new Date(data.internProfile.startDate).getTime();
+                  const end = new Date(data.internProfile.endDate).getTime();
+                  const todayTime = today.getTime();
+                  const totalDays = Math.max(1, end - start);
+                  const passedDays = Math.max(0, todayTime - start);
+                  const percent = Math.min(100, Math.round((passedDays / totalDays) * 100));
+
+                  return (
+                    <div className="space-y-1">
+                      <div className="h-2 w-full rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 transition-all"
+                          style={{ width: `${percent}%` }}
+                        />
+                      </div>
+                      <div className="flex justify-between text-[9px] text-zinc-400">
+                        <span>{new Date(data.internProfile.startDate).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}</span>
+                        <span className="font-bold text-zinc-600 dark:text-zinc-400">{percent}% selesai</span>
+                        <span>{new Date(data.internProfile.endDate).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </CardContent>
+          </Card>
+        ) : null}
+
+        <Card className={cn("shadow-none", !data.internProfile && "lg:col-span-2")}>
+          <CardHeader>
+            <CardTitle className="text-zinc-900 dark:text-zinc-50">Riwayat Presensi Saya</CardTitle>
+            <CardDescription className="text-zinc-500 dark:text-zinc-400">
+              Data terbaru untuk akun yang sedang login.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="h-24 text-center text-sm text-zinc-500"
-                  >
-                    Belum ada data presensi.
-                  </TableCell>
+                  <TableHead>Tanggal</TableHead>
+                  <TableHead>Default Studio</TableHead>
+                  <TableHead>Mode</TableHead>
+                  <TableHead>Status</TableHead>
                 </TableRow>
-              ) : (
-                data.recentAttendance.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell>{formatDate(item.attendanceDate)}</TableCell>
-                    <TableCell>{item.ownerStudio.name}</TableCell>
-                    <TableCell>
-                      {item.locationStudio?.name ?? "Tidak perlu lokasi"}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary" className="dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-300">{item.workMode}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="secondary"
-                        className={statusColor[item.status]}
-                      >
-                        {statusLabel[item.status] ?? item.status}
-                      </Badge>
+              </TableHeader>
+              <TableBody>
+                {data.recentAttendance.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={4}
+                      className="h-24 text-center text-sm text-zinc-500"
+                    >
+                      Belum ada data presensi.
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                ) : (
+                  data.recentAttendance.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell>{formatDate(item.attendanceDate)}</TableCell>
+                      <TableCell>{item.ownerStudio.name}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-300">{item.workMode}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="secondary"
+                          className={statusColor[item.status]}
+                        >
+                          {statusLabel[item.status] ?? item.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
     </DashboardShell>
   );
 }

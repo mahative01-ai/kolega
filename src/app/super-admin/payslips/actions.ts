@@ -157,3 +157,129 @@ export async function deletePayslip(id: string) {
   revalidatePath("/member/payslips");
   return deleted;
 }
+
+export async function bulkGeneratePayslipsAction(month: number, year: number) {
+  await requireRole("SUPER_ADMIN");
+  if (!month || month < 1 || month > 12) throw new Error("Bulan tidak valid.");
+  if (!year || year < 2000 || year > 2100) throw new Error("Tahun tidak valid.");
+
+  // Get all active members/admins with memberStatus = TEAM
+  const users = await prisma.user.findMany({
+    where: {
+      role: { in: ["ADMIN", "MEMBER"] },
+      memberStatus: "TEAM",
+      accountStatus: "ACTIVE",
+    },
+    select: { id: true }
+  });
+
+  if (users.length === 0) {
+    throw new Error("Tidak ada staf aktif berstatus TEAM ditemukan.");
+  }
+
+  let generatedCount = 0;
+  for (const u of users) {
+    // Check if payslip already exists
+    const existing = await prisma.payslip.findUnique({
+      where: {
+        userId_month_year: {
+          userId: u.id,
+          month,
+          year,
+        }
+      }
+    });
+
+    if (!existing) {
+      await prisma.payslip.create({
+        data: {
+          userId: u.id,
+          month,
+          year,
+          basicSalary: 0,
+          allowances: 0,
+          deductions: 0,
+          netSalary: 0,
+          status: "DRAFT" // Start as draft so admin can edit it later
+        }
+      });
+      generatedCount++;
+    }
+  }
+
+  revalidatePath("/super-admin/payslips");
+  revalidatePath("/member/payslips");
+
+  return { success: true, generatedCount };
+}
+
+export async function updatePayslipAction(
+  id: string,
+  formData: {
+    basicSalary: number;
+    allowances: number;
+    deductions: number;
+    notes?: string;
+    pdfFile?: {
+      name: string;
+      type: string;
+      dataUrl: string;
+    } | null;
+  }
+) {
+  await requireRole("SUPER_ADMIN");
+
+  const existing = await prisma.payslip.findUnique({
+    where: { id }
+  });
+
+  if (!existing) {
+    throw new Error("Slip gaji tidak ditemukan.");
+  }
+
+  const netSalary = formData.basicSalary + formData.allowances - formData.deductions;
+
+  const data: any = {
+    basicSalary: formData.basicSalary,
+    allowances: formData.allowances,
+    deductions: formData.deductions,
+    netSalary,
+    notes: formData.notes || null,
+  };
+
+  if (formData.pdfFile) {
+    data.pdfFileName = formData.pdfFile.name;
+    data.pdfMimeType = formData.pdfFile.type;
+    data.pdfDataUrl = formData.pdfFile.dataUrl;
+    data.uploadedAt = new Date();
+    data.status = "SENT"; // Automatically publish when PDF is uploaded
+  } else if (formData.pdfFile === null) {
+    // If explicitly set to null, remove PDF
+    data.pdfFileName = null;
+    data.pdfMimeType = null;
+    data.pdfDataUrl = null;
+    data.uploadedAt = null;
+  }
+
+  const updated = await prisma.payslip.update({
+    where: { id },
+    data
+  });
+
+  // If a PDF is uploaded/updated, notify the user
+  if (formData.pdfFile) {
+    const monthName = MONTH_NAMES[updated.month - 1] || `${updated.month}`;
+    await prisma.notification.create({
+      data: {
+        userId: updated.userId,
+        title: "Slip Gaji Diperbarui",
+        message: `Slip gaji Anda untuk periode ${monthName} ${updated.year} telah diperbarui/diterbitkan. Silakan cek di menu Slip Gaji Saya.`,
+      }
+    });
+  }
+
+  revalidatePath("/super-admin/payslips");
+  revalidatePath("/member/payslips");
+
+  return updated;
+}

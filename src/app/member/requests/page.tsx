@@ -33,12 +33,14 @@ export const dynamic = "force-dynamic";
 const requestTypeLabel: Record<string, string> = {
   PERMISSION: "Izin",
   SICK: "Sakit",
+  LEAVE: "Cuti Tahunan",
   WFH: "WFH",
 };
 
 const requestTypeColor: Record<string, string> = {
   PERMISSION: "bg-amber-100 text-amber-800",
   SICK: "bg-violet-100 text-violet-800",
+  LEAVE: "bg-blue-100 text-blue-800",
   WFH: "bg-indigo-100 text-indigo-800",
 };
 
@@ -93,10 +95,16 @@ export default async function MemberRequestsPage({
   const currentUser = await requireAnyRole(["ADMIN", "MEMBER"]);
   const params = await searchParams;
 
+  const userWithBalance = await prisma.user.findUnique({
+    where: { id: currentUser.id },
+    select: { annualLeaveBalance: true },
+  });
+  const leaveBalance = userWithBalance?.annualLeaveBalance ?? 12;
+
   const requests = await prisma.request.findMany({
     where: {
       userId: currentUser.id,
-      type: { in: ["PERMISSION", "SICK", "WFH"] },
+      type: { in: ["PERMISSION", "SICK", "LEAVE", "WFH"] },
     },
     orderBy: { createdAt: "desc" },
     include: {
@@ -138,6 +146,15 @@ export default async function MemberRequestsPage({
             </CardDescription>
           </CardHeader>
           <CardContent>
+            <div className="mb-4 rounded-lg border border-blue-200 dark:border-blue-900 bg-blue-50/50 dark:bg-blue-950/20 p-3 flex items-center justify-between">
+              <div className="space-y-0.5">
+                <p className="text-[10px] font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wide">Jatah Cuti Tahunan</p>
+                <p className="text-xs text-zinc-500">Sisa jatah cuti aktif Anda</p>
+              </div>
+              <p className="text-2xl font-black text-blue-700 dark:text-blue-400">
+                {leaveBalance} <span className="text-xs font-normal text-zinc-500">Hari</span>
+              </p>
+            </div>
             <form
               action={createRequestAction}
               method="POST"
@@ -156,6 +173,7 @@ export default async function MemberRequestsPage({
                 >
                   <option value="PERMISSION">Izin / Ganti Hari (Min H-1)</option>
                   <option value="SICK">Sakit (Keterangan Dokter, Maks H-H 07:00)</option>
+                  <option value="LEAVE">Cuti Tahunan (Min H-1, Potong Saldo)</option>
                   <option value="WFH">Pengajuan WFH</option>
                 </select>
               </div>

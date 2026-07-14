@@ -20,6 +20,8 @@ export const dynamic = "force-dynamic";
 const errorMessages: Record<string, string> = {
   "invalid": "Email atau password tidak sesuai.",
   "need-presence": "Akses dasbor terkunci. Silakan lakukan scan QR Card presensi atau verifikasi izin terlebih dahulu hari ini.",
+  "archived": "Akun Anda saat ini sedang dinonaktifkan sementara (diarsipkan). Silakan hubungi administrator untuk bantuan lebih lanjut.",
+  "inactive": "Akun Anda saat ini sedang dinonaktifkan. Silakan hubungi administrator.",
 };
 
 const successMessages: Record<string, string> = {

@@ -123,6 +123,7 @@ model User {
   role                       UserRole               @default(MEMBER)
   memberStatus               MemberStatus           @default(TEAM)
   accountStatus              AccountStatus          @default(ACTIVE)
+  annualLeaveBalance         Int                    @default(12)
   defaultStudioId            String?
   defaultStudio              Studio?                @relation("DefaultStudioMembers", fields: [defaultStudioId], references: [id])
   createdAt                  DateTime               @default(now())

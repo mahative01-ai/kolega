@@ -40,7 +40,6 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 
   return earthRadiusMeters * c;
 }
-
 export async function loginAction(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
@@ -57,12 +56,16 @@ export async function loginAction(formData: FormData) {
     },
   });
 
-  if (
-    !user ||
-    user.accountStatus !== "ACTIVE" ||
-    !verifyPassword(password, user.passwordHash)
-  ) {
+  if (!user || !verifyPassword(password, user.passwordHash)) {
     redirect("/login?error=invalid");
+  }
+
+  if (user.accountStatus === "ARCHIVED") {
+    redirect("/login?error=archived");
+  }
+
+  if (user.accountStatus === "INACTIVE") {
+    redirect("/login?error=inactive");
   }
 
   await setSession(user.id, rememberMe);

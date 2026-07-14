@@ -24,6 +24,7 @@ export async function reviewRequestAction(formData: FormData) {
           id: true,
           role: true,
           defaultStudioId: true,
+          annualLeaveBalance: true,
         },
       },
     },
@@ -90,6 +91,33 @@ export async function reviewRequestAction(formData: FormData) {
     if (newStatus === "APPROVED") {
       const start = new Date(request.startDate);
       const end = new Date(request.endDate);
+
+      // Hitung hari cuti
+      let daysCount = 0;
+      const countDate = new Date(start);
+      while (countDate <= end) {
+        daysCount++;
+        countDate.setUTCDate(countDate.getUTCDate() + 1);
+      }
+
+      if (request.type === "LEAVE") {
+        const userWithBalance = await tx.user.findUnique({
+          where: { id: request.userId },
+          select: { annualLeaveBalance: true },
+        });
+        if (!userWithBalance) throw new Error("Staf tidak ditemukan.");
+        if (userWithBalance.annualLeaveBalance < daysCount) {
+          throw new Error(`Saldo cuti staf tidak mencukupi untuk disetujui (dibutuhkan ${daysCount} hari, sisa ${userWithBalance.annualLeaveBalance} hari).`);
+        }
+        await tx.user.update({
+          where: { id: request.userId },
+          data: {
+            annualLeaveBalance: {
+              decrement: daysCount,
+            },
+          },
+        });
+      }
 
       // Loop through all dates in range (inclusive)
       const current = new Date(start);
@@ -191,6 +219,7 @@ export async function quickReviewRequestAction(requestId: string, approve: boole
           id: true,
           role: true,
           defaultStudioId: true,
+          annualLeaveBalance: true,
         },
       },
     },
@@ -257,6 +286,33 @@ export async function quickReviewRequestAction(requestId: string, approve: boole
     if (newStatus === "APPROVED") {
       const start = new Date(request.startDate);
       const end = new Date(request.endDate);
+
+      // Hitung hari cuti
+      let daysCount = 0;
+      const countDate = new Date(start);
+      while (countDate <= end) {
+        daysCount++;
+        countDate.setUTCDate(countDate.getUTCDate() + 1);
+      }
+
+      if (request.type === "LEAVE") {
+        const userWithBalance = await tx.user.findUnique({
+          where: { id: request.userId },
+          select: { annualLeaveBalance: true },
+        });
+        if (!userWithBalance) throw new Error("Staf tidak ditemukan.");
+        if (userWithBalance.annualLeaveBalance < daysCount) {
+          throw new Error(`Saldo cuti staf tidak mencukupi untuk disetujui (dibutuhkan ${daysCount} hari, sisa ${userWithBalance.annualLeaveBalance} hari).`);
+        }
+        await tx.user.update({
+          where: { id: request.userId },
+          data: {
+            annualLeaveBalance: {
+              decrement: daysCount,
+            },
+          },
+        });
+      }
 
       // Loop through all dates in range (inclusive)
       const current = new Date(start);
