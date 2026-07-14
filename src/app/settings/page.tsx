@@ -1,4 +1,4 @@
-import { Clock, MapPin, User as UserIcon } from "lucide-react";
+import { Clock, User as UserIcon } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -16,7 +16,6 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { WorkdaySettingsClient } from "./workday-settings-client";
-import { GeofenceSettingsClient } from "./geofence-settings-client";
 import { ProfileSettingsClient } from "./profile-settings-client";
 import Link from "next/link";
 
@@ -78,7 +77,7 @@ export default async function SettingsPage({
       title="Pengaturan"
       description={
         isSuperAdmin
-          ? "Kelola kata sandi profil, hari kerja, dan geofence lokasi studio."
+          ? "Kelola kata sandi profil dan hari kerja studio."
           : "Kelola profil pribadi dan kata sandi akun Kolega Anda."
       }
     >
@@ -100,15 +99,6 @@ export default async function SettingsPage({
                 <Link href="/settings?tab=workday">
                   <Clock className="size-4 mr-1.5" />
                   Hari Kerja
-                </Link>
-              }
-            />
-            <TabsTrigger
-              value="locations"
-              render={
-                <Link href="/settings?tab=locations">
-                  <MapPin className="size-4 mr-1.5" />
-                  Lokasi
                 </Link>
               }
             />
@@ -134,23 +124,6 @@ export default async function SettingsPage({
                 </CardHeader>
                 <CardContent>
                   <WorkdaySettingsClient studios={studios} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="locations" className="mt-0">
-              <Card className="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-none">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
-                    <MapPin className="size-5 text-emerald-700" />
-                    Studio & Geofence
-                  </CardTitle>
-                  <CardDescription>
-                    Atur koordinat GPS dan radius geofence untuk validasi lokasi WFO.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <GeofenceSettingsClient studios={studios} />
                 </CardContent>
               </Card>
             </TabsContent>
