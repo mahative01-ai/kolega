@@ -14,10 +14,8 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   useSidebar,
-  SidebarRail,
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import {
   Archive,
   CalendarClock,
@@ -33,11 +31,9 @@ import {
   MapPin,
   BriefcaseBusiness,
   Terminal,
-  Search,
 } from "lucide-react";
 import { ROLE_LABEL } from "@/lib/roles";
 import { NavUser } from "@/components/nav-user";
-import { TeamSwitcher } from "@/components/team-switcher";
 
 type SidebarUser = {
   id: string;
@@ -133,7 +129,7 @@ function getMenuGroups(role: SidebarUser["role"]): MenuGroup[] {
     {
       label: "Presensi",
       items: [
-        { label: "Jadwal Saya", icon: CalendarClock, badge: "Next" },
+        { label: "Jadwal Saya", href: "/member/schedules", icon: CalendarClock },
         { label: "Riwayat Saya", href: "/member/presensi/riwayat", icon: History },
         { label: "Izin/Sakit/Cuti", href: "/member/requests", icon: MessageSquare },
         { label: "Koreksi Presensi", href: "/member/corrections", icon: ClipboardCheck },
@@ -147,40 +143,17 @@ function getMenuGroups(role: SidebarUser["role"]): MenuGroup[] {
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   user: SidebarUser;
-  studios?: { id: string; name: string }[];
 }
 
-export function AppSidebar({ user, studios = [], ...props }: AppSidebarProps) {
+export function AppSidebar({ user, ...props }: AppSidebarProps) {
   const currentPath = usePathname();
   const groups = getMenuGroups(user.role);
   const { state } = useSidebar();
-  const isMember = user.role === "MEMBER";
-
-  const teams =
-    studios.length > 0
-      ? studios.map((s) => ({
-          name: s.name,
-          logo: <Terminal className="size-4" />,
-          plan: "Studio Cabang",
-        }))
-      : [
-          {
-            name: user.defaultStudio?.name || "Kolega",
-            logo: <Terminal className="size-4" />,
-            plan: "Default Studio",
-          },
-        ];
 
   return (
-    <Sidebar
-      collapsible="icon"
-      variant={user.role === "SUPER_ADMIN" ? "sidebar" : "inset"}
-      {...props}
-    >
-      <SidebarHeader className={user.role === "SUPER_ADMIN" ? "" : "relative overflow-visible"}>
-        {user.role === "SUPER_ADMIN" ? (
-          <TeamSwitcher teams={teams} />
-        ) : state === "collapsed" ? (
+    <Sidebar collapsible="icon" variant="inset" {...props}>
+      <SidebarHeader className="relative overflow-visible">
+        {state === "collapsed" ? (
           <div className="relative h-12 w-full flex items-center justify-center overflow-visible">
             {/* The Logo container that extends (memanjangkan) on hover to the right using the terminal logo */}
             <div className="group absolute left-1.5 flex items-center h-10 w-9 hover:w-44 rounded-lg bg-white dark:bg-zinc-950 border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800 hover:shadow-md hover:z-50 transition-all duration-300 overflow-hidden cursor-pointer p-0.5">
@@ -208,19 +181,6 @@ export function AppSidebar({ user, studios = [], ...props }: AppSidebarProps) {
                 </div>
               </SidebarMenuItem>
             </SidebarMenu>
-            {/* Search Input Box below the logo for MEMBER role to match sidebar-01 specifications */}
-            {isMember && (
-              <div className="px-2 pb-2">
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-500" />
-                  <Input
-                    type="search"
-                    placeholder="Cari menu..."
-                    className="pl-8 h-9 text-xs bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
-                  />
-                </div>
-              </div>
-            )}
           </div>
         )}
       </SidebarHeader>
@@ -242,7 +202,7 @@ export function AppSidebar({ user, studios = [], ...props }: AppSidebarProps) {
                       <SidebarMenuButton
                         isActive={isActive}
                         render={<Link href={item.href} />}
-                        tooltip={isMember ? undefined : item.label}
+                        tooltip={item.label}
                         className={isActive ? "bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 font-medium group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2!" : "text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2!"}
                       >
                         <Icon className="size-4 shrink-0" />
@@ -264,7 +224,7 @@ export function AppSidebar({ user, studios = [], ...props }: AppSidebarProps) {
                     ) : (
                       <SidebarMenuButton
                         disabled
-                        tooltip={isMember ? undefined : item.label}
+                        tooltip={item.label}
                         className="opacity-55 cursor-not-allowed text-zinc-700 dark:text-zinc-300 flex w-full items-center gap-2 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2!"
                       >
                         <Icon className="size-4 shrink-0" />
@@ -290,7 +250,6 @@ export function AppSidebar({ user, studios = [], ...props }: AppSidebarProps) {
       <SidebarFooter>
         <NavUser user={user} />
       </SidebarFooter>
-      <SidebarRail />
     </Sidebar>
   );
 }

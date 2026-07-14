@@ -86,15 +86,6 @@ export async function DashboardShell({
 
 
 
-  // Fetch active studios list for Super Admin's Studio Switcher (sidebar-07)
-  const studios = user.role === "SUPER_ADMIN"
-    ? await prisma.studio.findMany({
-        where: { isActive: true },
-        select: { id: true, name: true },
-        orderBy: { name: "asc" },
-      })
-    : [];
-
   // Generate breadcrumb list dynamically
   const dashboardBase = user.role === "SUPER_ADMIN" ? "super-admin" : user.role === "ADMIN" ? "admin" : "member";
   const pathSegments = currentPath.split("/").filter(Boolean);
@@ -114,7 +105,7 @@ export async function DashboardShell({
 
   return (
     <SidebarProvider defaultOpen={user.role === "SUPER_ADMIN"} className="bg-zinc-100 dark:bg-background">
-      <AppSidebar user={user} studios={studios} />
+      <AppSidebar user={user} />
       <SidebarInset className="flex flex-col bg-white dark:bg-background border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-none m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2 text-zinc-950 dark:text-zinc-50">
         {/* Navbar */}
         <header className="flex h-16 shrink-0 items-center justify-between border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-background px-4 sticky top-0 z-10 transition-colors">
