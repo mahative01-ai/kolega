@@ -106,10 +106,10 @@ function getMenuGroups(role: SidebarUser["role"]): MenuGroup[] {
       {
         label: "Presensi Saya",
         items: [
-          { label: "Riwayat Saya", href: "/member/presensi/riwayat", icon: History },
-          { label: "Ajukan Izin Saya", href: "/member/requests", icon: MessageSquare },
-          { label: "Koreksi Presensi Saya", href: "/member/corrections", icon: ClipboardCheck },
-          { label: "Laporan WFH Saya", href: "/member/laporan-wfh", icon: Clipboard },
+          { label: "Riwayat", href: "/member/presensi/riwayat", icon: History },
+          { label: "Ajukan Izin", href: "/member/requests", icon: MessageSquare },
+          { label: "Koreksi Presensi", href: "/member/corrections", icon: ClipboardCheck },
+          { label: "Laporan WFH", href: "/member/laporan-wfh", icon: Clipboard },
         ],
       },
       {
@@ -118,7 +118,7 @@ function getMenuGroups(role: SidebarUser["role"]): MenuGroup[] {
           { label: "User Studio", href: "/roles", icon: UserRound },
           { label: "Jadwal Tim", href: "/schedules", icon: CalendarClock },
           { label: "Persetujuan", href: "/admin/requests", icon: MessageSquare },
-          { label: "Piket & Pengingat", href: "/piket", icon: BrushCleaning },
+          { label: "Piket", href: "/piket", icon: BrushCleaning },
         ],
       },
     ];
@@ -129,13 +129,13 @@ function getMenuGroups(role: SidebarUser["role"]): MenuGroup[] {
     {
       label: "Presensi",
       items: [
-        { label: "Jadwal Saya", href: "/member/schedules", icon: CalendarClock },
-        { label: "Riwayat Saya", href: "/member/presensi/riwayat", icon: History },
+        { label: "Jadwal", href: "/member/schedules", icon: CalendarClock },
+        { label: "Riwayat", href: "/member/presensi/riwayat", icon: History },
         { label: "Izin/Sakit/Cuti", href: "/member/requests", icon: MessageSquare },
         { label: "Koreksi Presensi", href: "/member/corrections", icon: ClipboardCheck },
-        { label: "Jadwal Piket Saya", href: "/piket", icon: BrushCleaning },
+        { label: "Jadwal Piket", href: "/piket", icon: BrushCleaning },
         { label: "Laporan WFH", href: "/member/laporan-wfh", icon: Clipboard },
-        { label: "Slip Gaji Saya", href: "/member/payslips", icon: ClipboardCheck },
+        { label: "Slip Gaji", href: "/member/payslips", icon: ClipboardCheck },
       ],
     },
   ];
