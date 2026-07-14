@@ -41,6 +41,7 @@ import {
 import { quickReviewRequestAction } from "./requests/actions";
 import { quickReviewCorrectionAction } from "./corrections/actions";
 import { dedupeCalendarEvents, isApiHolidayCoveredByDbEvent } from "@/lib/calendar-events";
+import { formatMinutesAsClock, getCheckoutEligibility } from "@/lib/checkout-policy";
 
 type Props = {
   currentUser: {
@@ -88,6 +89,10 @@ type Props = {
     } | null;
     todaySchedule?: {
       workMode: string;
+    } | null;
+    attendancePolicy?: {
+      checkInTime: string;
+      checkOutTime: string;
     } | null;
     dailyTrend?: Array<{ dateLabel: string; count: number }>;
     pendingRequestList?: Array<{
@@ -197,6 +202,16 @@ export function AdminDashboardClient({
 }: Props) {
   const [activeTab, setActiveTab] = useState<"personal" | "studio">(() => defaultTab ?? "personal");
   const isWfhMode = data.todaySchedule?.workMode === "WFH" || data.todayRecord?.workMode === "WFH";
+  const checkoutEligibility = data.todayRecord?.checkInAt && !data.todayRecord.checkOutAt
+    ? getCheckoutEligibility({
+        checkInAt: data.todayRecord.checkInAt,
+        policy: data.attendancePolicy,
+      })
+    : null;
+  const isCheckoutLocked = Boolean(checkoutEligibility && !checkoutEligibility.isAllowed);
+  const checkoutAvailableTime = checkoutEligibility
+    ? formatMinutesAsClock(checkoutEligibility.allowedCheckoutMinutes)
+    : null;
 
   const adminHolidaysMap = useMemo(() => {
     const map = new Map<string, { title: string; type: string }[]>();
@@ -494,13 +509,27 @@ export function AdminDashboardClient({
                 Lihat Riwayat Presensi Saya
               </Link>
               {!isWfhMode && (!data.todayRecord || !data.todayRecord.checkOutAt) && (
-                <Link
-                  href="/member/presensi"
-                  className={cn(buttonVariants({ variant: "default", size: "sm" }), "flex items-center gap-1.5")}
-                >
-                  <Camera className="size-4" />
-                  Presensi WFO (Kamera/QR)
-                </Link>
+                isCheckoutLocked ? (
+                  <span
+                    aria-disabled="true"
+                    title={`Check-out baru dibuka pukul ${checkoutAvailableTime}`}
+                    className={cn(
+                      buttonVariants({ variant: "default", size: "sm" }),
+                      "flex cursor-not-allowed items-center gap-1.5 bg-zinc-200 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400"
+                    )}
+                  >
+                    <Camera className="size-4" />
+                    Check-out dibuka {checkoutAvailableTime}
+                  </span>
+                ) : (
+                  <Link
+                    href={data.todayRecord?.checkInAt ? "/login?action=checkout" : "/member/presensi"}
+                    className={cn(buttonVariants({ variant: "default", size: "sm" }), "flex items-center gap-1.5")}
+                  >
+                    <Camera className="size-4" />
+                    {data.todayRecord?.checkInAt ? "Scan Check-out WFO" : "Presensi WFO (Kamera/QR)"}
+                  </Link>
+                )
               )}
             </CardContent>
             {isWfhMode && (

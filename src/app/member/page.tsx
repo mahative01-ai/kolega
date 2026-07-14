@@ -28,6 +28,7 @@ import {
   summarizeAttendanceStatuses,
 } from "@/lib/attendance-report";
 import { getJakartaDateKey, dateOnlyFromKey } from "@/lib/attendance-time";
+import { formatMinutesAsClock, getCheckoutEligibility } from "@/lib/checkout-policy";
 import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { cn } from "@/lib/utils";
@@ -108,6 +109,7 @@ async function getMemberDashboardData(userId: string, selectedMonthKey?: string)
     picketCalendar,
     calendarEvents,
     apiHolidays,
+    attendancePolicy,
   ] = await Promise.all([
     prisma.attendanceRecord.groupBy({
       by: ["status"],
@@ -244,6 +246,21 @@ async function getMemberDashboardData(userId: string, selectedMonthKey?: string)
       },
     }),
     getIndonesianHolidays(month.year),
+    userObj?.defaultStudioId
+      ? prisma.attendancePolicy.findFirst({
+          where: {
+            studioId: userObj.defaultStudioId,
+            isActive: true,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+          select: {
+            checkInTime: true,
+            checkOutTime: true,
+          },
+        })
+      : Promise.resolve(null),
   ]);
 
   return {
@@ -259,6 +276,7 @@ async function getMemberDashboardData(userId: string, selectedMonthKey?: string)
     picketCalendar,
     calendarEvents,
     apiHolidays,
+    attendancePolicy,
     monthLabel: formatMonthLabel(reportMonth),
     selectedMonth: month,
   };
@@ -276,6 +294,16 @@ export default async function MemberDashboardPage({
 
   const data = await getMemberDashboardData(currentUser.id, params.month);
   const isWfhMode = data.todaySchedule?.workMode === "WFH" || data.todayRecord?.workMode === "WFH";
+  const checkoutEligibility = data.todayRecord?.checkInAt && !data.todayRecord.checkOutAt
+    ? getCheckoutEligibility({
+        checkInAt: data.todayRecord.checkInAt,
+        policy: data.attendancePolicy,
+      })
+    : null;
+  const isCheckoutLocked = Boolean(checkoutEligibility && !checkoutEligibility.isAllowed);
+  const checkoutAvailableTime = checkoutEligibility
+    ? formatMinutesAsClock(checkoutEligibility.allowedCheckoutMinutes)
+    : null;
   const qrSvg = data.qrCredential
     ? await QRCode.toString(data.qrCredential.qrUid, {
         type: "svg",
@@ -482,16 +510,30 @@ export default async function MemberDashboardPage({
           </Link>
           
           {!isWfhMode && (!data.todayRecord || !data.todayRecord.checkOutAt) && (
-            <Link
-              href={data.todayRecord?.checkInAt ? "/login?action=checkout" : "/login"}
-              className={cn(
-                buttonVariants({ variant: "default", size: "sm" }),
-                "flex items-center gap-1.5 bg-zinc-950 dark:bg-zinc-100 hover:bg-zinc-900 dark:hover:bg-zinc-200 text-white dark:text-zinc-950"
-              )}
-            >
-              <Camera className="size-4" />
-              {data.todayRecord?.checkInAt ? "Scan Check-out WFO" : "Scan Check-in WFO"}
-            </Link>
+            isCheckoutLocked ? (
+              <span
+                aria-disabled="true"
+                title={`Check-out baru dibuka pukul ${checkoutAvailableTime}`}
+                className={cn(
+                  buttonVariants({ variant: "default", size: "sm" }),
+                  "flex cursor-not-allowed items-center gap-1.5 bg-zinc-200 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400"
+                )}
+              >
+                <Camera className="size-4" />
+                Check-out dibuka {checkoutAvailableTime}
+              </span>
+            ) : (
+              <Link
+                href={data.todayRecord?.checkInAt ? "/login?action=checkout" : "/login"}
+                className={cn(
+                  buttonVariants({ variant: "default", size: "sm" }),
+                  "flex items-center gap-1.5 bg-zinc-950 dark:bg-zinc-100 hover:bg-zinc-900 dark:hover:bg-zinc-200 text-white dark:text-zinc-950"
+                )}
+              >
+                <Camera className="size-4" />
+                {data.todayRecord?.checkInAt ? "Scan Check-out WFO" : "Scan Check-in WFO"}
+              </Link>
+            )
           )}
         </CardContent>
         {isWfhMode && (

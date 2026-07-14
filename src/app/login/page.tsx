@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getJakartaDateKey, dateOnlyFromKey } from "@/lib/attendance-time";
+import { formatMinutesAsClock, getCheckoutEligibility } from "@/lib/checkout-policy";
 import { loginAction } from "./actions";
 import { QrLoginScanner } from "./qr-login-scanner";
 import { Terminal } from "lucide-react";
@@ -48,6 +49,8 @@ export default async function LoginPage({
 
   let statusText = "Belum Check-in WFO";
   let statusColor = "bg-zinc-100 text-zinc-500 border-zinc-200 dark:bg-zinc-950 dark:border-zinc-800 dark:text-zinc-400";
+  let scannerDisabled = false;
+  let scannerDisabledMessage = "Scan belum tersedia.";
 
   if (currentUser) {
     const todayKey = getJakartaDateKey();
@@ -105,8 +108,41 @@ export default async function LoginPage({
             statusText = `WFO: Check-in ${checkInTime} (Tepat Waktu)`;
             statusColor = "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/50";
           }
+
+          if (params.action === "checkout") {
+            const activePlacement = await prisma.placement.findFirst({
+              where: {
+                userId: currentUser.id,
+                status: "ACTIVE",
+              },
+              select: { studioId: true },
+            });
+            const currentStudioId = activePlacement?.studioId ?? currentUser.defaultStudioId;
+            const policy = currentStudioId
+              ? await prisma.attendancePolicy.findFirst({
+                  where: { studioId: currentStudioId, isActive: true },
+                  orderBy: { createdAt: "desc" },
+                  select: { checkInTime: true, checkOutTime: true },
+                })
+              : null;
+            const eligibility = getCheckoutEligibility({
+              checkInAt: attendance.checkInAt,
+              policy,
+            });
+
+            if (!eligibility.isAllowed) {
+              const allowedClock = formatMinutesAsClock(eligibility.allowedCheckoutMinutes);
+              statusText = `Check-out dibuka ${allowedClock}`;
+              statusColor = "bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-950 dark:border-zinc-800 dark:text-zinc-300";
+              scannerDisabled = true;
+              scannerDisabledMessage = `Check-out baru dibuka pukul ${allowedClock}. Sisa ${eligibility.remainingMinutes} menit.`;
+            }
+          }
         }
       }
+    } else if (params.action === "checkout") {
+      scannerDisabled = true;
+      scannerDisabledMessage = "Anda belum check-in WFO hari ini.";
     } else {
       const personalSchedule = await prisma.personalWorkSchedule.findUnique({
         where: {
@@ -165,8 +201,10 @@ export default async function LoginPage({
         {currentUser ? (
           <div className="grid gap-4">
             <QrLoginScanner
-              autoStart={true}
+              autoStart={!scannerDisabled}
               action={params.action}
+              disabled={scannerDisabled}
+              disabledMessage={scannerDisabledMessage}
               currentUser={{
                 name: currentUser.name,
                 role: currentUser.role,
