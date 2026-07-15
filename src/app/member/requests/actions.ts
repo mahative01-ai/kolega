@@ -138,3 +138,31 @@ export async function createRequestAction(formData: FormData) {
   revalidatePath("/member/requests");
   redirect("/member/requests?success=created");
 }
+
+export async function cancelRequestAction(formData: FormData) {
+  const currentUser = await requireAnyRole(["ADMIN", "MEMBER"]);
+  const requestId = String(formData.get("requestId") ?? "");
+
+  const request = await prisma.request.findUnique({
+    where: { id: requestId },
+  });
+
+  if (!request) {
+    redirect("/member/requests?error=not-found");
+  }
+
+  if (request.userId !== currentUser.id) {
+    redirect("/member/requests?error=unauthorized");
+  }
+
+  if (request.status !== "PENDING") {
+    redirect("/member/requests?error=already-processed");
+  }
+
+  await prisma.request.delete({
+    where: { id: requestId },
+  });
+
+  revalidatePath("/member/requests");
+  redirect("/member/requests?success=cancelled");
+}

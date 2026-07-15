@@ -122,7 +122,7 @@ export default async function AttendanceReportPage({
         locationValidationStatus: true,
         distanceMeters: true,
         user: {
-          select: { id: true, name: true, email: true, role: true },
+          select: { id: true, name: true, email: true, role: true, currentMood: true },
         },
         ownerStudio: { select: { name: true } },
         locationStudio: { select: { name: true } },

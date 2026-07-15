@@ -23,9 +23,10 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner"; // Wait, is sonner or toast imported? In roles-client.tsx it was imported from sonner or toast. Let's check!
+import { toast } from "sonner";
 import { createPayslip, deletePayslip, bulkGeneratePayslipsAction, updatePayslipAction, deleteAllPayslipsAction } from "./actions";
 import { Plus, Trash2, Printer, Loader2, FileText, Pencil, RefreshCw } from "lucide-react";
+import { Combobox } from "@/components/ui/combobox";
 
 type Member = {
   id: string;
@@ -83,6 +84,7 @@ export function PayslipClient({
   studios: Studio[];
 }) {
   const [payslips, setPayslips] = useState<Payslip[]>(initialPayslips);
+  const [activeStudioId, setActiveStudioId] = useState(studios[0]?.id ?? "");
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -94,19 +96,20 @@ export function PayslipClient({
   const [isDeleteAllPending, startDeleteAllTransition] = useTransition();
 
   const handleDeleteAll = async () => {
-    if (!confirm("Apakah Anda yakin ingin menghapus SEMUA slip gaji yang ada di sistem? Tindakan ini tidak dapat dibatalkan!")) {
+    const activeStudioName = studios.find((s) => s.id === activeStudioId)?.name ?? "Studio Terpilih";
+    if (!confirm(`Apakah Anda yakin ingin menghapus SEMUA slip gaji untuk studio ${activeStudioName}? Tindakan ini tidak dapat dibatalkan!`)) {
       return;
     }
 
     startDeleteAllTransition(async () => {
       try {
-        const res = await deleteAllPayslipsAction();
+        const res = await deleteAllPayslipsAction(activeStudioId);
         if (res.success) {
-          setPayslips([]);
-          toast.success("Semua slip gaji berhasil dihapus.");
+          setPayslips(payslips.filter((p) => p.user.defaultStudioId !== activeStudioId));
+          toast.success(`Semua slip gaji untuk studio ${activeStudioName} berhasil dihapus.`);
         }
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Gagal menghapus semua slip gaji.");
+        toast.error(err instanceof Error ? err.message : "Gagal menghapus slip gaji.");
       }
     });
   };
@@ -123,13 +126,14 @@ export function PayslipClient({
 
   const handleBulkGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!confirm(`Apakah Anda yakin ingin menggenerasi slip gaji default untuk semua staf TEAM pada periode ${MONTH_NAMES[bulkMonth - 1]} ${bulkYear}?`)) {
+    const activeStudioName = studios.find((s) => s.id === activeStudioId)?.name ?? "Studio Terpilih";
+    if (!confirm(`Apakah Anda yakin ingin menggenerasi slip gaji default untuk semua staf TEAM di studio ${activeStudioName} pada periode ${MONTH_NAMES[bulkMonth - 1]} ${bulkYear}?`)) {
       return;
     }
 
     startBulkTransition(async () => {
       try {
-        const res = await bulkGeneratePayslipsAction(bulkMonth, bulkYear);
+        const res = await bulkGeneratePayslipsAction(bulkMonth, bulkYear, activeStudioId);
         toast.success(`Berhasil! ${res.generatedCount} slip gaji baru berhasil digenerasi.`);
         setIsBulkOpen(false);
         window.location.reload();
@@ -316,263 +320,276 @@ export function PayslipClient({
     }
   };
 
+  const activeStudioMembers = members.filter((m) => m.defaultStudioId === activeStudioId);
+  const memberOptions = activeStudioMembers.map((m) => ({
+    value: m.id,
+    label: `${m.name} (${m.email})`,
+  }));
+
+  const activeStudioPayslipsCount = payslips.filter((p) => p.user.defaultStudioId === activeStudioId).length;
+
   return (
     <div className="space-y-6 font-sans">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Daftar Slip Gaji</h2>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
             Kelola dan kirim rincian slip gaji tim bulanan.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          {payslips.length > 0 && (
-            <Button
-              variant="destructive"
-              onClick={handleDeleteAll}
-              disabled={isDeleteAllPending}
-              className="flex items-center gap-2"
-            >
-              {isDeleteAllPending ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Trash2 className="size-4" />
-              )}
-              Hapus Semua
-            </Button>
-          )}
-
-          {/* Dialog Bulk Generate */}
-          <Dialog open={isBulkOpen} onOpenChange={setIsBulkOpen}>
-            <Button
-              variant="outline"
-              onClick={() => setIsBulkOpen(true)}
-              className="flex items-center gap-2 border-zinc-200 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
-            >
-              <RefreshCw className="size-4" />
-              Generate Massal
-            </Button>
-            <DialogContent className="max-w-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 font-sans">
-              <DialogHeader>
-                <DialogTitle>Generate Slip Gaji Massal</DialogTitle>
-                <DialogDescription>
-                  Buat slip gaji kosong periode tertentu untuk semua staf aktif berstatus TEAM secara massal.
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleBulkGenerate} className="space-y-4 py-2">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="bulkMonth">Bulan</Label>
-                    <select
-                      id="bulkMonth"
-                      className="w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-zinc-100"
-                      value={bulkMonth}
-                      onChange={(e) => setBulkMonth(Number(e.target.value))}
-                    >
-                      {MONTH_NAMES.map((name, i) => (
-                        <option key={i} value={i + 1}>
-                          {name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="bulkYear">Tahun</Label>
-                    <select
-                      id="bulkYear"
-                      className="w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-zinc-100"
-                      value={bulkYear}
-                      onChange={(e) => setBulkYear(Number(e.target.value))}
-                    >
-                      {[bulkYear - 1, bulkYear, bulkYear + 1].map((y) => (
-                        <option key={y} value={y}>
-                          {y}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                <DialogFooter className="pt-2">
-                  <Button type="button" variant="outline" onClick={() => setIsBulkOpen(false)} disabled={isBulkPending}>
-                    Batal
-                  </Button>
-                  <Button type="submit" disabled={isBulkPending} className="bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950">
-                    {isBulkPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Memproses...
-                      </>
-                    ) : (
-                      "Generate"
-                    )}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <Button
-              className="bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 hover:opacity-90 flex items-center gap-2"
-              render={<DialogTrigger />}
-            >
-              <Plus className="size-4" />
-              Buat Slip Gaji
-            </Button>
-          <DialogContent className="max-w-md bg-white dark:bg-zinc-950 font-sans border border-zinc-200 dark:border-zinc-800">
-            <DialogHeader>
-              <DialogTitle>Buat Slip Gaji Baru</DialogTitle>
-              <DialogDescription>
-                Masukkan rincian gaji untuk member tim. Member akan menerima notifikasi otomatis.
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleCreate} className="space-y-4 py-2">
-              <div className="space-y-2">
-                <Label htmlFor="member">Pilih Member</Label>
-                <select
-                  id="member"
-                  className="w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-zinc-100"
-                  value={selectedMemberId}
-                  onChange={(e) => setSelectedMemberId(e.target.value)}
-                >
-                  <option value="">-- Pilih Anggota --</option>
-                  {members.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.name} ({m.defaultStudio?.name ?? "Tanpa Studio"})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="month">Bulan</Label>
-                  <select
-                    id="month"
-                    className="w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-zinc-100"
-                    value={month}
-                    onChange={(e) => setMonth(Number(e.target.value))}
-                  >
-                    {MONTH_NAMES.map((name, i) => (
-                      <option key={i} value={i + 1}>
-                        {name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="year">Tahun</Label>
-                  <select
-                    id="year"
-                    className="w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-zinc-100"
-                    value={year}
-                    onChange={(e) => setYear(Number(e.target.value))}
-                  >
-                    {[year - 1, year, year + 1].map((y) => (
-                      <option key={y} value={y}>
-                        {y}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="basicSalary">Gaji Pokok (Rupiah)</Label>
-                <Input
-                  id="basicSalary"
-                  type="number"
-                  placeholder="Gaji Pokok"
-                  value={basicSalary || ""}
-                  onChange={(e) => setBasicSalary(Number(e.target.value))}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="allowances">Total Tunjangan</Label>
-                  <Input
-                    id="allowances"
-                    type="number"
-                    placeholder="Makan, Transport, dll"
-                    value={allowances || ""}
-                    onChange={(e) => setAllowances(Number(e.target.value))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="deductions">Total Potongan</Label>
-                  <Input
-                    id="deductions"
-                    type="number"
-                    placeholder="Terlambat, Izin, dll"
-                    value={deductions || ""}
-                    onChange={(e) => setDeductions(Number(e.target.value))}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="notes">Catatan (Opsional)</Label>
-                <Textarea
-                  id="notes"
-                  placeholder="Misal: Bonus performa, keterlambatan 3x"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={2}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="pdfFile">Upload PDF Slip Gaji</Label>
-                <Input
-                  id="pdfFile"
-                  type="file"
-                  accept="application/pdf"
-                  onChange={(e) => setPdfFile(e.target.files?.[0] ?? null)}
-                />
-                <p className="text-xs text-zinc-500">PDF maksimal 2MB. File akan tampil di halaman Slip Gaji Saya.</p>
-              </div>
-
-              <div className="p-3 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-1">
-                <p className="text-xs text-zinc-500">Estimasi Kalkulasi Gaji Bersih:</p>
-                <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-                  {localFormatCurrency(netSalary)}
-                </p>
-              </div>
-
-              <DialogFooter className="pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsOpen(false)}
-                  disabled={isPending}
-                >
-                  Batal
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={isPending}
-                  className="bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950"
-                >
-                  {isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Mengirim...
-                    </>
-                  ) : (
-                    "Kirim Slip"
-                  )}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-        </div>
       </div>
 
-      <Tabs defaultValue={studios[0]?.id ?? "all"} className="w-full">
-        <TabsList className="mb-4 flex w-fit flex-wrap">
-          {studios.map((studio) => (
+      <Tabs value={activeStudioId} onValueChange={setActiveStudioId} className="w-full">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <TabsList className="mb-0 flex w-fit flex-wrap">
+            {studios.map((studio) => (
+              <TabsTrigger key={studio.id} value={studio.id}>
+                {studio.name}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          <div className="flex items-center gap-2">
+            {activeStudioPayslipsCount > 0 && (
+              <Button
+                variant="destructive"
+                onClick={handleDeleteAll}
+                disabled={isDeleteAllPending}
+                className="flex items-center gap-2"
+              >
+                {isDeleteAllPending ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Trash2 className="size-4" />
+                )}
+                Hapus Semua
+              </Button>
+            )}
+
+            {/* Dialog Bulk Generate */}
+            <Dialog open={isBulkOpen} onOpenChange={setIsBulkOpen}>
+              <Button
+                variant="outline"
+                onClick={() => setIsBulkOpen(true)}
+                className="flex items-center gap-2 border-zinc-200 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
+              >
+                <RefreshCw className="size-4" />
+                Generate Massal
+              </Button>
+              <DialogContent className="max-w-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 font-sans">
+                <DialogHeader>
+                  <DialogTitle>Generate Slip Gaji Massal</DialogTitle>
+                  <DialogDescription>
+                    Buat slip gaji kosong periode tertentu untuk semua staf aktif berstatus TEAM di studio ini secara massal.
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleBulkGenerate} className="space-y-4 py-2">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="bulkMonth">Bulan</Label>
+                      <select
+                        id="bulkMonth"
+                        className="w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-zinc-100"
+                        value={bulkMonth}
+                        onChange={(e) => setBulkMonth(Number(e.target.value))}
+                      >
+                        {MONTH_NAMES.map((name, i) => (
+                          <option key={i} value={i + 1}>
+                            {name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="bulkYear">Tahun</Label>
+                      <select
+                        id="bulkYear"
+                        className="w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-zinc-100"
+                        value={bulkYear}
+                        onChange={(e) => setBulkYear(Number(e.target.value))}
+                      >
+                        {[bulkYear - 1, bulkYear, bulkYear + 1].map((y) => (
+                          <option key={y} value={y}>
+                            {y}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <DialogFooter className="pt-2">
+                    <Button type="button" variant="outline" onClick={() => setIsBulkOpen(false)} disabled={isBulkPending}>
+                      Batal
+                    </Button>
+                    <Button type="submit" disabled={isBulkPending} className="bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950">
+                      {isBulkPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Memproses...
+                        </>
+                      ) : (
+                        "Generate"
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+
+            {/* Dialog Buat Slip Gaji */}
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+              <Button
+                className="bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 hover:opacity-90 flex items-center gap-2"
+                onClick={() => setIsOpen(true)}
+              >
+                <Plus className="size-4" />
+                Buat Slip Gaji
+              </Button>
+              <DialogContent className="max-w-md bg-white dark:bg-zinc-950 font-sans border border-zinc-200 dark:border-zinc-800">
+                <DialogHeader>
+                  <DialogTitle>Buat Slip Gaji Baru</DialogTitle>
+                  <DialogDescription>
+                    Masukkan rincian gaji untuk member tim di studio ini. Member akan menerima notifikasi otomatis.
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleCreate} className="space-y-4 py-2">
+                  <div className="space-y-2">
+                    <Label>Pilih Member</Label>
+                    <Combobox
+                      options={memberOptions}
+                      value={selectedMemberId}
+                      onChange={setSelectedMemberId}
+                      placeholder="Pilih Anggota..."
+                      searchPlaceholder="Cari anggota..."
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="month">Bulan</Label>
+                      <select
+                        id="month"
+                        className="w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-zinc-100"
+                        value={month}
+                        onChange={(e) => setMonth(Number(e.target.value))}
+                      >
+                        {MONTH_NAMES.map((name, i) => (
+                          <option key={i} value={i + 1}>
+                            {name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="year">Tahun</Label>
+                      <select
+                        id="year"
+                        className="w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-zinc-100"
+                        value={year}
+                        onChange={(e) => setYear(Number(e.target.value))}
+                      >
+                        {[year - 1, year, year + 1].map((y) => (
+                          <option key={y} value={y}>
+                            {y}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="basicSalary">Gaji Pokok (Rupiah)</Label>
+                    <Input
+                      id="basicSalary"
+                      type="number"
+                      placeholder="Gaji Pokok"
+                      value={basicSalary || ""}
+                      onChange={(e) => setBasicSalary(Number(e.target.value))}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="allowances">Total Tunjangan</Label>
+                      <Input
+                        id="allowances"
+                        type="number"
+                        placeholder="Makan, Transport, dll"
+                        value={allowances || ""}
+                        onChange={(e) => setAllowances(Number(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="deductions">Total Potongan</Label>
+                      <Input
+                        id="deductions"
+                        type="number"
+                        placeholder="Terlambat, Izin, dll"
+                        value={deductions || ""}
+                        onChange={(e) => setDeductions(Number(e.target.value))}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="notes">Catatan (Opsional)</Label>
+                    <Textarea
+                      id="notes"
+                      placeholder="Misal: Bonus performa, keterlambatan 3x"
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="pdfFile">Upload PDF Slip Gaji</Label>
+                    <Input
+                      id="pdfFile"
+                      type="file"
+                      accept="application/pdf"
+                      onChange={(e) => setPdfFile(e.target.files?.[0] ?? null)}
+                    />
+                    <p className="text-xs text-zinc-500">PDF maksimal 2MB. File akan tampil di halaman Slip Gaji Saya.</p>
+                  </div>
+
+                  <div className="p-3 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-1">
+                    <p className="text-xs text-zinc-500">Estimasi Kalkulasi Gaji Bersih:</p>
+                    <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+                      {localFormatCurrency(netSalary)}
+                    </p>
+                  </div>
+
+                  <DialogFooter className="pt-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsOpen(false)}
+                      disabled={isPending}
+                    >
+                      Batal
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={isPending}
+                      className="bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950"
+                    >
+                      {isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Mengirim...
+                        </>
+                      ) : (
+                        "Kirim Slip"
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+          <TabsList className="mb-4 flex w-fit flex-wrap">
+            {studios.map((studio) => (
             <TabsTrigger key={studio.id} value={studio.id}>
               {studio.name}
             </TabsTrigger>

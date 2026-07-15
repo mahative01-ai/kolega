@@ -321,3 +321,71 @@ export async function quickReviewCorrectionAction(correctionId: string, approve:
   revalidatePath("/admin");
   return { success: true, message: `Koreksi berhasil ${approve ? "disetujui" : "ditolak"}.` };
 }
+
+export async function deleteCorrectionAction(formData: FormData) {
+  const superAdmin = await requireAnyRole(["SUPER_ADMIN"]);
+  const correctionId = String(formData.get("correctionId") ?? "");
+
+  if (!correctionId) {
+    redirect("/admin/requests?error=invalid-action");
+  }
+
+  const correction = await prisma.attendanceCorrection.findUnique({
+    where: { id: correctionId },
+    include: {
+      attendanceRecord: true,
+    },
+  });
+
+  if (!correction) {
+    redirect("/admin/requests?error=not-found");
+  }
+
+  await prisma.$transaction(async (tx) => {
+    // If approved, revert the attendance record changes
+    if (correction.status === "APPROVED" && correction.previousStatus) {
+      const isPhysical = correction.previousStatus === "ON_TIME" || correction.previousStatus === "LATE";
+      
+      await tx.attendanceRecord.update({
+        where: { id: correction.attendanceRecordId },
+        data: {
+          status: correction.previousStatus,
+          isManualCorrection: false,
+          // If the previous status was not physical, clear check-in/out times
+          ...(!isPhysical ? {
+            checkInAt: null,
+            checkOutAt: null,
+            lateMinutes: 0,
+          } : {}),
+          updatedAt: new Date(),
+        },
+      });
+    }
+
+    // Delete the correction request
+    await tx.attendanceCorrection.delete({
+      where: { id: correctionId },
+    });
+
+    // Audit Log
+    await tx.auditLog.create({
+      data: {
+        actorId: superAdmin.id,
+        entity: "AttendanceCorrection",
+        entityId: correctionId,
+        action: "CORRECTION_DELETED",
+        metadata: {
+          recordId: correction.attendanceRecordId,
+          userId: correction.requestedById,
+          status: correction.status,
+          previousStatus: correction.previousStatus,
+          newStatus: correction.newStatus,
+        },
+      },
+    });
+  });
+
+  revalidatePath("/admin/requests");
+  revalidatePath("/member/corrections");
+  redirect("/admin/requests?success=deleted");
+}

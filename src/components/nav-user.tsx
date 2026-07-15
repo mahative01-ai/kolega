@@ -20,12 +20,14 @@ import {
 } from "@/components/ui/sidebar";
 import { ChevronsUpDown, Settings, LogOut, ShieldCheck, MapPin } from "lucide-react";
 import { ROLE_LABEL } from "@/lib/roles";
+import { getMood } from "@/lib/moods";
 
 type SidebarUser = {
   id: string;
   name: string;
   email: string;
   role: keyof typeof ROLE_LABEL;
+  currentMood?: string;
   defaultStudio?: {
     name: string;
   } | null;
@@ -46,9 +48,9 @@ export function NavUser({ user }: { user: SidebarUser }) {
               />
             }
           >
-            <Avatar className="h-8 w-8 rounded-lg shrink-0">
-              <AvatarFallback className="rounded-lg bg-zinc-200 dark:bg-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                {user.name.slice(0, 1).toUpperCase()}
+            <Avatar className="h-8 w-8 rounded-full shrink-0">
+              <AvatarFallback className={`rounded-full text-base font-semibold select-none flex items-center justify-center ${getMood(user.currentMood).bgColor} border ${getMood(user.currentMood).borderColor}`}>
+                {getMood(user.currentMood).emoji}
               </AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
@@ -65,9 +67,9 @@ export function NavUser({ user }: { user: SidebarUser }) {
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarFallback className="rounded-lg bg-zinc-200 dark:bg-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                    {user.name.slice(0, 1).toUpperCase()}
+                <Avatar className="h-8 w-8 rounded-full">
+                  <AvatarFallback className={`rounded-full text-base font-semibold select-none flex items-center justify-center ${getMood(user.currentMood).bgColor} border ${getMood(user.currentMood).borderColor}`}>
+                    {getMood(user.currentMood).emoji}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">

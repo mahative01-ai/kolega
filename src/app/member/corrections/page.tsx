@@ -1,8 +1,10 @@
 import {
   Archive,
   PlusCircle,
+  Trash2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -21,7 +23,7 @@ import {
 import { DashboardShell } from "@/components/dashboard-shell";
 import { requireAnyRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { createCorrectionAction } from "./actions";
+import { createCorrectionAction, cancelCorrectionAction } from "./actions";
 import { getJakartaDateKey } from "@/lib/attendance-time";
 import { CorrectionFormClient } from "./correction-form-client";
 
@@ -58,8 +60,7 @@ const requestStatusLabel: Record<string, string> = {
   APPROVED: "Disetujui",
   REJECTED: "Ditolak",
 };
-
-const requestStatusColor: Record<string, string> = {
+const requestStatusColor: Record<string, string> = {
   PENDING: "bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-900/50",
   APPROVED: "bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-900/50",
   REJECTED: "bg-red-100 dark:bg-red-950/50 text-red-800 dark:text-red-300 border-red-300 dark:border-red-900/50",
@@ -76,6 +77,7 @@ function formatDate(date: Date) {
 
 const successMessages: Record<string, string> = {
   created: "Pengajuan koreksi presensi berhasil diajukan dan sedang menunggu persetujuan.",
+  cancelled: "Pengajuan koreksi presensi berhasil dibatalkan.",
 };
 
 const errorMessages: Record<string, string> = {
@@ -84,6 +86,7 @@ const errorMessages: Record<string, string> = {
   unauthorized: "Anda tidak berwenang mengoreksi data ini.",
   "already-pending": "Catatan presensi ini sedang dalam proses pengajuan koreksi pending.",
   "out-of-range": "Pengajuan koreksi hanya dapat diajukan untuk kehadiran antara 2 hingga 7 hari yang lalu.",
+  "already-processed": "Pengajuan tidak dapat dibatalkan karena sudah ditinjau oleh Admin.",
 };
 
 export default async function MemberCorrectionsPage({
@@ -93,10 +96,8 @@ export default async function MemberCorrectionsPage({
 }) {
   const currentUser = await requireAnyRole(["ADMIN", "MEMBER"]);
   const params = await searchParams;
-
   const recordIdParam = params.recordId ?? "";
 
-  // Filter dropdown: only records between 2 to 7 days ago
   const todayKey = getJakartaDateKey(new Date());
   const todayMidnight = new Date(`${todayKey}T00:00:00.000Z`);
   const minDate = new Date(todayMidnight.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -188,7 +189,6 @@ export default async function MemberCorrectionsPage({
             />
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -209,13 +209,14 @@ export default async function MemberCorrectionsPage({
                   <TableHead>Alasan Member</TableHead>
                   <TableHead>Status Pengajuan</TableHead>
                   <TableHead>Pemeriksa (Reviewer)</TableHead>
+                  <TableHead className="text-right">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {corrections.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={6}
+                      colSpan={7}
                       className="h-24 text-center text-sm text-zinc-500"
                     >
                       Belum ada riwayat pengajuan koreksi presensi.
@@ -258,6 +259,23 @@ export default async function MemberCorrectionsPage({
                       </TableCell>
                       <TableCell className="text-zinc-600">
                         {corr.approvedBy?.name ?? <span className="text-zinc-400">-</span>}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {corr.status === "PENDING" ? (
+                          <form action={cancelCorrectionAction} method="POST" onSubmit={(e) => {
+                            if (!confirm("Apakah Anda yakin ingin membatalkan pengajuan koreksi ini?")) {
+                              e.preventDefault();
+                            }
+                          }}>
+                            <input type="hidden" name="correctionId" value={corr.id} />
+                            <Button type="submit" size="sm" variant="ghost" className="text-red-650 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 h-8 px-2">
+                              <Trash2 className="size-4 mr-1" />
+                              Batal
+                            </Button>
+                          </form>
+                        ) : (
+                          <span className="text-xs text-zinc-400">-</span>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))

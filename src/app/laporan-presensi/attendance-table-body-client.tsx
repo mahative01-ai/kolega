@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp, BookOpen, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getMood } from "@/lib/moods";
 
 type SerializedRecord = {
   id: string;
@@ -25,6 +26,7 @@ type SerializedRecord = {
     name: string;
     email: string;
     role: string;
+    currentMood?: string | null;
   };
   ownerStudio: {
     name: string;
@@ -95,8 +97,15 @@ export function AttendanceTableBodyClient({ records, statusColor, statusLabel }:
           <Fragment key={record.id}>
             <TableRow className={cn(isExpanded && "bg-zinc-50/50 dark:bg-zinc-900/10")}>
               <TableCell className="font-medium">
-                <div>{record.user.name}</div>
-                <div className="text-xs font-normal text-zinc-500">{record.user.email}</div>
+                <div className="flex items-center gap-2">
+                  <div className={`size-8 rounded-full flex items-center justify-center text-lg shrink-0 border select-none ${getMood(record.user.currentMood).bgColor} ${getMood(record.user.currentMood).borderColor}`} title={getMood(record.user.currentMood).label}>
+                    {getMood(record.user.currentMood).emoji}
+                  </div>
+                  <div>
+                    <div>{record.user.name}</div>
+                    <div className="text-xs font-normal text-zinc-500">{record.user.email}</div>
+                  </div>
+                </div>
               </TableCell>
               <TableCell>{formatDate(record.attendanceDate)}</TableCell>
               <TableCell>{record.ownerStudio.name}</TableCell>

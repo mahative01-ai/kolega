@@ -76,6 +76,11 @@ export async function updateProfileAction(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const newPassword = String(formData.get("newPassword") ?? "");
   const confirmNewPassword = String(formData.get("confirmNewPassword") ?? "");
+  const birthDateStr = formData.get("birthDate") ? String(formData.get("birthDate")) : null;
+  const phoneNumber = formData.get("phoneNumber") ? String(formData.get("phoneNumber")).trim() : null;
+  const address = formData.get("address") ? String(formData.get("address")).trim() : null;
+  const currentMood = String(formData.get("currentMood") ?? "NEUTRAL").trim().toUpperCase();
+  const moodNote = formData.get("moodNote") ? String(formData.get("moodNote")).trim() : null;
 
   if (!name || !email) {
     throw new Error("Nama dan Email wajib diisi.");
@@ -84,7 +89,7 @@ export async function updateProfileAction(formData: FormData) {
   // Validate username format
   if (username && !/^[a-z0-9._-]{3,30}$/.test(username)) {
     throw new Error(
-      "Username harus 3-30 karakter dan hanya boleh berisi huruf kecil, angka, titik, garis bawah, atau tanda hubung."
+      "Username harus 3-30 karakter and hanya boleh berisi huruf kecil, angka, titik, garis bawah, atau tanda hubung."
     );
   }
 
@@ -132,6 +137,14 @@ export async function updateProfileAction(formData: FormData) {
     passwordHash = hashPassword(newPassword);
   }
 
+  let birthDate: Date | null = null;
+  if (birthDateStr) {
+    birthDate = new Date(birthDateStr);
+    if (isNaN(birthDate.getTime())) {
+      throw new Error("Format tanggal lahir tidak valid.");
+    }
+  }
+
   // Update profile
   await prisma.user.update({
     where: { id: actor.id },
@@ -139,6 +152,11 @@ export async function updateProfileAction(formData: FormData) {
       name,
       username,
       email,
+      birthDate,
+      phoneNumber,
+      address,
+      currentMood,
+      moodNote,
       ...(passwordHash ? { passwordHash } : {}),
     },
   });

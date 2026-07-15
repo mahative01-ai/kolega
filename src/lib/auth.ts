@@ -123,6 +123,11 @@ export async function getCurrentUser() {
       role: true,
       memberStatus: true,
       defaultStudioId: true,
+      currentMood: true,
+      moodNote: true,
+      birthDate: true,
+      phoneNumber: true,
+      address: true,
       defaultStudio: {
         select: {
           name: true,

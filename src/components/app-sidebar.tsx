@@ -31,6 +31,7 @@ import {
   MapPin,
   BriefcaseBusiness,
   Terminal,
+  Smile,
 } from "lucide-react";
 import { ROLE_LABEL } from "@/lib/roles";
 import { NavUser } from "@/components/nav-user";
@@ -40,6 +41,7 @@ type SidebarUser = {
   name: string;
   email: string;
   role: keyof typeof ROLE_LABEL;
+  currentMood?: string;
   defaultStudio?: {
     name: string;
   } | null;
@@ -69,6 +71,11 @@ function getMenuGroups(role: SidebarUser["role"]): MenuGroup[] {
       label: "Dashboard",
       href: getPrimaryDashboard(role),
       icon: LayoutGrid,
+    },
+    {
+      label: "Mood Tim",
+      href: "/member/team",
+      icon: Smile,
     },
   ];
 
@@ -130,7 +137,6 @@ function getMenuGroups(role: SidebarUser["role"]): MenuGroup[] {
     {
       label: "Presensi",
       items: [
-        { label: "Jadwal", href: "/member/schedules", icon: CalendarClock },
         { label: "Riwayat", href: "/member/presensi/riwayat", icon: History },
         { label: "Izin/Sakit/Cuti", href: "/member/requests", icon: MessageSquare },
         { label: "Koreksi Presensi", href: "/member/corrections", icon: ClipboardCheck },

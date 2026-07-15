@@ -3,6 +3,7 @@ import {
   FileText,
   Paperclip,
   PlusCircle,
+  Trash2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,7 +27,7 @@ import {
 import { DashboardShell } from "@/components/dashboard-shell";
 import { requireAnyRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { createRequestAction } from "./actions";
+import { createRequestAction, cancelRequestAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -69,6 +70,7 @@ function formatDate(date: Date) {
 
 const successMessages: Record<string, string> = {
   created: "Pengajuan izin berhasil diajukan dan sedang menunggu persetujuan.",
+  cancelled: "Pengajuan izin berhasil dibatalkan.",
 };
 
 const errorMessages: Record<string, string> = {
@@ -86,6 +88,9 @@ const errorMessages: Record<string, string> = {
   "intern-wfh": "Intern tidak diperbolehkan mengajukan WFH. Hanya Anggota Team dan Admin yang dapat mengajukan WFH.",
   "intern-leave": "Intern tidak memiliki akses pengajuan Cuti Tahunan. Gunakan Izin/Ganti Hari atau Sakit sesuai kebutuhan.",
   "overlapping-request": "Anda sudah memiliki pengajuan aktif (Menunggu/Disetujui) pada rentang tanggal tersebut.",
+  "already-processed": "Pengajuan tidak dapat dibatalkan karena sudah ditinjau oleh Admin.",
+  "not-found": "Pengajuan tidak ditemukan.",
+  unauthorized: "Anda tidak memiliki akses untuk membatalkan pengajuan ini.",
 };
 
 export default async function MemberRequestsPage({
@@ -276,13 +281,14 @@ export default async function MemberRequestsPage({
                   <TableHead>Lampiran</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Reviewer</TableHead>
+                  <TableHead className="text-right">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {requests.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={8}
+                      colSpan={9}
                       className="h-24 text-center text-sm text-zinc-500"
                     >
                       Belum ada riwayat pengajuan perizinan.
@@ -330,6 +336,23 @@ export default async function MemberRequestsPage({
                       </TableCell>
                       <TableCell className="text-zinc-600">
                         {req.reviewer?.name ?? <span className="text-zinc-400">-</span>}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {req.status === "PENDING" ? (
+                          <form action={cancelRequestAction} method="POST" onSubmit={(e) => {
+                            if (!confirm("Apakah Anda yakin ingin membatalkan pengajuan ini?")) {
+                              e.preventDefault();
+                            }
+                          }}>
+                            <input type="hidden" name="requestId" value={req.id} />
+                            <Button type="submit" size="sm" variant="ghost" className="text-red-650 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 h-8 px-2">
+                              <Trash2 className="size-4 mr-1" />
+                              Batal
+                            </Button>
+                          </form>
+                        ) : (
+                          <span className="text-xs text-zinc-400">-</span>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))

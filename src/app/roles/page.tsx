@@ -40,6 +40,7 @@ async function getRoleData(actor: Awaited<ReturnType<typeof requireAnyRole>>) {
         annualLeaveBalance: true,
         defaultStudioId: true,
         picketDay: true,
+        currentMood: true,
         defaultStudio: {
           select: {
             name: true,

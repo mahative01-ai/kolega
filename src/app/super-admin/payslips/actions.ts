@@ -159,18 +159,24 @@ export async function deletePayslip(id: string) {
   return deleted;
 }
 
-export async function bulkGeneratePayslipsAction(month: number, year: number) {
+export async function bulkGeneratePayslipsAction(month: number, year: number, studioId?: string) {
   await requireRole("SUPER_ADMIN");
   if (!month || month < 1 || month > 12) throw new Error("Bulan tidak valid.");
   if (!year || year < 2000 || year > 2100) throw new Error("Tahun tidak valid.");
 
+  const whereClause: Prisma.UserWhereInput = {
+    role: { in: ["ADMIN", "MEMBER"] },
+    memberStatus: "TEAM",
+    accountStatus: "ACTIVE",
+  };
+
+  if (studioId) {
+    whereClause.defaultStudioId = studioId;
+  }
+
   // Get all active members/admins with memberStatus = TEAM
   const users = await prisma.user.findMany({
-    where: {
-      role: { in: ["ADMIN", "MEMBER"] },
-      memberStatus: "TEAM",
-      accountStatus: "ACTIVE",
-    },
+    where: whereClause,
     select: { id: true }
   });
 
@@ -285,10 +291,19 @@ export async function updatePayslipAction(
   return updated;
 }
 
-export async function deleteAllPayslipsAction() {
+export async function deleteAllPayslipsAction(studioId?: string) {
   await requireRole("SUPER_ADMIN");
 
-  const deleted = await prisma.payslip.deleteMany({});
+  const whereClause: Prisma.PayslipWhereInput = {};
+  if (studioId) {
+    whereClause.user = {
+      defaultStudioId: studioId,
+    };
+  }
+
+  const deleted = await prisma.payslip.deleteMany({
+    where: whereClause,
+  });
 
   revalidatePath("/super-admin/payslips");
   revalidatePath("/member/payslips");

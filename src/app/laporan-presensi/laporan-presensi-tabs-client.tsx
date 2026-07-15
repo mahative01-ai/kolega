@@ -1,9 +1,11 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AttendanceTableBodyClient } from "./attendance-table-body-client";
-import { FileText, Home } from "lucide-react";
+import { FileText, Home, ArrowUpDown } from "lucide-react";
+import { getMood } from "@/lib/moods";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 type SerializedRecord = {
@@ -22,6 +24,7 @@ type SerializedRecord = {
     name: string;
     email: string;
     role: string;
+    currentMood?: string | null;
   };
   ownerStudio: {
     name: string;
@@ -58,8 +61,66 @@ function formatTime(timeStr: string | null) {
 }
 
 export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }: Props) {
+  const [sortField, setSortField] = useState<string>("date");
+  const [sortAsc, setSortAsc] = useState<boolean>(false);
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortAsc(!sortAsc);
+    } else {
+      setSortField(field);
+      setSortAsc(true);
+    }
+  };
+
+  const sortedRecords = useMemo(() => {
+    return [...records].sort((a, b) => {
+      let aVal: any = "";
+      let bVal: any = "";
+
+      if (sortField === "name") {
+        aVal = a.user.name.toLowerCase();
+        bVal = b.user.name.toLowerCase();
+      } else if (sortField === "date") {
+        aVal = new Date(a.attendanceDate).getTime();
+        bVal = new Date(b.attendanceDate).getTime();
+      } else if (sortField === "studio") {
+        aVal = a.ownerStudio.name.toLowerCase();
+        bVal = b.ownerStudio.name.toLowerCase();
+      } else if (sortField === "validation") {
+        aVal = a.locationValidationStatus;
+        bVal = b.locationValidationStatus;
+      } else if (sortField === "distance") {
+        aVal = a.distanceMeters ?? 0;
+        bVal = b.distanceMeters ?? 0;
+      } else if (sortField === "mode") {
+        aVal = a.workMode;
+        bVal = b.workMode;
+      } else if (sortField === "status") {
+        aVal = a.status;
+        bVal = b.status;
+      } else if (sortField === "checkin") {
+        aVal = a.checkInAt ? new Date(a.checkInAt).getTime() : 0;
+        bVal = b.checkInAt ? new Date(b.checkInAt).getTime() : 0;
+      } else if (sortField === "checkout") {
+        aVal = a.checkOutAt ? new Date(a.checkOutAt).getTime() : 0;
+        bVal = b.checkOutAt ? new Date(b.checkOutAt).getTime() : 0;
+      } else if (sortField === "late") {
+        aVal = a.lateMinutes;
+        bVal = b.lateMinutes;
+      } else if (sortField === "early") {
+        aVal = a.earlyCheckoutMinutes;
+        bVal = b.earlyCheckoutMinutes;
+      }
+
+      if (aVal < bVal) return sortAsc ? -1 : 1;
+      if (aVal > bVal) return sortAsc ? 1 : -1;
+      return 0;
+    });
+  }, [records, sortField, sortAsc]);
+
   // WFH-only records
-  const wfhRecords = records.filter((r) => r.workMode === "WFH");
+  const wfhRecords = sortedRecords.filter((r) => r.workMode === "WFH");
 
   return (
     <Tabs defaultValue="attendance-log" className="w-full">
@@ -89,22 +150,77 @@ export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }:
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nama</TableHead>
-                  <TableHead>Tanggal</TableHead>
-                  <TableHead>Default Studio</TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("name")}>
+                    <div className="flex items-center gap-1 hover:text-zinc-900 dark:hover:text-zinc-100">
+                      Nama
+                      <ArrowUpDown className={`size-3 ${sortField === "name" ? "text-blue-600 dark:text-blue-400" : "text-zinc-450"}`} />
+                    </div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("date")}>
+                    <div className="flex items-center gap-1 hover:text-zinc-900 dark:hover:text-zinc-100">
+                      Tanggal
+                      <ArrowUpDown className={`size-3 ${sortField === "date" ? "text-blue-600 dark:text-blue-400" : "text-zinc-455"}`} />
+                    </div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("studio")}>
+                    <div className="flex items-center gap-1 hover:text-zinc-900 dark:hover:text-zinc-100">
+                      Default Studio
+                      <ArrowUpDown className={`size-3 ${sortField === "studio" ? "text-blue-600 dark:text-blue-400" : "text-zinc-456"}`} />
+                    </div>
+                  </TableHead>
                   <TableHead>Lokasi</TableHead>
-                  <TableHead>Validasi Lokasi</TableHead>
-                  <TableHead>Jarak</TableHead>
-                  <TableHead>Mode</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Check-in</TableHead>
-                  <TableHead>Check-out</TableHead>
-                  <TableHead>Terlambat</TableHead>
-                  <TableHead>Pulang Cepat</TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("validation")}>
+                    <div className="flex items-center gap-1 hover:text-zinc-900 dark:hover:text-zinc-100">
+                      Validasi Lokasi
+                      <ArrowUpDown className={`size-3 ${sortField === "validation" ? "text-blue-600 dark:text-blue-400" : "text-zinc-457"}`} />
+                    </div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("distance")}>
+                    <div className="flex items-center gap-1 hover:text-zinc-900 dark:hover:text-zinc-100">
+                      Jarak
+                      <ArrowUpDown className={`size-3 ${sortField === "distance" ? "text-blue-600 dark:text-blue-400" : "text-zinc-458"}`} />
+                    </div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("mode")}>
+                    <div className="flex items-center gap-1 hover:text-zinc-900 dark:hover:text-zinc-100">
+                      Mode
+                      <ArrowUpDown className={`size-3 ${sortField === "mode" ? "text-blue-600 dark:text-blue-400" : "text-zinc-459"}`} />
+                    </div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("status")}>
+                    <div className="flex items-center gap-1 hover:text-zinc-900 dark:hover:text-zinc-100">
+                      Status
+                      <ArrowUpDown className={`size-3 ${sortField === "status" ? "text-blue-600 dark:text-blue-400" : "text-zinc-460"}`} />
+                    </div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("checkin")}>
+                    <div className="flex items-center gap-1 hover:text-zinc-900 dark:hover:text-zinc-100">
+                      Check-in
+                      <ArrowUpDown className={`size-3 ${sortField === "checkin" ? "text-blue-600 dark:text-blue-400" : "text-zinc-461"}`} />
+                    </div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("checkout")}>
+                    <div className="flex items-center gap-1 hover:text-zinc-900 dark:hover:text-zinc-100">
+                      Check-out
+                      <ArrowUpDown className={`size-3 ${sortField === "checkout" ? "text-blue-600 dark:text-blue-400" : "text-zinc-462"}`} />
+                    </div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("late")}>
+                    <div className="flex items-center gap-1 hover:text-zinc-900 dark:hover:text-zinc-100">
+                      Terlambat
+                      <ArrowUpDown className={`size-3 ${sortField === "late" ? "text-blue-600 dark:text-blue-400" : "text-zinc-463"}`} />
+                    </div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("early")}>
+                    <div className="flex items-center gap-1 hover:text-zinc-900 dark:hover:text-zinc-100">
+                      Pulang Cepat
+                      <ArrowUpDown className={`size-3 ${sortField === "early" ? "text-blue-600 dark:text-blue-400" : "text-zinc-464"}`} />
+                    </div>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <AttendanceTableBodyClient
-                records={records}
+                records={sortedRecords}
                 statusColor={statusColor}
                 statusLabel={statusLabel}
               />
@@ -147,8 +263,15 @@ export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }:
                   wfhRecords.map((item) => (
                     <TableRow key={item.id} className="align-top hover:bg-zinc-50/50 dark:hover:bg-zinc-900/10">
                       <TableCell className="font-medium pt-3">
-                        <div className="text-zinc-900 dark:text-zinc-100">{item.user.name}</div>
-                        <div className="text-xs text-zinc-500 dark:text-zinc-400">{item.user.email}</div>
+                        <div className="flex items-center gap-2">
+                          <div className={`size-8 rounded-full flex items-center justify-center text-lg shrink-0 border select-none ${getMood(item.user.currentMood).bgColor} ${getMood(item.user.currentMood).borderColor}`} title={getMood(item.user.currentMood).label}>
+                            {getMood(item.user.currentMood).emoji}
+                          </div>
+                          <div>
+                            <div className="text-zinc-900 dark:text-zinc-100">{item.user.name}</div>
+                            <div className="text-xs text-zinc-500 dark:text-zinc-400">{item.user.email}</div>
+                          </div>
+                        </div>
                       </TableCell>
                       <TableCell className="pt-3">{formatDate(item.attendanceDate)}</TableCell>
                       <TableCell className="pt-3">{item.ownerStudio.name}</TableCell>

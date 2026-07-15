@@ -125,6 +125,10 @@ model User {
   accountStatus              AccountStatus          @default(ACTIVE)
   annualLeaveBalance         Int                    @default(12)
   picketDay                  String?
+  phoneNumber                String?
+  address                    String?
+  currentMood                String                 @default("NEUTRAL")
+  moodNote                   String?
   defaultStudioId            String?
   defaultStudio              Studio?                @relation("DefaultStudioMembers", fields: [defaultStudioId], references: [id])
   createdAt                  DateTime               @default(now())

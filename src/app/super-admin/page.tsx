@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/table";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { RecentAttendanceTableClient } from "./recent-attendance-table-client";
+import { ConfettiTrigger } from "@/components/confetti-trigger";
 import {
   formatMonthLabel,
   getMonthRange,
@@ -205,19 +206,12 @@ async function getSuperAdminDashboardData() {
   const studioRows = await Promise.all(
     studios.map(async (studio) => {
       const [
-        defaultMembers,
         studioAdmins,
         studioMembers,
         activePlacements,
         attendanceThisMonth,
         outsideRadius,
       ] = await Promise.all([
-        prisma.user.count({
-          where: {
-            defaultStudioId: studio.id,
-            accountStatus: "ACTIVE",
-          },
-        }),
         prisma.user.count({
           where: {
             defaultStudioId: studio.id,
@@ -255,7 +249,6 @@ async function getSuperAdminDashboardData() {
 
       return {
         ...studio,
-        defaultMembers,
         studioAdmins,
         studioMembers,
         activePlacements,
@@ -281,6 +274,11 @@ export default async function SuperAdminDashboardPage() {
   const currentUser = await requireRole("SUPER_ADMIN");
 
   const data = await getSuperAdminDashboardData();
+  const currentDate = new Date();
+  const birthDate = currentUser.birthDate ? new Date(currentUser.birthDate) : null;
+  const isBirthday = birthDate &&
+    birthDate.getUTCDate() === currentDate.getDate() &&
+    birthDate.getUTCMonth() === currentDate.getMonth();
   const metrics = [
     {
       label: `Jumlah Presensi ${data.monthLabel}`,
@@ -336,6 +334,19 @@ export default async function SuperAdminDashboardPage() {
       title="Super Admin Dashboard"
       description={`Halo ${currentUser.name}. Halaman ini khusus Owner untuk melihat ringkasan Mahative dan Kipa dalam satu tempat.`}
     >
+      {isBirthday && (
+        <>
+          <ConfettiTrigger preset="fireworks" />
+          <div className="rounded-xl border border-pink-200 dark:border-pink-900 bg-pink-50 dark:bg-pink-950/20 p-5 text-sm text-pink-850 dark:text-pink-300 mb-6 flex items-center gap-4 shadow-sm animate-bounce">
+            <span className="text-3xl">🎂</span>
+            <div>
+              <h3 className="font-bold text-base text-pink-900 dark:text-pink-400">Selamat Ulang Tahun, {currentUser.name}! 🎉</h3>
+              <p className="text-xs text-pink-700 dark:text-pink-400 mt-0.5">Semoga hari Anda menyenangkan dan penuh kebahagiaan. Terima kasih atas kontribusi luar biasa Anda di tim!</p>
+            </div>
+          </div>
+        </>
+      )}
+
       <div className="space-y-6">
         {/* Metrics Grid */}
         <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 animate-in fade-in-50 duration-200">
@@ -384,7 +395,6 @@ export default async function SuperAdminDashboardPage() {
                   <TableRow>
                     <TableHead>Studio</TableHead>
                     <TableHead>Radius</TableHead>
-                    <TableHead>Default Member</TableHead>
                     <TableHead>Admin</TableHead>
                     <TableHead>Member</TableHead>
                     <TableHead>Placement</TableHead>
@@ -404,7 +414,6 @@ export default async function SuperAdminDashboardPage() {
                         )}
                       </TableCell>
                       <TableCell>{studio.radiusMeters} m</TableCell>
-                      <TableCell>{studio.defaultMembers}</TableCell>
                       <TableCell>{studio.studioAdmins}</TableCell>
                       <TableCell>{studio.studioMembers}</TableCell>
                       <TableCell>{studio.activePlacements}</TableCell>

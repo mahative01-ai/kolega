@@ -51,7 +51,7 @@ async function getScheduleData({
           role: {
             not: "SUPER_ADMIN" as const,
           },
-          ...(filterStudioId
+          ...(filterStudioId && filterStudioId !== "all"
             ? {
                 OR: [
                   { defaultStudioId: filterStudioId },
@@ -136,7 +136,7 @@ async function getScheduleData({
             startDate: { lte: monthEnd },
             endDate: { gte: monthStart },
             ...(isSuperAdmin
-              ? filterStudioId
+              ? filterStudioId && filterStudioId !== "all"
                 ? {
                     OR: [
                       { studioId: null },
@@ -290,6 +290,16 @@ export default async function WorkSchedulesPage({
                 {s.name}
               </Link>
             ))}
+            <Link
+              href={`?studioId=all&month=${month.monthKey}`}
+              className={`px-4 py-2.5 text-sm font-bold border-b-2 transition-all ${
+                filterStudioId === "all"
+                  ? "border-blue-700 text-blue-700 dark:border-blue-400 dark:text-blue-400"
+                  : "border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+              }`}
+            >
+              Semua
+            </Link>
           </div>
         )}
         <section className="grid gap-3 sm:grid-cols-3">

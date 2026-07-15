@@ -92,3 +92,32 @@ export async function createCorrectionAction(formData: FormData) {
   revalidatePath("/member/presensi/riwayat");
   redirect("/member/corrections?success=created");
 }
+
+export async function cancelCorrectionAction(formData: FormData) {
+  const currentUser = await requireAnyRole(["ADMIN", "MEMBER"]);
+  const correctionId = String(formData.get("correctionId") ?? "");
+
+  const correction = await prisma.attendanceCorrection.findUnique({
+    where: { id: correctionId },
+  });
+
+  if (!correction) {
+    redirect("/member/corrections?error=not-found");
+  }
+
+  if (correction.requestedById !== currentUser.id) {
+    redirect("/member/corrections?error=unauthorized");
+  }
+
+  if (correction.status !== "PENDING") {
+    redirect("/member/corrections?error=already-processed");
+  }
+
+  await prisma.attendanceCorrection.delete({
+    where: { id: correctionId },
+  });
+
+  revalidatePath("/member/corrections");
+  revalidatePath("/member/presensi/riwayat");
+  redirect("/member/corrections?success=cancelled");
+}

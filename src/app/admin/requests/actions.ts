@@ -395,3 +395,99 @@ export async function quickReviewRequestAction(requestId: string, approve: boole
   revalidatePath("/admin");
   return { success: true, message: `Pengajuan berhasil ${approve ? "disetujui" : "ditolak"}.` };
 }
+
+export async function deleteRequestAction(formData: FormData) {
+  const superAdmin = await requireAnyRole(["SUPER_ADMIN"]);
+  const requestId = String(formData.get("requestId") ?? "");
+
+  if (!requestId) {
+    redirect("/admin/requests?error=invalid-action");
+  }
+
+  const request = await prisma.request.findUnique({
+    where: { id: requestId },
+  });
+
+  if (!request) {
+    redirect("/admin/requests?error=not-found");
+  }
+
+  await prisma.$transaction(async (tx) => {
+    // If approved, we need to revert side effects
+    if (request.status === "APPROVED") {
+      const start = new Date(request.startDate);
+      const end = new Date(request.endDate);
+
+      // 1. Revert annual leave balance
+      if (request.type === "LEAVE") {
+        let daysCount = 0;
+        const countDate = new Date(start);
+        while (countDate <= end) {
+          daysCount++;
+          countDate.setUTCDate(countDate.getUTCDate() + 1);
+        }
+        await tx.user.update({
+          where: { id: request.userId },
+          data: {
+            annualLeaveBalance: {
+              increment: daysCount,
+            },
+          },
+        });
+      }
+
+      // 2. Revert materialized schedules/records
+      const current = new Date(start);
+      while (current <= end) {
+        const dateVal = new Date(current);
+        if (request.type === "WFH") {
+          // Delete materialized WFH schedule
+          await tx.personalWorkSchedule.deleteMany({
+            where: {
+              userId: request.userId,
+              workDate: dateVal,
+            },
+          });
+        } else {
+          // Delete materialized AttendanceRecord if it has no checkIn/checkOut
+          // (which means it was created by request approval)
+          await tx.attendanceRecord.deleteMany({
+            where: {
+              userId: request.userId,
+              attendanceDate: dateVal,
+              checkInAt: null,
+              checkOutAt: null,
+            },
+          });
+        }
+        current.setUTCDate(current.getUTCDate() + 1);
+      }
+    }
+
+    // 3. Delete the request
+    await tx.request.delete({
+      where: { id: requestId },
+    });
+
+    // 4. Audit Log
+    await tx.auditLog.create({
+      data: {
+        actorId: superAdmin.id,
+        entity: "Request",
+        entityId: requestId,
+        action: "REQUEST_DELETED",
+        metadata: {
+          userId: request.userId,
+          type: request.type,
+          status: request.status,
+          startDate: request.startDate,
+          endDate: request.endDate,
+        },
+      },
+    });
+  });
+
+  revalidatePath("/admin/requests");
+  revalidatePath("/member/requests");
+  redirect("/admin/requests?success=deleted");
+}

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { updateUserPicketDayAction } from "./actions";
+import { getMood } from "@/lib/moods";
 
 type Member = {
   id: string;
@@ -15,6 +16,7 @@ type Member = {
   memberStatus: string;
   picketDay: string | null;
   defaultStudioId: string | null;
+  currentMood?: string;
 };
 
 type Props = {
@@ -86,9 +88,14 @@ export function PicketBoardClient({ members, isManager }: Props) {
                       className="group rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-2 text-xs transition-all hover:shadow-sm"
                     >
                       <div className="flex items-center justify-between gap-1">
-                        <span className="font-semibold text-zinc-900 dark:text-zinc-100 break-words line-clamp-1" title={m.name}>
-                          {m.name}
-                        </span>
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="text-sm select-none" title={getMood(m.currentMood).label}>
+                            {getMood(m.currentMood).emoji}
+                          </span>
+                          <span className="font-semibold text-zinc-900 dark:text-zinc-100 break-words line-clamp-1" title={m.name}>
+                            {m.name}
+                          </span>
+                        </div>
                         <div className="flex items-center gap-1.5">
                           <Badge
                             variant="outline"
@@ -145,6 +152,9 @@ export function PicketBoardClient({ members, isManager }: Props) {
                   key={m.id}
                   className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-2.5 py-1.5 text-xs"
                 >
+                  <span className="text-sm select-none" title={getMood(m.currentMood).label}>
+                    {getMood(m.currentMood).emoji}
+                  </span>
                   <span className="font-semibold text-zinc-900 dark:text-zinc-100">{m.name}</span>
                   <Badge variant="outline" className="text-[9px] px-1 py-0">
                     {m.memberStatus === "INTERN" ? "Intern" : "Team"}

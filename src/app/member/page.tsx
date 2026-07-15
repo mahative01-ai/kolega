@@ -21,6 +21,7 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { createPersonalQrCredentialAction } from "@/app/member/presensi/actions";
 import { WfhForm } from "@/app/member/presensi/wfh-form";
 import { AnnouncementBanner } from "@/app/member/announcement-banner";
+import { ConfettiTrigger } from "@/components/confetti-trigger";
 import {
   formatMonthLabel,
   getMonthRange,
@@ -293,6 +294,11 @@ export default async function MemberDashboardPage({
   ]);
 
   const data = await getMemberDashboardData(currentUser.id, params.month);
+  const currentDate = new Date();
+  const birthDate = currentUser.birthDate ? new Date(currentUser.birthDate) : null;
+  const isBirthday = birthDate &&
+    birthDate.getUTCDate() === currentDate.getDate() &&
+    birthDate.getUTCMonth() === currentDate.getMonth();
   const isWfhMode = data.todaySchedule?.workMode === "WFH" || data.todayRecord?.workMode === "WFH";
   const checkoutEligibility = data.todayRecord?.checkInAt && !data.todayRecord.checkOutAt
     ? getCheckoutEligibility({
@@ -424,6 +430,19 @@ export default async function MemberDashboardPage({
       title="Dashboard Member"
       description={`Halo ${currentUser.name}. Dashboard ini fokus ke presensi pribadi, jadwal, QR card, dan request izin.`}
     >
+      {isBirthday && (
+        <>
+          <ConfettiTrigger preset="fireworks" />
+          <div className="rounded-xl border border-pink-200 dark:border-pink-900 bg-pink-50 dark:bg-pink-950/20 p-5 text-sm text-pink-850 dark:text-pink-300 mb-6 flex items-center gap-4 shadow-sm animate-bounce">
+            <span className="text-3xl">🎂</span>
+            <div>
+              <h3 className="font-bold text-base text-pink-900 dark:text-pink-400">Selamat Ulang Tahun, {currentUser.name}! 🎉</h3>
+              <p className="text-xs text-pink-700 dark:text-pink-400 mt-0.5">Semoga hari Anda menyenangkan dan penuh kebahagiaan. Terima kasih atas kontribusi luar biasa Anda di tim!</p>
+            </div>
+          </div>
+        </>
+      )}
+
       {data.announcement && (
         <AnnouncementBanner
           id={data.announcement.id}

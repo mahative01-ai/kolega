@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { getJakartaDateKey, dateOnlyFromKey } from "@/lib/attendance-time";
 import { cn } from "@/lib/utils";
 import { QrScannerForm } from "./qr-scanner-form";
+import { ConfettiTrigger } from "@/components/confetti-trigger";
 
 export const dynamic = "force-dynamic";
 
@@ -112,9 +113,12 @@ export default async function MemberPresensiPage({
     >
       <div className="max-w-2xl mx-auto space-y-6">
         {params.success && successMessages[params.success] ? (
-          <div className="rounded-md border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/20 px-4 py-3 text-sm text-emerald-800 dark:text-emerald-400">
-            {successMessages[params.success]}
-          </div>
+          <>
+            <ConfettiTrigger />
+            <div className="rounded-md border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/20 px-4 py-3 text-sm text-emerald-800 dark:text-emerald-400">
+              {successMessages[params.success]}
+            </div>
+          </>
         ) : null}
 
         {params.error ? (

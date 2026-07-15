@@ -37,7 +37,7 @@ export default async function PicketPage({
     where: {
       accountStatus: "ACTIVE",
       role: { not: "SUPER_ADMIN" },
-      ...(filterStudioId ? { defaultStudioId: filterStudioId } : {}),
+      ...(filterStudioId && filterStudioId !== "all" ? { defaultStudioId: filterStudioId } : {}),
     },
     select: {
       id: true,
@@ -47,6 +47,7 @@ export default async function PicketPage({
       memberStatus: true,
       picketDay: true,
       defaultStudioId: true,
+      currentMood: true,
     },
     orderBy: { name: "asc" },
   });
@@ -76,6 +77,16 @@ export default async function PicketPage({
                 {s.name}
               </Link>
             ))}
+            <Link
+              href="?studioId=all"
+              className={`px-4 py-2.5 text-sm font-bold border-b-2 transition-all ${
+                filterStudioId === "all"
+                  ? "border-blue-700 text-blue-700 dark:border-blue-400 dark:text-blue-400"
+                  : "border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+              }`}
+            >
+              Semua
+            </Link>
           </div>
         )}
 

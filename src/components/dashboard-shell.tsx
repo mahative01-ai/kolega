@@ -26,6 +26,8 @@ type DashboardUser = {
   email: string;
   role: keyof typeof ROLE_LABEL;
   defaultStudioId?: string | null;
+  currentMood?: string;
+  moodNote?: string | null;
   defaultStudio?: {
     name: string;
   } | null;

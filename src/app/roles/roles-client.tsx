@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { Building2, Edit, Search, UserCog, UserPlus, Loader2, Eye } from "lucide-react";
+import { Building2, Edit, Search, UserCog, UserPlus, Loader2, Eye, ArrowUpDown } from "lucide-react";
+import { Combobox } from "@/components/ui/combobox";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,7 @@ import {
 } from "@/components/ui/dialog";
 import { ROLE_LABEL } from "@/lib/roles";
 import { createUserAction, updateUserAction } from "./actions";
+import { getMood } from "@/lib/moods";
 
 type UserWithRelations = {
   id: string;
@@ -43,6 +45,7 @@ type UserWithRelations = {
   annualLeaveBalance: number;
   defaultStudioId: string | null;
   picketDay: string | null;
+  currentMood: string;
   defaultStudio: { name: string } | null;
   placements: Array<{
     id: string;
@@ -126,6 +129,21 @@ export function RolesClient({
     "ACTIVE" | "INACTIVE" | "ARCHIVED"
   >("ACTIVE");
 
+  const [addMentorId, setAddMentorId] = useState("");
+  const [editMentorId, setEditMentorId] = useState("");
+
+  const [sortField, setSortField] = useState<string>("name");
+  const [sortAsc, setSortAsc] = useState<boolean>(true);
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortAsc(!sortAsc);
+    } else {
+      setSortField(field);
+      setSortAsc(true);
+    }
+  };
+
   const [isPending, startTransition] = useTransition();
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -133,6 +151,7 @@ export function RolesClient({
     setSelectedUser(user);
     setEditMemberStatus(user.memberStatus);
     setEditAccountStatus(user.accountStatus);
+    setEditMentorId(user.internProfile?.mentorId ?? "");
     setErrorMsg("");
     setEditOpen(true);
   };
@@ -140,7 +159,7 @@ export function RolesClient({
   const filteredUsers = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
-    return users.filter((user) => {
+    const filtered = users.filter((user) => {
       const matchesStatus = user.accountStatus === statusFilter;
       const activePlacement = user.placements?.[0];
       const currentStudioId = activePlacement ? activePlacement.studioId : user.defaultStudioId;
@@ -159,6 +178,35 @@ export function RolesClient({
         matchesStatus && matchesStudio && matchesMemberType && matchesQuery
       );
     });
+
+    return [...filtered].sort((a, b) => {
+      let aVal: any = "";
+      let bVal: any = "";
+
+      if (sortField === "name") {
+        aVal = a.name.toLowerCase();
+        bVal = b.name.toLowerCase();
+      } else if (sortField === "email") {
+        aVal = a.email.toLowerCase();
+        bVal = b.email.toLowerCase();
+      } else if (sortField === "studio") {
+        aVal = (a.defaultStudio?.name ?? "").toLowerCase();
+        bVal = (b.defaultStudio?.name ?? "").toLowerCase();
+      } else if (sortField === "memberStatus") {
+        aVal = a.memberStatus;
+        bVal = b.memberStatus;
+      } else if (sortField === "accountStatus") {
+        aVal = a.accountStatus;
+        bVal = b.accountStatus;
+      } else if (sortField === "role") {
+        aVal = a.role;
+        bVal = b.role;
+      }
+
+      if (aVal < bVal) return sortAsc ? -1 : 1;
+      if (aVal > bVal) return sortAsc ? 1 : -1;
+      return 0;
+    });
   }, [
     isSuperAdmin,
     memberTypeFilter,
@@ -167,6 +215,8 @@ export function RolesClient({
     studioFilter,
     users,
     currentUser.defaultStudioId,
+    sortField,
+    sortAsc,
   ]);
 
   const totalMembers = filteredUsers.length;
@@ -340,13 +390,43 @@ export function RolesClient({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nama / Username</TableHead>
-                  <TableHead>Email / Lahir</TableHead>
-                  <TableHead>Default Studio</TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("name")}>
+                    <div className="flex items-center gap-1.5 hover:text-zinc-900 dark:hover:text-zinc-100">
+                      Nama / Username
+                      <ArrowUpDown className={`size-3.5 ${sortField === "name" ? "text-blue-600 dark:text-blue-400" : "text-zinc-400"}`} />
+                    </div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("email")}>
+                    <div className="flex items-center gap-1.5 hover:text-zinc-900 dark:hover:text-zinc-100">
+                      Email / Lahir
+                      <ArrowUpDown className={`size-3.5 ${sortField === "email" ? "text-blue-600 dark:text-blue-400" : "text-zinc-400"}`} />
+                    </div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("studio")}>
+                    <div className="flex items-center gap-1.5 hover:text-zinc-900 dark:hover:text-zinc-100">
+                      Default Studio
+                      <ArrowUpDown className={`size-3.5 ${sortField === "studio" ? "text-blue-600 dark:text-blue-400" : "text-zinc-400"}`} />
+                    </div>
+                  </TableHead>
                   <TableHead>Placement</TableHead>
-                  <TableHead>Status Member</TableHead>
-                  <TableHead>Status Akun</TableHead>
-                  <TableHead>Role</TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("memberStatus")}>
+                    <div className="flex items-center gap-1.5 hover:text-zinc-900 dark:hover:text-zinc-100">
+                      Status Member
+                      <ArrowUpDown className={`size-3.5 ${sortField === "memberStatus" ? "text-blue-600 dark:text-blue-400" : "text-zinc-400"}`} />
+                    </div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("accountStatus")}>
+                    <div className="flex items-center gap-1.5 hover:text-zinc-900 dark:hover:text-zinc-100">
+                      Status Akun
+                      <ArrowUpDown className={`size-3.5 ${sortField === "accountStatus" ? "text-blue-600 dark:text-blue-400" : "text-zinc-400"}`} />
+                    </div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("role")}>
+                    <div className="flex items-center gap-1.5 hover:text-zinc-900 dark:hover:text-zinc-100">
+                      Role
+                      <ArrowUpDown className={`size-3.5 ${sortField === "role" ? "text-blue-600 dark:text-blue-400" : "text-zinc-400"}`} />
+                    </div>
+                  </TableHead>
                   {isSuperAdmin && <TableHead className="text-right">Aksi</TableHead>}
                 </TableRow>
               </TableHeader>
@@ -367,9 +447,16 @@ export function RolesClient({
                   return (
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">
-                        <div className="text-zinc-900 dark:text-zinc-100">{user.name}</div>
-                        <div className="text-xs text-zinc-500 dark:text-zinc-400 font-mono">
-                          @{user.username || "belum_diatur"}
+                        <div className="flex items-center gap-2">
+                          <div className={`size-8 rounded-full flex items-center justify-center text-lg shrink-0 border select-none ${getMood(user.currentMood).bgColor} ${getMood(user.currentMood).borderColor}`} title={getMood(user.currentMood).label}>
+                            {getMood(user.currentMood).emoji}
+                          </div>
+                          <div>
+                            <div className="text-zinc-900 dark:text-zinc-100">{user.name}</div>
+                            <div className="text-xs text-zinc-500 dark:text-zinc-400 font-mono">
+                              @{user.username || "belum_diatur"}
+                            </div>
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -576,12 +663,17 @@ export function RolesClient({
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">Mentor Lapangan</label>
-                  <select name="mentorId" className="h-8 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2 text-xs outline-none" defaultValue="">
-                    <option value="">Tidak ada mentor</option>
-                    {mentors.map((m) => (
-                      <option key={m.id} value={m.id}>{m.name}</option>
-                    ))}
-                  </select>
+                  <input type="hidden" name="mentorId" value={addMentorId} />
+                  <Combobox
+                    options={[
+                      { value: "", label: "Tidak ada mentor" },
+                      ...mentors.map((m) => ({ value: m.id, label: m.name })),
+                    ]}
+                    value={addMentorId}
+                    onChange={setAddMentorId}
+                    placeholder="Pilih Mentor..."
+                    searchPlaceholder="Cari mentor..."
+                  />
                 </div>
               </div>
             )}
@@ -799,16 +891,17 @@ export function RolesClient({
                   </div>
                   <div className="flex flex-col gap-1">
                     <label className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">Mentor Lapangan</label>
-                    <select
-                      name="mentorId"
-                      className="h-8 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2 text-xs outline-none"
-                      defaultValue={selectedUser.internProfile?.mentorId ?? ""}
-                    >
-                      <option value="">Tidak ada mentor</option>
-                      {mentors.map((m) => (
-                        <option key={m.id} value={m.id}>{m.name}</option>
-                      ))}
-                    </select>
+                    <input type="hidden" name="mentorId" value={editMentorId} />
+                    <Combobox
+                      options={[
+                        { value: "", label: "Tidak ada mentor" },
+                        ...mentors.map((m) => ({ value: m.id, label: m.name })),
+                      ]}
+                      value={editMentorId}
+                      onChange={setEditMentorId}
+                      placeholder="Pilih Mentor..."
+                      searchPlaceholder="Cari mentor..."
+                    />
                   </div>
                 </div>
               )}

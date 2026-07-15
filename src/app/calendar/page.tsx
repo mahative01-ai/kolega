@@ -2,6 +2,7 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { CalendarGridClient } from "./calendar-grid-client";
 import { getJakartaDateKey } from "@/lib/attendance-time";
 import { getIndonesianHolidays } from "@/lib/calendar";
@@ -93,7 +94,7 @@ export default async function CalendarPage({
         })
       : Promise.resolve([]));
 
-  const defaultStudio = studios.find((s) => s.name.toLowerCase().includes("mahative")) || studios[0];
+  const defaultStudio = studios.find((s) => s.name.toLowerCase().includes("kipa")) || studios[0];
   const filterStudioId = isGlobalSuperAdmin
     ? params.studioId || (defaultStudio?.id ?? "")
     : user.defaultStudioId ?? "__none__";
@@ -104,7 +105,7 @@ export default async function CalendarPage({
         AND: [
           { startDate: { lte: endDate }, endDate: { gte: startDate } },
           ...(isGlobalSuperAdmin
-            ? filterStudioId
+            ? filterStudioId && filterStudioId !== "all"
               ? [{
                   OR: [
                     { studioId: null },
@@ -182,7 +183,33 @@ export default async function CalendarPage({
       description="Lihat dan kelola libur nasional, cuti bersama, hari kerja pengganti, dan kegiatan studio."
     >
       <div className="w-full space-y-6">
-
+        {isSuperAdmin && studios.length > 0 && (
+          <div className="flex border-b border-zinc-200 dark:border-zinc-800">
+            {studios.map((s) => (
+              <Link
+                key={s.id}
+                href={`?studioId=${s.id}&month=${params.month || ""}`}
+                className={`px-4 py-2.5 text-sm font-bold border-b-2 transition-all ${
+                  filterStudioId === s.id
+                    ? "border-blue-700 text-blue-700 dark:border-blue-400 dark:text-blue-400"
+                    : "border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+                }`}
+              >
+                {s.name}
+              </Link>
+            ))}
+            <Link
+              href={`?studioId=all&month=${params.month || ""}`}
+              className={`px-4 py-2.5 text-sm font-bold border-b-2 transition-all ${
+                filterStudioId === "all"
+                  ? "border-blue-700 text-blue-700 dark:border-blue-400 dark:text-blue-400"
+                  : "border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+              }`}
+            >
+              Semua
+            </Link>
+          </div>
+        )}
 
         <CalendarGridClient
           year={year}
