@@ -15,9 +15,14 @@ function escapeXml(value: string) {
     .replace(/'/g, "&apos;");
 }
 
-export async function GET() {
-  // Set FONTCONFIG_PATH so Sharp can locate Windows fonts inside Next.js process
-  process.env.FONTCONFIG_PATH = path.join(process.cwd(), "fonts");
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const format = searchParams.get("format");
+
+  // Set FONTCONFIG_PATH so Sharp can locate fonts inside Next.js process (only on non-Windows)
+  if (process.platform !== "win32") {
+    process.env.FONTCONFIG_PATH = path.join(process.cwd(), "fonts");
+  }
 
   const currentUser = await requireAnyRole(["ADMIN", "MEMBER"]);
   const credential = await prisma.qrCredential.findFirst({
@@ -73,6 +78,51 @@ export async function GET() {
   <text x="350" y="381" fill="#09090b" font-family="sans-serif" font-size="20" font-weight="700">${qrUid}</text>
   <text x="350" y="410" fill="#71717a" font-family="sans-serif" font-size="13">Aktif sejak ${escapeXml(issuedAt)}</text>
 </svg>`;
+
+  if (format === "html") {
+    return new Response(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Debug QR Card - Kolega</title>
+          <style>
+            body {
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 100vh;
+              background-color: #f1f5f9;
+              margin: 0;
+              font-family: sans-serif;
+            }
+            .card-container {
+              box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+              border-radius: 28px;
+              overflow: hidden;
+              background: white;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="card-container">
+            ${svg}
+          </div>
+        </body>
+      </html>
+    `, {
+      headers: {
+        "Content-Type": "text/html",
+      }
+    });
+  }
+
+  if (format === "svg") {
+    return new Response(svg, {
+      headers: {
+        "Content-Type": "image/svg+xml",
+      }
+    });
+  }
 
   const imagePipeline = sharp(Buffer.from(svg)).flatten({
     background: "#ffffff",
