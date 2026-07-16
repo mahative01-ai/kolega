@@ -338,11 +338,7 @@ export default async function MemberRequestsPage({
                       </TableCell>
                       <TableCell className="text-right">
                         {req.status === "PENDING" ? (
-                          <form action={cancelRequestAction} method="POST" onSubmit={(e) => {
-                            if (!confirm("Apakah Anda yakin ingin membatalkan pengajuan ini?")) {
-                              e.preventDefault();
-                            }
-                          }}>
+                          <form action={cancelRequestAction} method="POST">
                             <input type="hidden" name="requestId" value={req.id} />
                             <Button type="submit" size="sm" variant="ghost" className="text-red-650 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 h-8 px-2">
                               <Trash2 className="size-4 mr-1" />
