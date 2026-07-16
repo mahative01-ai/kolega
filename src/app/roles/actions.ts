@@ -249,9 +249,17 @@ export async function updateUserAction(formData: FormData) {
     const picketDay = String(formData.get("picketDay") ?? "") || null;
     const annualLeaveBalanceInput = formData.get("annualLeaveBalance");
     const annualLeaveBalance = memberStatus === "INTERN" ? 0 : (annualLeaveBalanceInput ? Number(annualLeaveBalanceInput) : 12);
+    const workDayBalanceInput = formData.get("workDayBalance");
+    const workDayBalance = workDayBalanceInput === null || workDayBalanceInput === ""
+      ? 0
+      : Number(workDayBalanceInput);
 
     if (!userId || !name || !email || !accountStatus) {
       throw new Error("ID, Nama, dan Email wajib diisi.");
+    }
+
+    if (!Number.isFinite(workDayBalance)) {
+      throw new Error("Saldo hari kerja harus berupa angka.");
     }
 
     if (username && !/^[a-z0-9._-]{3,30}$/.test(username)) {
@@ -271,6 +279,7 @@ export async function updateUserAction(formData: FormData) {
         username: true,
         accountStatus: true,
         defaultStudioId: true,
+        workDayBalance: true,
       },
     });
 
@@ -365,6 +374,7 @@ export async function updateUserAction(formData: FormData) {
           memberStatus,
           accountStatus,
           annualLeaveBalance,
+          workDayBalance: actor.role === "SUPER_ADMIN" ? workDayBalance : target.workDayBalance,
           defaultStudioId,
           picketDay,
         },

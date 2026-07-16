@@ -43,6 +43,7 @@ type UserWithRelations = {
   memberStatus: "TEAM" | "INTERN";
   accountStatus: "ACTIVE" | "INACTIVE" | "ARCHIVED";
   annualLeaveBalance: number;
+  workDayBalance: number;
   defaultStudioId: string | null;
   picketDay: string | null;
   currentMood: string;
@@ -93,6 +94,18 @@ function formatInputDate(date: Date | null | undefined) {
   return `${year}-${month}-${day}`;
 }
 
+function workDayBalanceText(balance: number) {
+  if (balance < 0) return `Hutang ${Math.abs(balance)} hari`;
+  if (balance > 0) return `Surplus ${balance} hari`;
+  return "Lunas";
+}
+
+function workDayBalanceClass(balance: number) {
+  if (balance < 0) return "border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950/20 dark:text-red-300";
+  if (balance > 0) return "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/20 dark:text-emerald-300";
+  return "border-zinc-200 bg-zinc-50 text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/50 dark:text-zinc-300";
+}
+
 export function RolesClient({
   currentUser,
   users,
@@ -105,6 +118,7 @@ export function RolesClient({
   mentors: Array<{ id: string; name: string }>;
 }) {
   const isSuperAdmin = currentUser.role === "SUPER_ADMIN";
+  const canShowActions = isSuperAdmin || currentUser.role === "ADMIN";
 
   const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -193,6 +207,9 @@ export function RolesClient({
       } else if (sortField === "memberStatus") {
         aVal = a.memberStatus;
         bVal = b.memberStatus;
+      } else if (sortField === "workDayBalance") {
+        aVal = a.workDayBalance;
+        bVal = b.workDayBalance;
       } else if (sortField === "accountStatus") {
         aVal = a.accountStatus;
         bVal = b.accountStatus;
@@ -424,6 +441,12 @@ export function RolesClient({
                       <ArrowUpDown className={`size-3.5 ${sortField === "memberStatus" ? "text-blue-600 dark:text-blue-400" : "text-zinc-400"}`} />
                     </div>
                   </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("workDayBalance")}>
+                    <div className="flex items-center gap-1.5 hover:text-zinc-900 dark:hover:text-zinc-100">
+                      Saldo Hari
+                      <ArrowUpDown className={`size-3.5 ${sortField === "workDayBalance" ? "text-blue-600 dark:text-blue-400" : "text-zinc-400"}`} />
+                    </div>
+                  </TableHead>
                   <TableHead className="cursor-pointer select-none" onClick={() => handleSort("accountStatus")}>
                     <div className="flex items-center gap-1.5 hover:text-zinc-900 dark:hover:text-zinc-100">
                       Status Akun
@@ -436,14 +459,14 @@ export function RolesClient({
                       <ArrowUpDown className={`size-3.5 ${sortField === "role" ? "text-blue-600 dark:text-blue-400" : "text-zinc-400"}`} />
                     </div>
                   </TableHead>
-                  {isSuperAdmin && <TableHead className="text-right">Aksi</TableHead>}
+                  {canShowActions && <TableHead className="text-right">Aksi</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredUsers.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={isSuperAdmin ? 8 : 7}
+                      colSpan={canShowActions ? 9 : 8}
                       className="h-24 text-center text-sm text-zinc-500"
                     >
                       Tidak ada anggota yang sesuai dengan pencarian atau
@@ -495,6 +518,11 @@ export function RolesClient({
                         </div>
                       </TableCell>
                       <TableCell>
+                        <Badge variant="outline" className={workDayBalanceClass(user.workDayBalance)}>
+                          {workDayBalanceText(user.workDayBalance)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
                         <Badge className={accountStatusColor[user.accountStatus]}>
                           {accountStatusLabel[user.accountStatus]}
                         </Badge>
@@ -507,7 +535,7 @@ export function RolesClient({
                           {ROLE_LABEL[user.role]}
                         </Badge>
                       </TableCell>
-                      {(isSuperAdmin || currentUser.role === "ADMIN") && (
+                      {canShowActions && (
                         <TableCell className="text-right flex items-center justify-end gap-1.5">
                           <Button
                             variant="outline"
@@ -834,6 +862,19 @@ export function RolesClient({
                 </div>
               )}
 
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold">Saldo Hari Kerja</label>
+                  <Input
+                    name="workDayBalance"
+                    type="number"
+                    defaultValue={selectedUser.workDayBalance}
+                    disabled={!isSuperAdmin}
+                  />
+                  <p className="text-[10px] text-zinc-500">Negatif = hutang ganti hari, positif = surplus.</p>
+                </div>
+              </div>
+
               {editMemberStatus === "INTERN" && (
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-semibold">Placement Studio Aktif</label>
@@ -983,6 +1024,14 @@ export function RolesClient({
               <div className="grid grid-cols-3 gap-1 border-b border-zinc-100 dark:border-zinc-800 pb-2">
                 <span className="font-semibold text-zinc-500">Jatah Cuti Tahunan</span>
                 <span className="col-span-2 font-semibold text-blue-600 dark:text-blue-400">{viewUser.annualLeaveBalance} Hari</span>
+              </div>
+              <div className="grid grid-cols-3 gap-1 border-b border-zinc-100 dark:border-zinc-800 pb-2">
+                <span className="font-semibold text-zinc-500">Saldo Hari Kerja</span>
+                <span className="col-span-2">
+                  <Badge variant="outline" className={workDayBalanceClass(viewUser.workDayBalance)}>
+                    {workDayBalanceText(viewUser.workDayBalance)}
+                  </Badge>
+                </span>
               </div>
 
               {viewUser.memberStatus === "INTERN" && viewUser.internProfile && (

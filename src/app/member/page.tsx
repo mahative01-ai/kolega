@@ -94,7 +94,7 @@ async function getMemberDashboardData(userId: string, selectedMonthKey?: string)
 
   const userObj = await prisma.user.findUnique({
     where: { id: userId },
-    select: { defaultStudioId: true }
+    select: { defaultStudioId: true, workDayBalance: true }
   });
 
   const [
@@ -273,6 +273,7 @@ async function getMemberDashboardData(userId: string, selectedMonthKey?: string)
     todaySchedule,
     internProfile,
     lateMakeupMinutes: lateMinutesSum._sum.lateMinutes ?? 0,
+    workDayBalance: userObj?.workDayBalance ?? 0,
     announcement,
     picketCalendar,
     calendarEvents,
@@ -404,6 +405,23 @@ export default async function MemberDashboardPage({
       icon: Home,
       color: "text-sky-700 dark:text-sky-400",
     },
+    {
+      label: "Saldo Hari Kerja",
+      value: data.workDayBalance,
+      subValue:
+        data.workDayBalance < 0
+          ? `Hutang ${Math.abs(data.workDayBalance)} hari`
+          : data.workDayBalance > 0
+            ? `Surplus ${data.workDayBalance} hari`
+            : "Lunas",
+      icon: ShieldCheck,
+      color:
+        data.workDayBalance < 0
+          ? "text-red-700 dark:text-red-400"
+          : data.workDayBalance > 0
+            ? "text-emerald-700 dark:text-emerald-400"
+            : "text-zinc-700 dark:text-zinc-300",
+    },
   ];
 
   function formatTime(date: Date | null) {
@@ -451,7 +469,7 @@ export default async function MemberDashboardPage({
         />
       )}
 
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 animate-in fade-in-50 duration-200">
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 animate-in fade-in-50 duration-200">
         {metrics.map((metric) => {
           const Icon = metric.icon;
           const hasSubValue = 'subValue' in metric && metric.subValue;
@@ -469,7 +487,19 @@ export default async function MemberDashboardPage({
                   {metric.value.toLocaleString("id-ID")}
                 </p>
                 {hasSubValue && (
-                  <Badge variant="outline" className="shrink-0 text-[10px] bg-orange-50 dark:bg-orange-950/20 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-900 px-1.5 py-0">
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "shrink-0 text-[10px] px-1.5 py-0",
+                      metric.label === "Saldo Hari Kerja"
+                        ? data.workDayBalance < 0
+                          ? "bg-red-50 dark:bg-red-950/20 text-red-800 dark:text-red-300 border-red-200 dark:border-red-900"
+                          : data.workDayBalance > 0
+                            ? "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900"
+                            : "bg-zinc-50 dark:bg-zinc-900/50 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800"
+                        : "bg-orange-50 dark:bg-orange-950/20 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-900"
+                    )}
+                  >
                     {metric.subValue}
                   </Badge>
                 )}

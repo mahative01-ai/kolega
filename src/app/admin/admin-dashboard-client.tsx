@@ -71,6 +71,7 @@ type Props = {
       user: { name: string };
     }>;
     monthLabel: string;
+    personalWorkDayBalance: number;
     selectedMonth: { year: number; monthIndex: number };
     personalSummary: AttendanceSummary;
     personalSchedules: Array<{
@@ -299,6 +300,17 @@ export function AdminDashboardClient({
       icon: Home,
       color: "text-sky-700 dark:text-sky-400",
     },
+    {
+      label: "Saldo Hari Kerja",
+      value: data.personalWorkDayBalance,
+      icon: ShieldCheck,
+      color:
+        data.personalWorkDayBalance < 0
+          ? "text-red-700 dark:text-red-400"
+          : data.personalWorkDayBalance > 0
+            ? "text-emerald-700 dark:text-emerald-400"
+            : "text-zinc-700 dark:text-zinc-300",
+    },
   ];
 
   const studioMetrics = [
@@ -440,7 +452,7 @@ export function AdminDashboardClient({
       {activeTab === "personal" && (
         <div className="space-y-6 animate-in fade-in-50 duration-200">
           {/* Metrics */}
-          <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             {personalMetrics.map((metric) => {
               const Icon = metric.icon;
               return (

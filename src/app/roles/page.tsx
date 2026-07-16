@@ -38,6 +38,7 @@ async function getRoleData(actor: Awaited<ReturnType<typeof requireAnyRole>>) {
         memberStatus: true,
         accountStatus: true,
         annualLeaveBalance: true,
+        workDayBalance: true,
         defaultStudioId: true,
         picketDay: true,
         currentMood: true,

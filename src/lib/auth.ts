@@ -122,6 +122,7 @@ export async function getCurrentUser() {
       username: true,
       role: true,
       memberStatus: true,
+      workDayBalance: true,
       defaultStudioId: true,
       currentMood: true,
       moodNote: true,

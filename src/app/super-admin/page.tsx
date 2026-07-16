@@ -99,6 +99,7 @@ async function getSuperAdminDashboardData() {
     recentAttendance,
     picketToday,
     rawDailyTrend,
+    workDayBalanceUsers,
   ] = await Promise.all([
     prisma.studio.findMany({
       where: {
@@ -181,7 +182,26 @@ async function getSuperAdminDashboardData() {
       _count: { _all: true },
       orderBy: { attendanceDate: "asc" },
     }),
+    prisma.user.findMany({
+      where: {
+        role: { not: "SUPER_ADMIN" },
+        accountStatus: "ACTIVE",
+      },
+      select: {
+        workDayBalance: true,
+      },
+    }),
   ]);
+
+  const workDayBalanceSummary = {
+    debt: workDayBalanceUsers.filter((user) => user.workDayBalance < 0).length,
+    surplus: workDayBalanceUsers.filter((user) => user.workDayBalance > 0).length,
+    settled: workDayBalanceUsers.filter((user) => user.workDayBalance === 0).length,
+    totalDebtDays: workDayBalanceUsers.reduce(
+      (total, user) => total + (user.workDayBalance < 0 ? Math.abs(user.workDayBalance) : 0),
+      0
+    ),
+  };
 
   const dailyTrend: TrendPoint[] = [];
   for (let i = 6; i >= 0; i--) {
@@ -268,6 +288,7 @@ async function getSuperAdminDashboardData() {
     studioRows,
     picketToday,
     dailyTrend,
+    workDayBalanceSummary,
     monthLabel: formatMonthLabel(month),
   };
 }
@@ -312,6 +333,12 @@ export default async function SuperAdminDashboardPage() {
       icon: Home,
       color: "text-sky-700 dark:text-sky-400",
     },
+    {
+      label: "Minus Hari Kerja",
+      value: data.workDayBalanceSummary.debt,
+      icon: ShieldAlert,
+      color: "text-red-700 dark:text-red-400",
+    },
   ];
 
   const serializedRecentAttendance = data.recentAttendance.map((item) => ({
@@ -351,7 +378,7 @@ export default async function SuperAdminDashboardPage() {
 
       <div className="space-y-6">
         {/* Metrics Grid */}
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 animate-in fade-in-50 duration-200">
+        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 animate-in fade-in-50 duration-200">
           {metrics.map((metric) => {
             const Icon = metric.icon;
 
@@ -491,6 +518,33 @@ export default async function SuperAdminDashboardPage() {
                   >
                     {data.outsideRadiusThisMonth} Kali
                   </Badge>
+                </div>
+
+                <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-3">
+                  <p className="font-bold text-zinc-700 dark:text-zinc-300 text-xs flex items-center gap-1">
+                    <Clock3 className="size-3 text-zinc-400" />
+                    SALDO HARI KERJA
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-zinc-500 dark:text-zinc-400">
+                    Hutang ganti hari, surplus, dan anggota yang lunas.
+                  </p>
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    <div className="rounded-md border border-red-200 bg-red-50 p-2 text-center dark:border-red-900 dark:bg-red-950/20">
+                      <div className="text-lg font-bold text-red-700 dark:text-red-300">{data.workDayBalanceSummary.debt}</div>
+                      <div className="text-[10px] font-semibold text-red-700 dark:text-red-300">Minus</div>
+                    </div>
+                    <div className="rounded-md border border-emerald-200 bg-emerald-50 p-2 text-center dark:border-emerald-900 dark:bg-emerald-950/20">
+                      <div className="text-lg font-bold text-emerald-700 dark:text-emerald-300">{data.workDayBalanceSummary.surplus}</div>
+                      <div className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">Surplus</div>
+                    </div>
+                    <div className="rounded-md border border-zinc-200 bg-white p-2 text-center dark:border-zinc-800 dark:bg-zinc-950">
+                      <div className="text-lg font-bold text-zinc-700 dark:text-zinc-300">{data.workDayBalanceSummary.settled}</div>
+                      <div className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">Lunas</div>
+                    </div>
+                  </div>
+                  <div className="mt-2 text-[11px] text-zinc-500 dark:text-zinc-400">
+                    Total hutang aktif: <span className="font-semibold text-red-700 dark:text-red-300">{data.workDayBalanceSummary.totalDebtDays} hari</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>

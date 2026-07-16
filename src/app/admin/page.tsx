@@ -42,6 +42,7 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
   const [
     studio,
     activeMembers,
+    personalBalance,
     groups,
     personalGroups,
     pendingRequests,
@@ -68,6 +69,10 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
         ...userFilter,
         accountStatus: "ACTIVE",
       },
+    }),
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: { workDayBalance: true },
     }),
     prisma.attendanceRecord.groupBy({
       by: ["status"],
@@ -289,6 +294,7 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
   return {
     studio,
     activeMembers,
+    personalWorkDayBalance: personalBalance?.workDayBalance ?? 0,
     summary: summarizeAttendanceStatuses(groups),
     personalSummary: summarizeAttendanceStatuses(personalGroups),
     pendingRequests,
