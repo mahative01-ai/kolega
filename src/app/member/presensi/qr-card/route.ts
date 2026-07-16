@@ -17,7 +17,7 @@ function escapeXml(value: string) {
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const format = searchParams.get("format");
+  const format = searchParams.get("format") ?? "html";
 
   // Set FONTCONFIG_PATH so Sharp can locate fonts inside Next.js process (only on non-Windows)
   if (process.platform !== "win32") {
@@ -82,31 +82,130 @@ export async function GET(request: Request) {
   if (format === "html") {
     return new Response(`
       <!DOCTYPE html>
-      <html>
+      <html lang="id">
         <head>
-          <title>Debug QR Card - Kolega</title>
+          <title>QR Card - Kolega</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
           <style>
+            * {
+              box-sizing: border-box;
+            }
             body {
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              height: 100vh;
-              background-color: #f1f5f9;
+              min-height: 100vh;
               margin: 0;
-              font-family: sans-serif;
+              background-color: #f4f4f5;
+              color: #18181b;
+              font-family: Arial, Helvetica, sans-serif;
+            }
+            main {
+              width: min(100%, 860px);
+              margin: 0 auto;
+              padding: 32px 18px;
+            }
+            .toolbar {
+              display: flex;
+              flex-wrap: wrap;
+              align-items: center;
+              justify-content: space-between;
+              gap: 16px;
+              margin-bottom: 20px;
+            }
+            .title {
+              margin: 0;
+              font-size: 24px;
+              line-height: 1.2;
+            }
+            .description {
+              margin: 6px 0 0;
+              color: #71717a;
+              font-size: 14px;
+            }
+            .actions {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 8px;
+            }
+            .button {
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              min-height: 38px;
+              border-radius: 10px;
+              border: 1px solid #d4d4d8;
+              background: #ffffff;
+              color: #18181b;
+              padding: 0 14px;
+              font-size: 14px;
+              font-weight: 700;
+              text-decoration: none;
+              cursor: pointer;
+            }
+            .button.primary {
+              border-color: #18181b;
+              background: #18181b;
+              color: #ffffff;
             }
             .card-container {
-              box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+              display: flex;
+              justify-content: center;
+              overflow: auto;
+              padding: 16px;
+              border: 1px solid #e4e4e7;
               border-radius: 28px;
-              overflow: hidden;
               background: white;
+              box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+            }
+            .card-container svg {
+              width: min(100%, 720px);
+              height: auto;
+              flex: 0 0 auto;
+            }
+            .hint {
+              margin: 16px 0 0;
+              color: #71717a;
+              font-size: 13px;
+              line-height: 1.5;
+            }
+            @media print {
+              body {
+                background: #ffffff;
+              }
+              main {
+                padding: 0;
+                width: 100%;
+              }
+              .toolbar,
+              .hint {
+                display: none;
+              }
+              .card-container {
+                border: 0;
+                box-shadow: none;
+                border-radius: 0;
+                padding: 0;
+              }
             }
           </style>
         </head>
         <body>
-          <div class="card-container">
-            ${svg}
-          </div>
+          <main>
+            <div class="toolbar">
+              <div>
+                <h1 class="title">QR Card Kolega</h1>
+                <p class="description">Preview kartu QR sebelum disimpan atau dicetak.</p>
+              </div>
+              <div class="actions">
+                <button class="button primary" onclick="window.print()">Cetak / Simpan PDF</button>
+                <a class="button" href="/member/presensi/qr-card?format=svg" download="kolega-qr-card.svg">Unduh SVG</a>
+              </div>
+            </div>
+            <div class="card-container">
+              ${svg}
+            </div>
+            <p class="hint">
+              Jika ingin menyimpan sebagai gambar, buka dari perangkat yang akan dipakai lalu gunakan fitur screenshot atau cetak sebagai PDF.
+            </p>
+          </main>
         </body>
       </html>
     `, {
@@ -120,6 +219,8 @@ export async function GET(request: Request) {
     return new Response(svg, {
       headers: {
         "Content-Type": "image/svg+xml",
+        "Content-Disposition": 'attachment; filename="kolega-qr-card.svg"',
+        "Cache-Control": "private, no-store",
       }
     });
   }

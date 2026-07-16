@@ -593,11 +593,11 @@ export function AdminDashboardClient({
                     </div>
                     <div className="grid gap-2">
                       <a
-                        href="/member/presensi/qr-card"
+                        href="/member/presensi/qr-card?format=html"
                         className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-full flex items-center justify-center gap-1.5")}
                       >
                         <Download className="size-4" />
-                        Unduh QR Card (JPEG)
+                        Lihat QR Card
                       </a>
                     </div>
                   </>
