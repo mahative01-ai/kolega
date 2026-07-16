@@ -113,30 +113,30 @@ export function AuditLogsTableClient({ logs }: Props) {
   return (
     <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-950">
       <div className="overflow-x-auto">
-        <Table>
+        <Table className="w-full table-fixed">
           <TableHeader>
             <TableRow>
-              <TableHead onClick={() => handleSort("createdAt")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
+              <TableHead onClick={() => handleSort("createdAt")} className="w-[170px] cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                 <div className="flex items-center gap-1 whitespace-nowrap">
                   Waktu (WIB) <ArrowUpDown className="size-3 text-zinc-400" />
                 </div>
               </TableHead>
-              <TableHead onClick={() => handleSort("actor")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
+              <TableHead onClick={() => handleSort("actor")} className="w-[200px] cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                 <div className="flex items-center gap-1">
                   Aktor <ArrowUpDown className="size-3 text-zinc-400" />
                 </div>
               </TableHead>
-              <TableHead onClick={() => handleSort("entity")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
+              <TableHead onClick={() => handleSort("entity")} className="w-[180px] cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                 <div className="flex items-center gap-1">
                   Entitas <ArrowUpDown className="size-3 text-zinc-400" />
                 </div>
               </TableHead>
-              <TableHead onClick={() => handleSort("action")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
+              <TableHead onClick={() => handleSort("action")} className="w-[200px] cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                 <div className="flex items-center gap-1">
                   Tindakan <ArrowUpDown className="size-3 text-zinc-400" />
                 </div>
               </TableHead>
-              <TableHead className="min-w-[200px]">Metadata</TableHead>
+              <TableHead className="w-[280px]">Metadata</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -144,35 +144,35 @@ export function AuditLogsTableClient({ logs }: Props) {
               const badgeColor = ACTION_COLORS[log.action] ?? "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300";
               return (
                 <TableRow key={log.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors">
-                  <TableCell className="whitespace-nowrap text-xs text-zinc-650 dark:text-zinc-400 font-mono">
+                  <TableCell className="w-[170px] whitespace-nowrap text-xs text-zinc-650 dark:text-zinc-400 font-mono">
                     {formatDate(log.createdAt)}
                   </TableCell>
-                  <TableCell>
-                    <div className="font-semibold text-zinc-900 dark:text-zinc-100 text-xs">{log.actor?.name || "Sistem"}</div>
-                    <div className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate max-w-[150px]">{log.actor?.email || "system@kolega.com"}</div>
+                  <TableCell className="w-[200px] overflow-hidden">
+                    <div className="font-semibold text-zinc-900 dark:text-zinc-100 text-xs truncate" title={log.actor?.name || "Sistem"}>{log.actor?.name || "Sistem"}</div>
+                    <div className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate w-full" title={log.actor?.email || "system@kolega.com"}>{log.actor?.email || "system@kolega.com"}</div>
                     {log.actor?.role && (
                       <Badge className="mt-1 text-[9px] px-1 py-0 border-0 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-medium">
                         {log.actor.role}
                       </Badge>
                     )}
                   </TableCell>
-                  <TableCell className="font-mono text-xs text-zinc-700 dark:text-zinc-300 max-w-[180px]">
-                    <div className="font-medium text-xs text-zinc-900 dark:text-zinc-200">{log.entity}</div>
+                  <TableCell className="w-[180px] font-mono text-xs text-zinc-700 dark:text-zinc-300 overflow-hidden">
+                    <div className="font-medium text-xs text-zinc-900 dark:text-zinc-200 truncate" title={log.entity}>{log.entity}</div>
                     {log.entityId && (
-                      <div className="text-[9px] text-zinc-450 dark:text-zinc-500 mt-0.5 break-all max-w-[150px]">
+                      <div className="text-[9px] text-zinc-450 dark:text-zinc-500 mt-0.5 break-all w-full truncate" title={log.entityId}>
                         ID: {log.entityId}
                       </div>
                     )}
                   </TableCell>
-                  <TableCell>
-                    <Badge className={`text-[10px] px-2 py-0.5 font-semibold border-0 ${badgeColor}`}>
+                  <TableCell className="w-[200px] overflow-hidden">
+                    <Badge className={`text-[10px] px-2 py-0.5 font-semibold border-0 truncate max-w-full ${badgeColor}`} title={log.action}>
                       {log.action}
                     </Badge>
                   </TableCell>
-                  <TableCell className="max-w-[250px]">
+                  <TableCell className="w-[280px] overflow-hidden">
                     {log.metadata ? (
                       <div className="flex items-center gap-2">
-                        <div className="text-[10px] bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-150 dark:border-zinc-800 text-zinc-850 dark:text-zinc-300 rounded p-1.5 overflow-hidden font-mono line-clamp-2 max-h-12 w-full break-all">
+                        <div className="text-[10px] bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-150 dark:border-zinc-800 text-zinc-850 dark:text-zinc-300 rounded p-1.5 overflow-hidden font-mono truncate w-[220px]">
                           {JSON.stringify(log.metadata)}
                         </div>
                         <Dialog>

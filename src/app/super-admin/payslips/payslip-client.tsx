@@ -304,7 +304,7 @@ export function PayslipClient({
   const activeStudioMembers = members.filter((m) => m.defaultStudioId === activeStudioId);
   const memberOptions = activeStudioMembers.map((m) => ({
     value: m.id,
-    label: `${m.name} (${m.email})`,
+    label: m.name,
   }));
 
   const activeStudioPayslipsCount = payslips.filter((p) => p.user.defaultStudioId === activeStudioId).length;

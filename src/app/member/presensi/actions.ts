@@ -293,6 +293,7 @@ export async function submitWfoAttendanceAction(formData: FormData) {
           distanceMeters: distance,
           locationValidationStatus,
           earlyCheckoutMinutes: checkoutEligibility.earlyCheckoutMinutes,
+          lateMinutes: 0,
           updatedAt: now,
         },
       });

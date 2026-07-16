@@ -75,16 +75,20 @@ export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }:
   };
 
   const studioTabs = useMemo(() => {
-    const names = Array.from(new Set(records.map((record) => record.ownerStudio.name))).sort((a, b) =>
-      a.localeCompare(b, "id-ID")
-    );
-    const preferred = ["Mahative Studio", "Kipaworks", "Kipa"];
+    const names = Array.from(new Set(records.map((record) => record.ownerStudio.name)));
+    if (!names.includes("Kipa")) names.push("Kipa");
+    if (!names.includes("Mahative")) names.push("Mahative");
+
+    const preferred = ["Kipa", "Mahative"];
     const ordered = [
       ...preferred.filter((name) => names.includes(name)),
       ...names.filter((name) => !preferred.includes(name)),
     ];
 
-    return [{ value: "ALL", label: "Semua" }, ...ordered.map((name) => ({ value: name, label: name.replace(" Studio", "") }))];
+    return [
+      { value: "ALL", label: "Semua" },
+      ...ordered.map((name) => ({ value: name, label: name.replace(" Studio", "") })),
+    ];
   }, [records]);
 
   const sortedRecords = useMemo(() => {
