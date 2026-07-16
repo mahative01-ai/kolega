@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { updateProfileAction } from "./actions";
+import { updateMoodAction, updateProfileAction } from "./actions";
 import { MOODS } from "@/lib/moods";
 
 type UserProfile = {
@@ -28,6 +28,7 @@ type Props = {
 
 export function ProfileSettingsClient({ initialUser }: Props) {
   const [loading, setLoading] = useState(false);
+  const [moodLoading, setMoodLoading] = useState(false);
   const [selectedMood, setSelectedMood] = useState(initialUser.currentMood || "NEUTRAL");
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -51,7 +52,23 @@ export function ProfileSettingsClient({ initialUser }: Props) {
     }
   }
 
+  async function handleMoodSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setMoodLoading(true);
+
+    const formData = new FormData(event.currentTarget);
+    try {
+      await updateMoodAction(formData);
+      toast.success("Mood harian berhasil diperbarui.");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Gagal memperbarui mood.");
+    } finally {
+      setMoodLoading(false);
+    }
+  }
+
   return (
+    <div className="space-y-4">
     <Card className="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-none">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
@@ -157,41 +174,6 @@ export function ProfileSettingsClient({ initialUser }: Props) {
               </div>
             </div>
 
-            <div className="grid gap-2 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 bg-zinc-50/30 dark:bg-zinc-900/10">
-              <Label className="text-zinc-800 dark:text-zinc-200 font-semibold">Suasana Hati Anda Hari Ini (Mood)</Label>
-              <input type="hidden" name="currentMood" value={selectedMood} />
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                {MOODS.map((m) => {
-                  const isSelected = selectedMood === m.key;
-                  return (
-                    <button
-                      key={m.key}
-                      type="button"
-                      onClick={() => setSelectedMood(m.key)}
-                      className={`flex flex-col items-center justify-center p-2 rounded-xl border text-center transition-all ${
-                        isSelected
-                          ? `${m.bgColor} ${m.borderColor} ring-2 ring-blue-500 scale-[1.03] shadow-sm`
-                          : "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 hover:bg-zinc-50 dark:hover:bg-zinc-900/60"
-                      }`}
-                    >
-                      <span className="text-2xl mb-1">{m.emoji}</span>
-                      <span className="text-[10px] font-bold text-zinc-950 dark:text-zinc-50">{m.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="grid gap-1.5">
-              <Label htmlFor="profile-mood-note" className="text-zinc-700 dark:text-zinc-300">Catatan/Status Mood</Label>
-              <Input
-                id="profile-mood-note"
-                name="moodNote"
-                placeholder="Tulis singkat apa yang sedang Anda lakukan atau rasakan..."
-                defaultValue={initialUser.moodNote ?? ""}
-              />
-            </div>
-
             <hr className="border-zinc-100 dark:border-zinc-800 my-2" />
 
             <div className="grid gap-1.5">
@@ -241,5 +223,69 @@ export function ProfileSettingsClient({ initialUser }: Props) {
         </form>
       </CardContent>
     </Card>
+    <Card className="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-none">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
+          <User className="size-5 text-emerald-700" />
+          Mood Harian
+        </CardTitle>
+        <CardDescription>
+          Perbarui suasana hati dan catatan singkat tanpa mengubah data profil.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleMoodSubmit} className="space-y-5 max-w-xl">
+          <div className="grid gap-2 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 bg-zinc-50/30 dark:bg-zinc-900/10">
+            <Label className="text-zinc-800 dark:text-zinc-200 font-semibold">Suasana Hati Anda Hari Ini</Label>
+            <input type="hidden" name="currentMood" value={selectedMood} />
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+              {MOODS.map((m) => {
+                const isSelected = selectedMood === m.key;
+                return (
+                  <button
+                    key={m.key}
+                    type="button"
+                    onClick={() => setSelectedMood(m.key)}
+                    className={`flex flex-col items-center justify-center p-2 rounded-xl border text-center transition-all ${
+                      isSelected
+                        ? `${m.bgColor} ${m.borderColor} ring-2 ring-blue-500 scale-[1.03] shadow-sm`
+                        : "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 hover:bg-zinc-50 dark:hover:bg-zinc-900/60"
+                    }`}
+                  >
+                    <span className="text-2xl mb-1">{m.emoji}</span>
+                    <span className="text-[10px] font-bold text-zinc-950 dark:text-zinc-50">{m.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label htmlFor="profile-mood-note" className="text-zinc-700 dark:text-zinc-300">Catatan Mood</Label>
+            <Input
+              id="profile-mood-note"
+              name="moodNote"
+              placeholder="Tulis singkat apa yang sedang Anda lakukan atau rasakan..."
+              defaultValue={initialUser.moodNote ?? ""}
+            />
+          </div>
+
+          <Button type="submit" disabled={moodLoading} className="w-full sm:w-auto">
+            {moodLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Menyimpan...
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                Simpan Mood
+              </>
+            )}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+    </div>
   );
 }

@@ -5,9 +5,6 @@ import {
   LogOut,
   History,
 } from "lucide-react";
-import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
 import { RiwayatPresensiTableClient } from "./riwayat-presensi-table-client";
 import {
   Card,
@@ -16,51 +13,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { requireAnyRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { cn } from "@/lib/utils";
-import { getJakartaDateKey } from "@/lib/attendance-time";
 
 export const dynamic = "force-dynamic";
 
 const JAKARTA_TIME_ZONE = "Asia/Jakarta";
-
-const statusLabel: Record<string, string> = {
-  PRESENT: "Hadir",
-  ON_TIME: "Tepat Waktu",
-  LATE: "Terlambat",
-  WFH: "WFH",
-  PERMISSION: "Izin",
-  SICK: "Sakit",
-  DISPENSATION: "Dispensasi",
-  LEAVE: "Cuti",
-  ALPHA: "Alpha",
-  HOLIDAY: "Libur",
-  OFF_DAY: "Libur",
-};
-
-const statusColor: Record<string, string> = {
-  PRESENT: "bg-emerald-100 text-emerald-800",
-  ON_TIME: "bg-emerald-100 text-emerald-800",
-  LATE: "bg-orange-100 text-orange-800",
-  WFH: "bg-blue-100 text-blue-800",
-  PERMISSION: "bg-amber-100 text-amber-800",
-  SICK: "bg-violet-100 text-violet-800",
-  DISPENSATION: "bg-emerald-100 text-emerald-800",
-  LEAVE: "bg-sky-100 text-sky-800",
-  ALPHA: "bg-red-100 text-red-800",
-  HOLIDAY: "bg-zinc-200 text-zinc-700",
-  OFF_DAY: "bg-zinc-200 text-zinc-700",
-};
 
 function getJakartaYearMonth(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -81,27 +40,6 @@ function getMonthRange() {
   const nextMonthStart = new Date(Date.UTC(year, month, 1));
 
   return { monthStart, nextMonthStart };
-}
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("id-ID", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(date);
-}
-
-function formatTime(date: Date | null) {
-  if (!date) {
-    return "-";
-  }
-
-  return new Intl.DateTimeFormat("id-ID", {
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: JAKARTA_TIME_ZONE,
-  }).format(date);
 }
 
 async function getPersonalAttendanceHistory(userId: string) {

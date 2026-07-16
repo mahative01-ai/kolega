@@ -51,12 +51,7 @@ export function ArchivedAccountsClient({ initialUsers }: Props) {
   const filteredUsers = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
     if (!q) return users;
-    return users.filter(
-      (u) =>
-        u.name.toLowerCase().includes(q) ||
-        u.email.toLowerCase().includes(q) ||
-        u.username?.toLowerCase().includes(q)
-    );
+    return users.filter((u) => u.name.toLowerCase().includes(q));
   }, [searchQuery, users]);
 
   function formatDate(dVal: Date | string | null) {
@@ -98,7 +93,7 @@ export function ArchivedAccountsClient({ initialUsers }: Props) {
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari nama atau email akun terarsip..."
+            placeholder="Cari nama lengkap akun terarsip..."
             className="pl-9"
           />
         </div>

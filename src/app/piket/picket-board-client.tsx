@@ -72,22 +72,10 @@ export function PicketBoardClient({ members, isManager }: Props) {
 
   const handleToggleDayCheckbox = (dayKey: string) => {
     if (!editingMember) return;
-    
-    const studioName = editingMember.defaultStudio?.name.toLowerCase() ?? "";
-    const isKipa = studioName.includes("kipa");
-    const limit = isKipa ? 2 : 1;
 
     if (selectedDays.includes(dayKey)) {
       setSelectedDays(selectedDays.filter(d => d !== dayKey));
     } else {
-      if (selectedDays.length >= limit) {
-        toast.warning(
-          isKipa 
-            ? `Batas maksimal hari piket studio Kipa adalah 2 hari.`
-            : `Batas maksimal hari piket studio Mahative adalah 1 hari.`
-        );
-        return;
-      }
       setSelectedDays([...selectedDays, dayKey]);
     }
   };
@@ -258,7 +246,7 @@ export function PicketBoardClient({ members, isManager }: Props) {
 
           <div className="py-4 space-y-3">
             <p className="text-xs text-zinc-500 mb-1">
-              Batas Maksimal: {editingMember?.defaultStudio?.name.toLowerCase().includes("kipa") ? "2 Hari (Studio Kipa)" : "1 Hari (Studio Mahative)"}
+              Pilih hari piket secara fleksibel sesuai kebutuhan studio.
             </p>
             <div className="grid grid-cols-2 gap-3">
               {DAYS.map((day) => (

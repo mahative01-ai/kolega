@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useTransition } from "react";
+import React, { useMemo, useState } from "react";
 import {
   CheckCircle2,
   XCircle,
@@ -161,15 +161,6 @@ function formatDate(date: Date | string | null | undefined) {
   }).format(new Date(date));
 }
 
-function formatTime(date: Date | string | null | undefined) {
-  if (!date) return "-";
-  return new Intl.DateTimeFormat("id-ID", {
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "Asia/Jakarta",
-  }).format(new Date(date));
-}
-
 export function ApprovalsTabsClient({
   currentUser,
   pendingRequests,
@@ -179,7 +170,6 @@ export function ApprovalsTabsClient({
   defaultTab,
 }: Props) {
   const [activeTab, setActiveTab] = useState(defaultTab);
-  const [isPending, startTransition] = useTransition();
 
   // Search & Filter state
   const [searchReq, setSearchReq] = useState("");
@@ -240,17 +230,12 @@ export function ApprovalsTabsClient({
     let list = pendingRequests;
     const query = searchReq.toLowerCase().trim();
     if (query) {
-      list = list.filter(
-        (r) =>
-          r.user.name.toLowerCase().includes(query) ||
-          r.user.email.toLowerCase().includes(query) ||
-          r.reason.toLowerCase().includes(query)
-      );
+      list = list.filter((r) => r.user.name.toLowerCase().includes(query));
     }
 
     return [...list].sort((a, b) => {
-      let aVal: any = "";
-      let bVal: any = "";
+      let aVal: string | number = "";
+      let bVal: string | number = "";
 
       if (sortFieldPendingReq === "name") {
         aVal = a.user.name.toLowerCase();
@@ -279,17 +264,12 @@ export function ApprovalsTabsClient({
     let list = pendingCorrections;
     const query = searchCorr.toLowerCase().trim();
     if (query) {
-      list = list.filter(
-        (c) =>
-          c.requestedBy.name.toLowerCase().includes(query) ||
-          c.requestedBy.email.toLowerCase().includes(query) ||
-          c.reason.toLowerCase().includes(query)
-      );
+      list = list.filter((c) => c.requestedBy.name.toLowerCase().includes(query));
     }
 
     return [...list].sort((a, b) => {
-      let aVal: any = "";
-      let bVal: any = "";
+      let aVal: string | number = "";
+      let bVal: string | number = "";
 
       if (sortFieldPendingCorr === "name") {
         aVal = a.requestedBy.name.toLowerCase();
@@ -321,17 +301,12 @@ export function ApprovalsTabsClient({
     let list = historyRequests;
     const query = searchReq.toLowerCase().trim();
     if (query) {
-      list = list.filter(
-        (r) =>
-          r.user.name.toLowerCase().includes(query) ||
-          r.user.email.toLowerCase().includes(query) ||
-          r.reason.toLowerCase().includes(query)
-      );
+      list = list.filter((r) => r.user.name.toLowerCase().includes(query));
     }
 
     return [...list].sort((a, b) => {
-      let aVal: any = "";
-      let bVal: any = "";
+      let aVal: string | number = "";
+      let bVal: string | number = "";
 
       if (sortFieldHistoryReq === "name") {
         aVal = a.user.name.toLowerCase();
@@ -369,17 +344,12 @@ export function ApprovalsTabsClient({
     let list = historyCorrections;
     const query = searchCorr.toLowerCase().trim();
     if (query) {
-      list = list.filter(
-        (c) =>
-          c.requestedBy.name.toLowerCase().includes(query) ||
-          c.requestedBy.email.toLowerCase().includes(query) ||
-          c.reason.toLowerCase().includes(query)
-      );
+      list = list.filter((c) => c.requestedBy.name.toLowerCase().includes(query));
     }
 
     return [...list].sort((a, b) => {
-      let aVal: any = "";
-      let bVal: any = "";
+      let aVal: string | number = "";
+      let bVal: string | number = "";
 
       if (sortFieldHistoryCorr === "name") {
         aVal = a.requestedBy.name.toLowerCase();
@@ -427,7 +397,7 @@ export function ApprovalsTabsClient({
           <Input
             value={searchReq}
             onChange={(e) => setSearchReq(e.target.value)}
-            placeholder="Cari nama atau alasan perizinan..."
+            placeholder="Cari nama lengkap..."
             className="pl-9"
           />
         </div>
@@ -500,11 +470,7 @@ export function ApprovalsTabsClient({
                         <TableCell className="text-xs font-mono">{formatDate(req.endDate)}</TableCell>
                         <TableCell className="max-w-[180px] truncate text-xs">
                           <Dialog>
-                            <DialogTrigger asChild>
-                              <span className="cursor-pointer hover:underline text-blue-600 dark:text-blue-400 font-medium" title="Klik untuk melihat detail">
-                                {req.reason}
-                              </span>
-                            </DialogTrigger>
+                            <DialogTrigger className="cursor-pointer hover:underline text-blue-600 dark:text-blue-400 font-medium" title="Klik untuk melihat detail">{req.reason}</DialogTrigger>
                             <DialogContent className="max-w-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 font-sans">
                               <DialogHeader>
                                 <DialogTitle>Detail Alasan Izin</DialogTitle>
@@ -676,11 +642,7 @@ export function ApprovalsTabsClient({
                         <TableCell className="text-xs font-mono">{formatDate(req.endDate)}</TableCell>
                         <TableCell className="max-w-[150px] truncate text-xs">
                           <Dialog>
-                            <DialogTrigger asChild>
-                              <span className="cursor-pointer hover:underline text-blue-600 dark:text-blue-400 font-medium">
-                                {req.reason}
-                              </span>
-                            </DialogTrigger>
+                            <DialogTrigger className="cursor-pointer hover:underline text-blue-600 dark:text-blue-400 font-medium">{req.reason}</DialogTrigger>
                             <DialogContent className="max-w-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 font-sans">
                               <DialogHeader>
                                 <DialogTitle>Detail Alasan Izin (Riwayat)</DialogTitle>
@@ -761,7 +723,7 @@ export function ApprovalsTabsClient({
           <Input
             value={searchCorr}
             onChange={(e) => setSearchCorr(e.target.value)}
-            placeholder="Cari nama atau alasan koreksi..."
+            placeholder="Cari nama lengkap..."
             className="pl-9"
           />
         </div>
@@ -838,11 +800,7 @@ export function ApprovalsTabsClient({
                         </TableCell>
                         <TableCell className="max-w-[200px] truncate text-xs">
                           <Dialog>
-                            <DialogTrigger asChild>
-                              <span className="cursor-pointer hover:underline text-blue-600 dark:text-blue-400 font-medium" title="Klik untuk detail alasan">
-                                {corr.reason}
-                              </span>
-                            </DialogTrigger>
+                            <DialogTrigger className="cursor-pointer hover:underline text-blue-600 dark:text-blue-400 font-medium" title="Klik untuk detail alasan">{corr.reason}</DialogTrigger>
                             <DialogContent className="max-w-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 font-sans">
                               <DialogHeader>
                                 <DialogTitle>Detail Alasan Koreksi</DialogTitle>
@@ -1013,11 +971,7 @@ export function ApprovalsTabsClient({
                         </TableCell>
                         <TableCell className="max-w-[150px] truncate text-xs">
                           <Dialog>
-                            <DialogTrigger asChild>
-                              <span className="cursor-pointer hover:underline text-blue-600 dark:text-blue-400 font-medium">
-                                {corr.reason}
-                              </span>
-                            </DialogTrigger>
+                            <DialogTrigger className="cursor-pointer hover:underline text-blue-600 dark:text-blue-400 font-medium">{corr.reason}</DialogTrigger>
                             <DialogContent className="max-w-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 font-sans">
                               <DialogHeader>
                                 <DialogTitle>Detail Alasan Koreksi (Riwayat)</DialogTitle>
@@ -1109,3 +1063,4 @@ export function ApprovalsTabsClient({
     </Tabs>
   );
 }
+

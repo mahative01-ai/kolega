@@ -3,7 +3,6 @@
 import React, { useMemo, useState } from "react";
 import { ArrowUpDown, ShieldAlert, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -32,7 +31,7 @@ type AuditLogItem = {
   entity: string;
   entityId: string | null;
   action: string;
-  metadata: any | null;
+  metadata: unknown | null;
 };
 
 type Props = {
@@ -78,8 +77,8 @@ export function AuditLogsTableClient({ logs }: Props) {
 
   const sortedLogs = useMemo(() => {
     return [...logs].sort((a, b) => {
-      let aVal: any = "";
-      let bVal: any = "";
+      let aVal: string | number = "";
+      let bVal: string | number = "";
 
       if (sortField === "createdAt") {
         aVal = new Date(a.createdAt).getTime();
@@ -177,10 +176,8 @@ export function AuditLogsTableClient({ logs }: Props) {
                           {JSON.stringify(log.metadata)}
                         </div>
                         <Dialog>
-                          <DialogTrigger asChild>
-                            <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" title="Lihat metadata lengkap">
-                              <Eye className="size-3.5 text-zinc-500 hover:text-zinc-950" />
-                            </Button>
+                          <DialogTrigger className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-900" title="Lihat metadata lengkap">
+                            <Eye className="size-3.5 text-zinc-500 hover:text-zinc-950" />
                           </DialogTrigger>
                           <DialogContent className="max-w-lg bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 font-sans">
                             <DialogHeader>

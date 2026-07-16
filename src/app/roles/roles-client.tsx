@@ -170,9 +170,7 @@ export function RolesClient({
         memberTypeFilter === "ALL" || user.memberStatus === memberTypeFilter;
       const matchesQuery =
         !query ||
-        user.name.toLowerCase().includes(query) ||
-        user.email.toLowerCase().includes(query) ||
-        user.username?.toLowerCase().includes(query);
+        user.name.toLowerCase().includes(query);
 
       return (
         matchesStatus && matchesStudio && matchesMemberType && matchesQuery
@@ -180,8 +178,8 @@ export function RolesClient({
     });
 
     return [...filtered].sort((a, b) => {
-      let aVal: any = "";
-      let bVal: any = "";
+      let aVal: string | number = "";
+      let bVal: string | number = "";
 
       if (sortField === "name") {
         aVal = a.name.toLowerCase();
@@ -378,7 +376,7 @@ export function RolesClient({
               <Input
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Cari nama, email, atau username…"
+                placeholder="Cari nama lengkap..."
                 className="pl-9"
               />
             </div>

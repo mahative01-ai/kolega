@@ -1,7 +1,7 @@
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard-shell";
-import { getMood, MOODS, MoodKey } from "@/lib/moods";
+import { getMood, MOODS } from "@/lib/moods";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Smile } from "lucide-react";
 

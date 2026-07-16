@@ -94,7 +94,7 @@ export function PlacementsClient({ initialPlacements, users, studios }: Props) {
   const userOptions = useMemo(() => {
     return users.map((u) => ({
       value: u.id,
-      label: `${u.name} (${u.email})`,
+      label: u.name,
     }));
   }, [users]);
 
@@ -102,18 +102,12 @@ export function PlacementsClient({ initialPlacements, users, studios }: Props) {
     const q = searchQuery.toLowerCase().trim();
     let result = placements;
     if (q) {
-      result = placements.filter(
-        (p) =>
-          p.user.name.toLowerCase().includes(q) ||
-          p.user.email.toLowerCase().includes(q) ||
-          p.studio.name.toLowerCase().includes(q) ||
-          p.reason?.toLowerCase().includes(q)
-      );
+      result = placements.filter((p) => p.user.name.toLowerCase().includes(q));
     }
 
     return [...result].sort((a, b) => {
-      let aVal: any = "";
-      let bVal: any = "";
+      let aVal: string | number = "";
+      let bVal: string | number = "";
 
       if (sortField === "userName") {
         aVal = a.user.name.toLowerCase();
@@ -223,7 +217,7 @@ export function PlacementsClient({ initialPlacements, users, studios }: Props) {
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari nama anggota atau nama studio..."
+            placeholder="Cari nama lengkap anggota..."
             className="pl-9"
           />
         </div>

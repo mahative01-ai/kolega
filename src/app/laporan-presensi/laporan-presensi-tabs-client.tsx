@@ -63,6 +63,7 @@ function formatTime(timeStr: string | null) {
 export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }: Props) {
   const [sortField, setSortField] = useState<string>("date");
   const [sortAsc, setSortAsc] = useState<boolean>(false);
+  const [studioFilter, setStudioFilter] = useState("ALL");
 
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -73,10 +74,28 @@ export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }:
     }
   };
 
+  const studioTabs = useMemo(() => {
+    const names = Array.from(new Set(records.map((record) => record.ownerStudio.name))).sort((a, b) =>
+      a.localeCompare(b, "id-ID")
+    );
+    const preferred = ["Mahative Studio", "Kipaworks", "Kipa"];
+    const ordered = [
+      ...preferred.filter((name) => names.includes(name)),
+      ...names.filter((name) => !preferred.includes(name)),
+    ];
+
+    return [{ value: "ALL", label: "Semua" }, ...ordered.map((name) => ({ value: name, label: name.replace(" Studio", "") }))];
+  }, [records]);
+
   const sortedRecords = useMemo(() => {
-    return [...records].sort((a, b) => {
-      let aVal: any = "";
-      let bVal: any = "";
+    const scopedRecords =
+      studioFilter === "ALL"
+        ? records
+        : records.filter((record) => record.ownerStudio.name === studioFilter);
+
+    return [...scopedRecords].sort((a, b) => {
+      let aVal: string | number = "";
+      let bVal: string | number = "";
 
       if (sortField === "name") {
         aVal = a.user.name.toLowerCase();
@@ -117,14 +136,31 @@ export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }:
       if (aVal > bVal) return sortAsc ? 1 : -1;
       return 0;
     });
-  }, [records, sortField, sortAsc]);
+  }, [records, sortField, sortAsc, studioFilter]);
 
   // WFH-only records
   const wfhRecords = sortedRecords.filter((r) => r.workMode === "WFH");
 
   return (
-    <Tabs defaultValue="attendance-log" className="w-full">
-      <TabsList className="grid w-full max-w-md grid-cols-2 mb-4 bg-zinc-100 dark:bg-zinc-900">
+    <Tabs defaultValue="attendance-log" className="w-full space-y-3">
+      <div className="flex w-fit max-w-full flex-wrap rounded-lg bg-zinc-100 p-1 dark:bg-zinc-900">
+        {studioTabs.map((studio) => (
+          <button
+            key={studio.value}
+            onClick={() => setStudioFilter(studio.value)}
+            type="button"
+            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+              studioFilter === studio.value
+                ? "bg-white text-zinc-950 shadow-sm dark:bg-zinc-800 dark:text-zinc-50"
+                : "text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
+            }`}
+          >
+            {studio.label}
+          </button>
+        ))}
+      </div>
+
+      <TabsList className="grid w-full max-w-md grid-cols-2 bg-zinc-100 dark:bg-zinc-900">
         <TabsTrigger value="attendance-log" className="flex items-center gap-1.5">
           <FileText className="size-4" />
           Log Kehadiran

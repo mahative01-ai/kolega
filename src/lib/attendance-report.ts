@@ -31,6 +31,7 @@ export const ATTENDANCE_STATUS_COLOR: Record<string, string> = {
 export type AttendanceSummary = {
   total: number;
   sick: number;
+  dispensation: number;
   late: number;
   onTime: number;
   alpha: number;

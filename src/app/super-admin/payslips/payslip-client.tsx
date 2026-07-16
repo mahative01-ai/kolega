@@ -19,7 +19,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -65,14 +64,6 @@ const MONTH_NAMES = [
   "Januari", "Februari", "Maret", "April", "Mei", "Juni",
   "Juli", "Agustus", "September", "Oktober", "November", "Desember"
 ];
-
-function localFormatCurrency(amount: number) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
 
 export function PayslipClient({
   initialPayslips,
@@ -130,9 +121,6 @@ export function PayslipClient({
   // Edit Dialog State
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingPayslip, setEditingPayslip] = useState<Payslip | null>(null);
-  const [editBasicSalary, setEditBasicSalary] = useState(0);
-  const [editAllowances, setEditAllowances] = useState(0);
-  const [editDeductions, setEditDeductions] = useState(0);
   const [editNotes, setEditNotes] = useState("");
   const [editPdfFile, setEditPdfFile] = useState<File | null>(null);
   const [isEditPending, startEditTransition] = useTransition();
@@ -158,9 +146,6 @@ export function PayslipClient({
 
   const handleOpenEdit = (p: Payslip) => {
     setEditingPayslip(p);
-    setEditBasicSalary(p.basicSalary);
-    setEditAllowances(p.allowances);
-    setEditDeductions(p.deductions);
     setEditNotes(p.notes || "");
     setEditPdfFile(null);
     setIsEditOpen(true);
@@ -169,11 +154,6 @@ export function PayslipClient({
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingPayslip) return;
-
-    if (editBasicSalary < 0) {
-      toast.error("Gaji pokok tidak boleh negatif.");
-      return;
-    }
 
     startEditTransition(async () => {
       try {
@@ -201,9 +181,9 @@ export function PayslipClient({
         }
 
         const updated = await updatePayslipAction(editingPayslip.id, {
-          basicSalary: editBasicSalary,
-          allowances: editAllowances,
-          deductions: editDeductions,
+          basicSalary: editingPayslip.basicSalary,
+          allowances: editingPayslip.allowances,
+          deductions: editingPayslip.deductions,
           notes: editNotes,
           pdfFile: pdfData,
         });
@@ -238,22 +218,13 @@ export function PayslipClient({
   const [selectedMemberId, setSelectedMemberId] = useState("");
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
-  const [basicSalary, setBasicSalary] = useState(0);
-  const [allowances, setAllowances] = useState(0);
-  const [deductions, setDeductions] = useState(0);
   const [notes, setNotes] = useState("");
   const [pdfFile, setPdfFile] = useState<File | null>(null);
-
-  const netSalary = basicSalary + allowances - deductions;
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedMemberId) {
       toast.error("Silakan pilih member terlebih dahulu.");
-      return;
-    }
-    if (basicSalary <= 0) {
-      toast.error("Gaji pokok harus lebih besar dari 0.");
       return;
     }
     if (!pdfFile) {
@@ -282,9 +253,9 @@ export function PayslipClient({
           userId: selectedMemberId,
           month,
           year,
-          basicSalary,
-          allowances,
-          deductions,
+          basicSalary: 0,
+          allowances: 0,
+          deductions: 0,
           notes,
           pdfFile: {
             name: pdfFile.name,
@@ -308,9 +279,6 @@ export function PayslipClient({
         setIsOpen(false);
         // Reset form
         setSelectedMemberId("");
-        setBasicSalary(0);
-        setAllowances(0);
-        setDeductions(0);
         setNotes("");
         setPdfFile(null);
       } catch (err) {
@@ -510,40 +478,6 @@ export function PayslipClient({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="basicSalary">Gaji Pokok (Rupiah)</Label>
-                    <Input
-                      id="basicSalary"
-                      type="number"
-                      placeholder="Gaji Pokok"
-                      value={basicSalary || ""}
-                      onChange={(e) => setBasicSalary(Number(e.target.value))}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="allowances">Total Tunjangan</Label>
-                      <Input
-                        id="allowances"
-                        type="number"
-                        placeholder="Makan, Transport, dll"
-                        value={allowances || ""}
-                        onChange={(e) => setAllowances(Number(e.target.value))}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="deductions">Total Potongan</Label>
-                      <Input
-                        id="deductions"
-                        type="number"
-                        placeholder="Terlambat, Izin, dll"
-                        value={deductions || ""}
-                        onChange={(e) => setDeductions(Number(e.target.value))}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
                     <Label htmlFor="notes">Catatan (Opsional)</Label>
                     <Textarea
                       id="notes"
@@ -563,13 +497,6 @@ export function PayslipClient({
                       onChange={(e) => setPdfFile(e.target.files?.[0] ?? null)}
                     />
                     <p className="text-xs text-zinc-500">PDF maksimal 2MB. File akan tampil di halaman Slip Gaji Saya.</p>
-                  </div>
-
-                  <div className="p-3 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-1">
-                    <p className="text-xs text-zinc-500">Estimasi Kalkulasi Gaji Bersih:</p>
-                    <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-                      {localFormatCurrency(netSalary)}
-                    </p>
                   </div>
 
                   <DialogFooter className="pt-2">
@@ -606,8 +533,8 @@ export function PayslipClient({
           const rawStudioPayslips = payslips.filter((payslip) => payslip.user.defaultStudioId === studio.id);
           
           const sortedStudioPayslips = [...rawStudioPayslips].sort((a, b) => {
-            let aVal: any = "";
-            let bVal: any = "";
+            let aVal: string | number = "";
+            let bVal: string | number = "";
 
             if (sortField === "name") {
               aVal = a.user.name.toLowerCase();
@@ -615,18 +542,6 @@ export function PayslipClient({
             } else if (sortField === "period") {
               aVal = a.year * 100 + a.month;
               bVal = b.year * 100 + b.month;
-            } else if (sortField === "basicSalary") {
-              aVal = a.basicSalary;
-              bVal = b.basicSalary;
-            } else if (sortField === "allowances") {
-              aVal = a.allowances;
-              bVal = b.allowances;
-            } else if (sortField === "deductions") {
-              aVal = a.deductions;
-              bVal = b.deductions;
-            } else if (sortField === "netSalary") {
-              aVal = a.netSalary;
-              bVal = b.netSalary;
             }
 
             if (aVal < bVal) return sortAsc ? -1 : 1;
@@ -653,33 +568,13 @@ export function PayslipClient({
                   Periode <ArrowUpDown className="size-3 text-zinc-400" />
                 </div>
               </TableHead>
-              <TableHead onClick={() => handleSort("basicSalary")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
-                <div className="flex items-center gap-1">
-                  Gaji Pokok <ArrowUpDown className="size-3 text-zinc-400" />
-                </div>
-              </TableHead>
-              <TableHead onClick={() => handleSort("allowances")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
-                <div className="flex items-center gap-1">
-                  Tunjangan <ArrowUpDown className="size-3 text-zinc-400" />
-                </div>
-              </TableHead>
-              <TableHead onClick={() => handleSort("deductions")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
-                <div className="flex items-center gap-1">
-                  Potongan <ArrowUpDown className="size-3 text-zinc-400" />
-                </div>
-              </TableHead>
-              <TableHead onClick={() => handleSort("netSalary")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
-                <div className="flex items-center gap-1">
-                  Gaji Bersih <ArrowUpDown className="size-3 text-zinc-400" />
-                </div>
-              </TableHead>
               <TableHead className="text-right">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {sortedStudioPayslips.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-zinc-500">
+                <TableCell colSpan={3} className="text-center py-8 text-zinc-500">
                   Belum ada data slip gaji yang diterbitkan.
                 </TableCell>
               </TableRow>
@@ -691,16 +586,6 @@ export function PayslipClient({
                   </TableCell>
                   <TableCell>
                     {MONTH_NAMES[p.month - 1]} {p.year}
-                  </TableCell>
-                  <TableCell>{localFormatCurrency(p.basicSalary)}</TableCell>
-                  <TableCell className="text-green-600 dark:text-green-400">
-                    +{localFormatCurrency(p.allowances)}
-                  </TableCell>
-                  <TableCell className="text-red-600 dark:text-red-400">
-                    -{localFormatCurrency(p.deductions)}
-                  </TableCell>
-                  <TableCell className="font-semibold text-zinc-900 dark:text-zinc-100">
-                    {localFormatCurrency(p.netSalary)}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
@@ -775,40 +660,6 @@ export function PayslipClient({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="editBasicSalary">Gaji Pokok (Rupiah)</Label>
-                <Input
-                  id="editBasicSalary"
-                  type="number"
-                  placeholder="Gaji Pokok"
-                  value={editBasicSalary || ""}
-                  onChange={(e) => setEditBasicSalary(Number(e.target.value))}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="editAllowances">Total Tunjangan</Label>
-                  <Input
-                    id="editAllowances"
-                    type="number"
-                    placeholder="Tunjangan"
-                    value={editAllowances || ""}
-                    onChange={(e) => setEditAllowances(Number(e.target.value))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="editDeductions">Total Potongan</Label>
-                  <Input
-                    id="editDeductions"
-                    type="number"
-                    placeholder="Potongan"
-                    value={editDeductions || ""}
-                    onChange={(e) => setEditDeductions(Number(e.target.value))}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="editNotes">Catatan (Opsional)</Label>
                 <Textarea
                   id="editNotes"
@@ -836,13 +687,6 @@ export function PayslipClient({
                     Belum ada lampiran PDF slip gaji (status: Draft).
                   </p>
                 )}
-              </div>
-
-              <div className="p-3 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-1">
-                <p className="text-xs text-zinc-500">Estimasi Kalkulasi Gaji Bersih:</p>
-                <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-                  {localFormatCurrency(editBasicSalary + editAllowances - editDeductions)}
-                </p>
               </div>
 
               <DialogFooter className="pt-2">

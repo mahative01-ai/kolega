@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState, useTransition, useEffect, useRef } from "react";
-import { Building2, Edit2, Plus, Search, Navigation, Loader2 } from "lucide-react";
+import { ArrowUpDown, Building2, Edit2, Plus, Search, Navigation, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -288,8 +288,8 @@ export function StudiosClient({ initialStudios }: Props) {
     }
 
     return [...result].sort((a, b) => {
-      let aVal: any = "";
-      let bVal: any = "";
+      let aVal: string | number = "";
+      let bVal: string | number = "";
 
       if (sortField === "name") {
         aVal = a.name.toLowerCase();

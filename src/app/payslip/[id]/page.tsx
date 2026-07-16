@@ -12,14 +12,6 @@ const MONTH_NAMES = [
   "Juli", "Agustus", "September", "Oktober", "November", "Desember"
 ];
 
-function localFormatCurrency(amount: number) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
 export default async function PrintablePayslipPage({
   params,
 }: {
@@ -142,53 +134,26 @@ export default async function PrintablePayslipPage({
           </div>
         </div>
 
-        {/* Financial Details Table */}
+        {/* Document Details */}
         <div className="space-y-4 mb-8">
           <h3 className="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
-            Rincian Pendapatan & Potongan
+            Rincian Slip
           </h3>
           
           <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden">
-            {/* Headers */}
             <div className="grid grid-cols-2 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-4 py-2.5 text-xs font-semibold text-zinc-500 uppercase">
-              <div>Penerimaan</div>
-              <div className="text-right">Jumlah</div>
+              <div>Informasi</div>
+              <div className="text-right">Detail</div>
             </div>
             
-            {/* Basic Salary */}
             <div className="grid grid-cols-2 px-4 py-3 border-b border-zinc-100 dark:border-zinc-900 text-sm">
-              <div className="text-zinc-700 dark:text-zinc-300">Gaji Pokok</div>
-              <div className="text-right font-medium">{localFormatCurrency(payslip.basicSalary)}</div>
+              <div className="text-zinc-700 dark:text-zinc-300">Periode</div>
+              <div className="text-right font-medium">{periodName}</div>
             </div>
 
-            {/* Allowances */}
             <div className="grid grid-cols-2 px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 text-sm">
-              <div className="text-zinc-700 dark:text-zinc-300">Tunjangan & Lainnya</div>
-              <div className="text-right font-medium text-green-600 dark:text-green-400">
-                +{localFormatCurrency(payslip.allowances)}
-              </div>
-            </div>
-
-            {/* Deductions Header */}
-            <div className="grid grid-cols-2 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-4 py-2.5 text-xs font-semibold text-zinc-500 uppercase">
-              <div>Potongan</div>
-              <div className="text-right">Jumlah</div>
-            </div>
-
-            {/* Deductions */}
-            <div className="grid grid-cols-2 px-4 py-3 text-sm border-b border-zinc-200 dark:border-zinc-800">
-              <div className="text-zinc-700 dark:text-zinc-300">Potongan Gaji</div>
-              <div className="text-right font-medium text-red-600 dark:text-red-400">
-                -{localFormatCurrency(payslip.deductions)}
-              </div>
-            </div>
-
-            {/* Net Salary Row */}
-            <div className="grid grid-cols-2 bg-zinc-50 dark:bg-zinc-900/60 px-4 py-4 text-sm font-bold">
-              <div className="text-zinc-950 dark:text-zinc-50 text-base">Gaji Bersih (Net Take-home Pay)</div>
-              <div className="text-right text-lg text-zinc-950 dark:text-zinc-50">
-                {localFormatCurrency(payslip.netSalary)}
-              </div>
+              <div className="text-zinc-700 dark:text-zinc-300">File</div>
+              <div className="text-right font-medium">{payslip.pdfFileName ?? "PDF slip gaji"}</div>
             </div>
           </div>
         </div>

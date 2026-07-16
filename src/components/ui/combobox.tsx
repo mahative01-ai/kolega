@@ -38,30 +38,35 @@ export function Combobox({
     opt.label.toLowerCase().includes(search.toLowerCase())
   );
 
+  const closeCombobox = React.useCallback(() => {
+    setOpen(false);
+    setSearch("");
+  }, []);
+
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setOpen(false);
+        closeCombobox();
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
-
-  React.useEffect(() => {
-    if (!open) {
-      setSearch("");
-    }
-  }, [open]);
+  }, [closeCombobox]);
 
   return (
     <div ref={containerRef} className={cn("relative w-full", className)}>
       <button
         type="button"
         disabled={disabled}
-        onClick={() => setOpen(!open)}
+        onClick={() => {
+          if (open) {
+            closeCombobox();
+          } else {
+            setOpen(true);
+          }
+        }}
         className="flex h-9 w-full items-center justify-between rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:border-zinc-950 dark:focus:border-zinc-300 focus:ring-1 focus:ring-zinc-950 dark:focus:ring-zinc-300 disabled:cursor-not-allowed disabled:opacity-50 text-left"
       >
         <span className={cn("block truncate", !selectedOption && "text-zinc-400 dark:text-zinc-500")}>
@@ -98,7 +103,7 @@ export function Combobox({
                     type="button"
                     onClick={() => {
                       onChange(opt.value);
-                      setOpen(false);
+                      closeCombobox();
                     }}
                     className={cn(
                       "relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm text-zinc-900 dark:text-zinc-100 outline-none hover:bg-zinc-100 dark:hover:bg-zinc-900 text-left",

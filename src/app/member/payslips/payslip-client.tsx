@@ -16,11 +16,9 @@ type Payslip = {
   id: string;
   month: number;
   year: number;
-  basicSalary: number;
-  allowances: number;
-  deductions: number;
-  netSalary: number;
   notes: string | null;
+  pdfFileName?: string | null;
+  pdfDataUrl?: string | null;
   createdAt: Date;
 };
 
@@ -28,14 +26,6 @@ const MONTH_NAMES = [
   "Januari", "Februari", "Maret", "April", "Mei", "Juni",
   "Juli", "Agustus", "September", "Oktober", "November", "Desember"
 ];
-
-function localFormatCurrency(amount: number) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
 
 export function MemberPayslipClient({
   initialPayslips,
@@ -49,7 +39,7 @@ export function MemberPayslipClient({
       <div>
         <h2 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 font-sans">Riwayat Slip Gaji</h2>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Lihat rincian gaji Anda dan cetak slip gaji secara mandiri.
+          Lihat dokumen slip gaji Anda dan cetak secara mandiri.
         </p>
       </div>
 
@@ -58,17 +48,15 @@ export function MemberPayslipClient({
           <TableHeader>
             <TableRow>
               <TableHead>Periode</TableHead>
-              <TableHead>Gaji Pokok</TableHead>
-              <TableHead>Tunjangan</TableHead>
-              <TableHead>Potongan</TableHead>
-              <TableHead>Gaji Bersih</TableHead>
+              <TableHead>Catatan</TableHead>
+              <TableHead>File</TableHead>
               <TableHead className="text-right">Cetak</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {payslips.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-zinc-500">
+                <TableCell colSpan={4} className="text-center py-8 text-zinc-500">
                   Belum ada data slip gaji yang diterbitkan untuk Anda.
                 </TableCell>
               </TableRow>
@@ -78,15 +66,11 @@ export function MemberPayslipClient({
                   <TableCell className="font-medium text-zinc-900 dark:text-zinc-100">
                     {MONTH_NAMES[p.month - 1]} {p.year}
                   </TableCell>
-                  <TableCell>{localFormatCurrency(p.basicSalary)}</TableCell>
-                  <TableCell className="text-green-600 dark:text-green-400">
-                    +{localFormatCurrency(p.allowances)}
+                  <TableCell className="max-w-[320px] text-sm text-zinc-600 dark:text-zinc-300">
+                    {p.notes || "-"}
                   </TableCell>
-                  <TableCell className="text-red-600 dark:text-red-400">
-                    -{localFormatCurrency(p.deductions)}
-                  </TableCell>
-                  <TableCell className="font-semibold text-zinc-900 dark:text-zinc-100">
-                    {localFormatCurrency(p.netSalary)}
+                  <TableCell className="text-sm text-zinc-600 dark:text-zinc-300">
+                    {p.pdfFileName || "PDF slip gaji"}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button

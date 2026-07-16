@@ -111,8 +111,8 @@ export function RiwayatPresensiTableClient({ records }: Props) {
     }
 
     return [...result].sort((a, b) => {
-      let aVal: any = "";
-      let bVal: any = "";
+      let aVal: string | number = "";
+      let bVal: string | number = "";
 
       if (sortField === "date") {
         aVal = new Date(a.attendanceDate).getTime();

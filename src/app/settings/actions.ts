@@ -79,9 +79,6 @@ export async function updateProfileAction(formData: FormData) {
   const birthDateStr = formData.get("birthDate") ? String(formData.get("birthDate")) : null;
   const phoneNumber = formData.get("phoneNumber") ? String(formData.get("phoneNumber")).trim() : null;
   const address = formData.get("address") ? String(formData.get("address")).trim() : null;
-  const currentMood = String(formData.get("currentMood") ?? "NEUTRAL").trim().toUpperCase();
-  const moodNote = formData.get("moodNote") ? String(formData.get("moodNote")).trim() : null;
-
   if (!name || !email) {
     throw new Error("Nama dan Email wajib diisi.");
   }
@@ -155,13 +152,28 @@ export async function updateProfileAction(formData: FormData) {
       birthDate,
       phoneNumber,
       address,
-      currentMood,
-      moodNote,
       ...(passwordHash ? { passwordHash } : {}),
     },
   });
 
   revalidatePath("/settings");
+}
+
+export async function updateMoodAction(formData: FormData) {
+  const actor = await requireUser();
+  const currentMood = String(formData.get("currentMood") ?? "NEUTRAL").trim().toUpperCase();
+  const moodNote = formData.get("moodNote") ? String(formData.get("moodNote")).trim() : null;
+
+  await prisma.user.update({
+    where: { id: actor.id },
+    data: {
+      currentMood,
+      moodNote,
+    },
+  });
+
+  revalidatePath("/settings");
+  revalidatePath("/member");
 }
 
 // ─── Update Studio Attendance Policy ─────────────────────────────────────────
