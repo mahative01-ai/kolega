@@ -25,7 +25,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { createPayslip, deletePayslip, bulkGeneratePayslipsAction, updatePayslipAction, deleteAllPayslipsAction } from "./actions";
-import { Plus, Trash2, Printer, Loader2, FileText, Pencil, RefreshCw } from "lucide-react";
+import { Plus, Trash2, Printer, Loader2, FileText, Pencil, RefreshCw, ArrowUpDown } from "lucide-react";
 import { Combobox } from "@/components/ui/combobox";
 
 type Member = {
@@ -87,6 +87,19 @@ export function PayslipClient({
   const [activeStudioId, setActiveStudioId] = useState(studios[0]?.id ?? "");
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+
+  // Sorting State
+  const [sortField, setSortField] = useState<string>("name");
+  const [sortAsc, setSortAsc] = useState<boolean>(true);
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortAsc(!sortAsc);
+    } else {
+      setSortField(field);
+      setSortAsc(true);
+    }
+  };
 
   // Bulk Dialog State
   const [isBulkOpen, setIsBulkOpen] = useState(false);
@@ -588,44 +601,90 @@ export function PayslipClient({
             </Dialog>
           </div>
         </div>
-          <TabsList className="mb-4 flex w-fit flex-wrap">
-            {studios.map((studio) => (
-            <TabsTrigger key={studio.id} value={studio.id}>
-              {studio.name}
-            </TabsTrigger>
-          ))}
-        </TabsList>
         {studios.map((studio) => {
           const studioMembers = members.filter((member) => member.defaultStudioId === studio.id);
-          const studioPayslips = payslips.filter((payslip) => payslip.user.defaultStudioId === studio.id);
+          const rawStudioPayslips = payslips.filter((payslip) => payslip.user.defaultStudioId === studio.id);
+          
+          const sortedStudioPayslips = [...rawStudioPayslips].sort((a, b) => {
+            let aVal: any = "";
+            let bVal: any = "";
+
+            if (sortField === "name") {
+              aVal = a.user.name.toLowerCase();
+              bVal = b.user.name.toLowerCase();
+            } else if (sortField === "period") {
+              aVal = a.year * 100 + a.month;
+              bVal = b.year * 100 + b.month;
+            } else if (sortField === "basicSalary") {
+              aVal = a.basicSalary;
+              bVal = b.basicSalary;
+            } else if (sortField === "allowances") {
+              aVal = a.allowances;
+              bVal = b.allowances;
+            } else if (sortField === "deductions") {
+              aVal = a.deductions;
+              bVal = b.deductions;
+            } else if (sortField === "netSalary") {
+              aVal = a.netSalary;
+              bVal = b.netSalary;
+            }
+
+            if (aVal < bVal) return sortAsc ? -1 : 1;
+            if (aVal > bVal) return sortAsc ? 1 : -1;
+            return 0;
+          });
 
           return (
             <TabsContent key={studio.id} value={studio.id}>
               <div className="mb-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/30 dark:text-zinc-300">
-                {studioMembers.length} Team aktif di {studio.name}. {studioPayslips.length} slip sudah diterbitkan.
+                {studioMembers.length} Team aktif di {studio.name}. {sortedStudioPayslips.length} slip sudah diterbitkan.
               </div>
               <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-950">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nama Anggota</TableHead>
-              <TableHead>Periode</TableHead>
-              <TableHead>Gaji Pokok</TableHead>
-              <TableHead>Tunjangan</TableHead>
-              <TableHead>Potongan</TableHead>
-              <TableHead>Gaji Bersih</TableHead>
+              <TableHead onClick={() => handleSort("name")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
+                <div className="flex items-center gap-1">
+                  Nama Anggota <ArrowUpDown className="size-3 text-zinc-400" />
+                </div>
+              </TableHead>
+              <TableHead onClick={() => handleSort("period")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
+                <div className="flex items-center gap-1">
+                  Periode <ArrowUpDown className="size-3 text-zinc-400" />
+                </div>
+              </TableHead>
+              <TableHead onClick={() => handleSort("basicSalary")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
+                <div className="flex items-center gap-1">
+                  Gaji Pokok <ArrowUpDown className="size-3 text-zinc-400" />
+                </div>
+              </TableHead>
+              <TableHead onClick={() => handleSort("allowances")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
+                <div className="flex items-center gap-1">
+                  Tunjangan <ArrowUpDown className="size-3 text-zinc-400" />
+                </div>
+              </TableHead>
+              <TableHead onClick={() => handleSort("deductions")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
+                <div className="flex items-center gap-1">
+                  Potongan <ArrowUpDown className="size-3 text-zinc-400" />
+                </div>
+              </TableHead>
+              <TableHead onClick={() => handleSort("netSalary")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
+                <div className="flex items-center gap-1">
+                  Gaji Bersih <ArrowUpDown className="size-3 text-zinc-400" />
+                </div>
+              </TableHead>
               <TableHead className="text-right">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {studioPayslips.length === 0 ? (
+            {sortedStudioPayslips.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8 text-zinc-500">
                   Belum ada data slip gaji yang diterbitkan.
                 </TableCell>
               </TableRow>
             ) : (
-              studioPayslips.map((p) => (
+              sortedStudioPayslips.map((p) => (
                 <TableRow key={p.id}>
                   <TableCell className="font-medium text-zinc-950 dark:text-zinc-50">
                     {p.user.name}

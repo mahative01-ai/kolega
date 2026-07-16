@@ -47,6 +47,7 @@ enum AttendanceStatus {
   WFH
   PERMISSION
   SICK
+  DISPENSATION
   LEAVE
   ALPHA
   HOLIDAY
@@ -63,6 +64,7 @@ enum LocationValidationStatus {
 enum RequestType {
   PERMISSION
   SICK
+  DISPENSATION
   LEAVE
   WFH
   ACCOUNT_ARCHIVE
@@ -124,6 +126,7 @@ model User {
   memberStatus               MemberStatus           @default(TEAM)
   accountStatus              AccountStatus          @default(ACTIVE)
   annualLeaveBalance         Int                    @default(12)
+  workDayBalance             Int                    @default(0)
   picketDay                  String?
   phoneNumber                String?
   address                    String?

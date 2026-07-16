@@ -208,7 +208,7 @@ export async function loginAndAttendWithQrAction(
         startDate: { lte: attendanceDate },
         endDate: { gte: attendanceDate },
       },
-      select: { id: true },
+      select: { id: true, type: true },
     }),
     prisma.calendarEvent.findFirst({
       where: {
@@ -290,7 +290,14 @@ export async function loginAndAttendWithQrAction(
 
   // B. Jika ada pengajuan Izin/Sakit/Cuti yang disetujui untuk hari ini
   if (approvedRequest) {
-    const requestLabel = approvedRequest.type === "SICK" ? "Sakit" : approvedRequest.type === "LEAVE" ? "Cuti" : "Libur";
+    const requestLabel =
+      approvedRequest.type === "SICK"
+        ? "Sakit"
+        : approvedRequest.type === "LEAVE"
+          ? "Cuti"
+          : approvedRequest.type === "DISPENSATION"
+            ? "Dispensasi"
+            : "Izin";
     return {
       success: true,
       info: `Jadwal Anda hari ini adalah ${requestLabel}.`,
@@ -299,7 +306,12 @@ export async function loginAndAttendWithQrAction(
   }
 
   // C. Jika hari ini adalah Hari Libur Nasional / Cuti Bersama atau Libur Mingguan (dan tidak ada jadwal WFO khusus / Hari Pengganti)
-  const isWeekendOrHoliday = (holiday && !replacementWorkday) || (weeklyRule?.isWorkday === false && personalSchedule?.workMode !== "WFO" && !replacementWorkday);
+  const isHardHoliday = holiday?.type === "NATIONAL_HOLIDAY" || holiday?.type === "COMPANY_LEAVE";
+  const isOptionalMondayWfo = dayOfWeek === 1 && !isHardHoliday && personalSchedule?.workMode !== "WFH";
+  const isWeekendOrHoliday =
+    ((holiday && !replacementWorkday) ||
+      (weeklyRule?.isWorkday === false && personalSchedule?.workMode !== "WFO" && !replacementWorkday)) &&
+    !isOptionalMondayWfo;
   if (isWeekendOrHoliday) {
     return {
       success: true,
@@ -397,17 +409,30 @@ export async function loginAndAttendWithQrAction(
           };
         }
 
-        await prisma.attendanceRecord.update({
-          where: { id: existingRecord.id },
-          data: {
-            checkOutAt: now,
-            checkOutLatitude: userLat,
-            checkOutLongitude: userLng,
-            locationValidationStatus,
-            distanceMeters: distance,
-            earlyCheckoutMinutes: checkoutEligibility.earlyCheckoutMinutes,
-            updatedAt: now,
-          },
+        await prisma.$transaction(async (tx) => {
+          await tx.attendanceRecord.update({
+            where: { id: existingRecord.id },
+            data: {
+              checkOutAt: now,
+              checkOutLatitude: userLat,
+              checkOutLongitude: userLng,
+              locationValidationStatus,
+              distanceMeters: distance,
+              earlyCheckoutMinutes: checkoutEligibility.earlyCheckoutMinutes,
+              updatedAt: now,
+            },
+          });
+
+          if (isOptionalMondayWfo) {
+            await tx.user.update({
+              where: { id: user.id },
+              data: {
+                workDayBalance: {
+                  increment: 1,
+                },
+              },
+            });
+          }
         });
         await clearSession();
         return {

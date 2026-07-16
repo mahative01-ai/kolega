@@ -8,6 +8,7 @@ import {
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
+import { RiwayatPresensiTableClient } from "./riwayat-presensi-table-client";
 import {
   Card,
   CardContent,
@@ -40,6 +41,7 @@ const statusLabel: Record<string, string> = {
   WFH: "WFH",
   PERMISSION: "Izin",
   SICK: "Sakit",
+  DISPENSATION: "Dispensasi",
   LEAVE: "Cuti",
   ALPHA: "Alpha",
   HOLIDAY: "Libur",
@@ -53,6 +55,7 @@ const statusColor: Record<string, string> = {
   WFH: "bg-blue-100 text-blue-800",
   PERMISSION: "bg-amber-100 text-amber-800",
   SICK: "bg-violet-100 text-violet-800",
+  DISPENSATION: "bg-emerald-100 text-emerald-800",
   LEAVE: "bg-sky-100 text-sky-800",
   ALPHA: "bg-red-100 text-red-800",
   HOLIDAY: "bg-zinc-200 text-zinc-700",
@@ -111,7 +114,7 @@ async function getPersonalAttendanceHistory(userId: string) {
   const [total, onTime, late, completed, records] = await Promise.all([
     prisma.attendanceRecord.count({ where: monthFilter }),
     prisma.attendanceRecord.count({
-      where: { ...monthFilter, status: { in: ["PRESENT", "ON_TIME"] } },
+      where: { ...monthFilter, status: { in: ["PRESENT", "ON_TIME", "DISPENSATION"] } },
     }),
     prisma.attendanceRecord.count({
       where: { ...monthFilter, status: "LATE" },
@@ -220,91 +223,7 @@ export default async function PersonalAttendanceHistoryPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Tanggal</TableHead>
-                  <TableHead>Mode</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Check-in</TableHead>
-                  <TableHead>Check-out</TableHead>
-                  <TableHead>Terlambat</TableHead>
-                  <TableHead>Pulang Cepat</TableHead>
-                  <TableHead>Default Studio</TableHead>
-                  <TableHead>Lokasi</TableHead>
-                  <TableHead className="text-right">Aksi</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.records.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={10}
-                      className="h-24 text-center text-sm text-zinc-500"
-                    >
-                      Belum ada data presensi.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  data.records.map((record) => (
-                    <TableRow key={record.id}>
-                      <TableCell>{formatDate(record.attendanceDate)}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{record.workMode}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="secondary"
-                          className={statusColor[record.status]}
-                        >
-                          {statusLabel[record.status] ?? record.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{formatTime(record.checkInAt)}</TableCell>
-                      <TableCell>{formatTime(record.checkOutAt)}</TableCell>
-                      <TableCell>
-                        {record.lateMinutes > 0
-                          ? `${record.lateMinutes} menit`
-                          : "-"}
-                      </TableCell>
-                      <TableCell>
-                        {record.earlyCheckoutMinutes > 0
-                          ? `${record.earlyCheckoutMinutes} menit`
-                          : "-"}
-                      </TableCell>
-                      <TableCell>{record.ownerStudio.name}</TableCell>
-                      <TableCell>
-                        {record.locationStudio?.name ?? "Tidak perlu lokasi"}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {(() => {
-                          const todayKey = getJakartaDateKey(new Date());
-                          const todayMidnight = new Date(`${todayKey}T00:00:00.000Z`);
-                          const recordDate = new Date(record.attendanceDate);
-                          const diffTime = todayMidnight.getTime() - recordDate.getTime();
-                          const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-
-                          if (diffDays >= 2 && diffDays <= 7) {
-                            return (
-                              <Link
-                                href={`/member/corrections?recordId=${record.id}`}
-                                className={cn(
-                                  buttonVariants({ variant: "outline", size: "sm" }),
-                                  "h-7 px-2 text-xs"
-                                )}
-                              >
-                                Koreksi
-                              </Link>
-                            );
-                          }
-                          return <span className="text-xs text-zinc-400 dark:text-zinc-500">-</span>;
-                        })()}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+            <RiwayatPresensiTableClient records={data.records} />
           </CardContent>
         </Card>
       </div>

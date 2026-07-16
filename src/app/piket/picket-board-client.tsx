@@ -1,9 +1,11 @@
 "use client";
 
-import { useTransition } from "react";
-import { CalendarRange, UserCheck, HelpCircle, X } from "lucide-react";
+import { useState, useTransition } from "react";
+import { CalendarRange, UserCheck, HelpCircle, X, Edit2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { updateUserPicketDayAction } from "./actions";
 import { getMood } from "@/lib/moods";
@@ -16,6 +18,10 @@ type Member = {
   memberStatus: string;
   picketDay: string | null;
   defaultStudioId: string | null;
+  defaultStudio?: {
+    id: string;
+    name: string;
+  } | null;
   currentMood?: string;
 };
 
@@ -37,21 +43,85 @@ const DAYS = [
 export function PicketBoardClient({ members, isManager }: Props) {
   const [isPending, startTransition] = useTransition();
 
-  // Group members by picketDay
+  // Dialog Edit State
+  const [editOpen, setEditOpen] = useState(false);
+  const [editingMember, setEditingMember] = useState<Member | null>(null);
+  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+
+  // Group members by picketDay (split by comma since one member can have multiple days)
   const grouped = DAYS.reduce((acc, day) => {
-    acc[day.key] = members.filter((m) => m.picketDay === day.key);
+    acc[day.key] = members.filter((m) => {
+      if (!m.picketDay) return false;
+      const days = m.picketDay.split(",").map(d => d.trim().toUpperCase());
+      return days.includes(day.key);
+    });
     return acc;
   }, {} as Record<string, Member[]>);
 
-  const unscheduled = members.filter((m) => !m.picketDay);
+  const unscheduled = members.filter((m) => !m.picketDay || m.picketDay.trim() === "");
 
-  const handleDayChange = (userId: string, newDay: string) => {
-    const val = newDay === "NONE" ? null : newDay;
+  const handleOpenEdit = (member: Member) => {
+    setEditingMember(member);
+    if (member.picketDay && member.picketDay.trim() !== "") {
+      setSelectedDays(member.picketDay.split(",").map(d => d.trim().toUpperCase()));
+    } else {
+      setSelectedDays([]);
+    }
+    setEditOpen(true);
+  };
+
+  const handleToggleDayCheckbox = (dayKey: string) => {
+    if (!editingMember) return;
+    
+    const studioName = editingMember.defaultStudio?.name.toLowerCase() ?? "";
+    const isKipa = studioName.includes("kipa");
+    const limit = isKipa ? 2 : 1;
+
+    if (selectedDays.includes(dayKey)) {
+      setSelectedDays(selectedDays.filter(d => d !== dayKey));
+    } else {
+      if (selectedDays.length >= limit) {
+        toast.warning(
+          isKipa 
+            ? `Batas maksimal hari piket studio Kipa adalah 2 hari.`
+            : `Batas maksimal hari piket studio Mahative adalah 1 hari.`
+        );
+        return;
+      }
+      setSelectedDays([...selectedDays, dayKey]);
+    }
+  };
+
+  const handleSavePicketDays = () => {
+    if (!editingMember) return;
+    const newValue = selectedDays.length > 0 ? selectedDays.join(",") : null;
+
     startTransition(async () => {
       try {
-        const res = await updateUserPicketDayAction(userId, val);
+        const res = await updateUserPicketDayAction(editingMember.id, newValue);
         if (res.success) {
-          toast.success("Jadwal hari piket berhasil diperbarui.");
+          toast.success(`Jadwal piket untuk ${editingMember.name} berhasil diperbarui.`);
+          setEditOpen(false);
+          setEditingMember(null);
+        }
+      } catch (err: unknown) {
+        toast.error(err instanceof Error ? err.message : "Gagal memperbarui jadwal piket.");
+      }
+    });
+  };
+
+  // Remove only one specific day from user's picketDay
+  const handleRemoveSingleDay = (member: Member, dayToRemove: string) => {
+    if (!member.picketDay) return;
+    const days = member.picketDay.split(",").map(d => d.trim().toUpperCase());
+    const remainingDays = days.filter(d => d !== dayToRemove);
+    const newValue = remainingDays.length > 0 ? remainingDays.join(",") : null;
+
+    startTransition(async () => {
+      try {
+        const res = await updateUserPicketDayAction(member.id, newValue);
+        if (res.success) {
+          toast.success(`Berhasil menghapus hari ${DAYS.find(d => d.key === dayToRemove)?.label} dari jadwal.`);
         }
       } catch (err: unknown) {
         toast.error(err instanceof Error ? err.message : "Gagal memperbarui jadwal piket.");
@@ -84,7 +154,7 @@ export function PicketBoardClient({ members, isManager }: Props) {
                 ) : (
                   list.map((m) => (
                     <div
-                      key={m.id}
+                      key={`${m.id}-${day.key}`}
                       className="group rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-2 text-xs transition-all hover:shadow-sm"
                     >
                       <div className="flex items-center justify-between gap-1">
@@ -97,22 +167,22 @@ export function PicketBoardClient({ members, isManager }: Props) {
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <Badge
-                            variant="outline"
-                            className={`text-[8px] px-1 py-0 scale-90 origin-right border shadow-none ${
-                              m.memberStatus === "INTERN"
-                                ? "bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-900"
-                                : "bg-blue-50 dark:bg-blue-950/20 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-900"
-                            }`}
-                          >
-                            {m.memberStatus === "INTERN" ? "Intern" : "Team"}
-                          </Badge>
                           {isManager && (
                             <button
                               disabled={isPending}
-                              onClick={() => handleDayChange(m.id, "NONE")}
+                              onClick={() => handleOpenEdit(m)}
+                              className="text-zinc-400 hover:text-blue-600 rounded p-0.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                              title="Ubah Hari Piket"
+                            >
+                              <Edit2 className="size-3" />
+                            </button>
+                          )}
+                          {isManager && (
+                            <button
+                              disabled={isPending}
+                              onClick={() => handleRemoveSingleDay(m, day.key)}
                               className="text-zinc-400 hover:text-red-500 rounded p-0.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-                              title="Hapus dari Jadwal"
+                              title="Hapus hari ini dari Jadwal"
                             >
                               <X className="size-3" />
                             </button>
@@ -160,19 +230,14 @@ export function PicketBoardClient({ members, isManager }: Props) {
                     {m.memberStatus === "INTERN" ? "Intern" : "Team"}
                   </Badge>
                   {isManager && (
-                    <select
-                      value="NONE"
-                      disabled={isPending}
-                      onChange={(e) => handleDayChange(m.id, e.target.value)}
-                      className="text-[10px] rounded border border-zinc-200 dark:border-zinc-800 p-0.5 bg-zinc-50 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 outline-none cursor-pointer"
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleOpenEdit(m)}
+                      className="h-6 text-[10px] px-2"
                     >
-                      <option value="NONE" disabled>+ Hari Piket</option>
-                      {DAYS.map((d) => (
-                        <option key={d.key} value={d.key}>
-                          {d.label}
-                        </option>
-                      ))}
-                    </select>
+                      + Jadwal Piket
+                    </Button>
                   )}
                 </div>
               ))}
@@ -180,6 +245,53 @@ export function PicketBoardClient({ members, isManager }: Props) {
           )}
         </CardContent>
       </Card>
+
+      {/* 📝 Dialog Edit Hari Piket */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Atur Hari Piket Staf</DialogTitle>
+            <DialogDescription>
+              Tentukan hari piket untuk <b>{editingMember?.name}</b> (Studio {editingMember?.defaultStudio?.name ?? "-"}).
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4 space-y-3">
+            <p className="text-xs text-zinc-500 mb-1">
+              Batas Maksimal: {editingMember?.defaultStudio?.name.toLowerCase().includes("kipa") ? "2 Hari (Studio Kipa)" : "1 Hari (Studio Mahative)"}
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              {DAYS.map((day) => (
+                <label
+                  key={day.key}
+                  className="flex items-center gap-3 p-2 rounded-lg border border-zinc-200 dark:border-zinc-850 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 cursor-pointer text-sm"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedDays.includes(day.key)}
+                    onChange={() => handleToggleDayCheckbox(day.key)}
+                    className="h-4 w-4 rounded border-zinc-300 dark:border-zinc-700 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span>{day.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditOpen(false)}>
+              Batal
+            </Button>
+            <Button 
+              onClick={handleSavePicketDays} 
+              disabled={isPending}
+              className="bg-blue-700 hover:bg-blue-800 text-white"
+            >
+              Simpan Jadwal
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

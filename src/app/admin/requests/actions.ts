@@ -119,6 +119,17 @@ export async function reviewRequestAction(formData: FormData) {
         });
       }
 
+      if (request.type === "PERMISSION") {
+        await tx.user.update({
+          where: { id: request.userId },
+          data: {
+            workDayBalance: {
+              decrement: daysCount,
+            },
+          },
+        });
+      }
+
       // Loop through all dates in range (inclusive)
       const current = new Date(start);
       while (current <= end) {
@@ -153,6 +164,7 @@ export async function reviewRequestAction(formData: FormData) {
           const attendanceStatusMap = {
             PERMISSION: "PERMISSION" as const,
             SICK: "SICK" as const,
+            DISPENSATION: "DISPENSATION" as const,
             LEAVE: "LEAVE" as const,
             ACCOUNT_ARCHIVE: "PERMISSION" as const,
             ACCOUNT_DEACTIVATION: "PERMISSION" as const,
@@ -314,6 +326,17 @@ export async function quickReviewRequestAction(requestId: string, approve: boole
         });
       }
 
+      if (request.type === "PERMISSION") {
+        await tx.user.update({
+          where: { id: request.userId },
+          data: {
+            workDayBalance: {
+              decrement: daysCount,
+            },
+          },
+        });
+      }
+
       // Loop through all dates in range (inclusive)
       const current = new Date(start);
       while (current <= end) {
@@ -348,6 +371,7 @@ export async function quickReviewRequestAction(requestId: string, approve: boole
           const attendanceStatusMap = {
             PERMISSION: "PERMISSION" as const,
             SICK: "SICK" as const,
+            DISPENSATION: "DISPENSATION" as const,
             LEAVE: "LEAVE" as const,
             ACCOUNT_ARCHIVE: "PERMISSION" as const,
             ACCOUNT_DEACTIVATION: "PERMISSION" as const,
@@ -430,6 +454,23 @@ export async function deleteRequestAction(formData: FormData) {
           where: { id: request.userId },
           data: {
             annualLeaveBalance: {
+              increment: daysCount,
+            },
+          },
+        });
+      }
+
+      if (request.type === "PERMISSION") {
+        let daysCount = 0;
+        const countDate = new Date(start);
+        while (countDate <= end) {
+          daysCount++;
+          countDate.setUTCDate(countDate.getUTCDate() + 1);
+        }
+        await tx.user.update({
+          where: { id: request.userId },
+          data: {
+            workDayBalance: {
               increment: daysCount,
             },
           },

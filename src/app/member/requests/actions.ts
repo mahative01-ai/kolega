@@ -9,14 +9,14 @@ import { getJakartaDateKey, getJakartaMinutes } from "@/lib/attendance-time";
 export async function createRequestAction(formData: FormData) {
   const currentUser = await requireAnyRole(["ADMIN", "MEMBER"]);
 
-  const type = String(formData.get("type") ?? "");
+  const requestedType = String(formData.get("type") ?? "");
   const startDateStr = String(formData.get("startDate") ?? "");
   const endDateStr = String(formData.get("endDate") ?? "");
   const replacementDateStr = String(formData.get("replacementDate") ?? "");
   const reason = String(formData.get("reason") ?? "").trim();
 
   // Validate fields
-  if (!["PERMISSION", "SICK", "LEAVE", "WFH"].includes(type)) {
+  if (!["PERMISSION", "SICK", "DISPENSATION", "LEAVE", "WFH"].includes(requestedType)) {
     redirect("/member/requests?error=invalid-type");
   }
 
@@ -40,7 +40,7 @@ export async function createRequestAction(formData: FormData) {
     where: {
       userId: currentUser.id,
       status: { in: ["PENDING", "APPROVED"] },
-      type: { in: ["PERMISSION", "SICK", "LEAVE", "WFH"] },
+      type: { in: ["PERMISSION", "SICK", "DISPENSATION", "LEAVE", "WFH"] },
       startDate: { lte: endDate },
       endDate: { gte: startDate },
     },
@@ -63,17 +63,13 @@ export async function createRequestAction(formData: FormData) {
     redirect("/member/requests?error=past-date");
   }
 
-  // 3. Validasi Izin/Ganti Hari: minimal H-1 dan wajib memilih tanggal pengganti.
-  if ((type === "PERMISSION" || type === "LEAVE") && startDateTime < tomorrowDate) {
+  // 3. Validasi izin/cuti: minimal H-1.
+  if ((requestedType === "PERMISSION" || requestedType === "LEAVE") && startDateTime < tomorrowDate) {
     redirect("/member/requests?error=leave-notice");
   }
 
   let replacementDate: Date | null = null;
-  if (type === "PERMISSION") {
-    if (!replacementDateStr) {
-      redirect("/member/requests?error=missing-replacement");
-    }
-
+  if (replacementDateStr) {
     replacementDate = new Date(replacementDateStr);
     if (isNaN(replacementDate.getTime())) {
       redirect("/member/requests?error=invalid-dates");
@@ -84,7 +80,7 @@ export async function createRequestAction(formData: FormData) {
   }
 
   // 4. Validasi Sakit (SICK): maksimal 1 jam sebelum jam masuk jika diajukan hari H
-  if (type === "SICK" && startDateTime.getTime() === todayDate.getTime()) {
+  if (requestedType === "SICK" && startDateTime.getTime() === todayDate.getTime()) {
     const currentMinutes = getJakartaMinutes(new Date());
     // Batas 07:00 pagi adalah 7 * 60 = 420 menit
     if (currentMinutes >= 420) {
@@ -93,11 +89,11 @@ export async function createRequestAction(formData: FormData) {
   }
 
   // 5. Validasi WFH: Status Intern tidak boleh mengajukan WFH
-  if (type === "WFH" && currentUser.memberStatus === "INTERN") {
+  if (requestedType === "WFH" && currentUser.memberStatus === "INTERN") {
     redirect("/member/requests?error=intern-wfh");
   }
 
-  if (type === "LEAVE" && currentUser.memberStatus === "INTERN") {
+  if (requestedType === "LEAVE" && currentUser.memberStatus === "INTERN") {
     redirect("/member/requests?error=intern-leave");
   }
 
@@ -121,11 +117,20 @@ export async function createRequestAction(formData: FormData) {
     }
   }
 
+  let type = requestedType as "PERMISSION" | "SICK" | "DISPENSATION" | "LEAVE" | "WFH";
+  if (requestedType === "SICK" && !attachmentUrl) {
+    type = "PERMISSION";
+  }
+
+  if (requestedType === "DISPENSATION" && !attachmentUrl) {
+    redirect("/member/requests?error=attachment-required");
+  }
+
   // Create request in database
   await prisma.request.create({
     data: {
       userId: currentUser.id,
-      type: type as "PERMISSION" | "SICK" | "LEAVE" | "WFH",
+      type,
       status: "PENDING",
       startDate,
       endDate,

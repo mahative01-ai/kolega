@@ -219,8 +219,6 @@ export function RolesClient({
     sortAsc,
   ]);
 
-  const totalMembers = filteredUsers.length;
-
   const handleAddSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMsg("");
@@ -253,16 +251,29 @@ export function RolesClient({
     });
   };
 
+  const totalTeam = useMemo(() => filteredUsers.filter(u => u.memberStatus === "TEAM").length, [filteredUsers]);
+  const totalIntern = useMemo(() => filteredUsers.filter(u => u.memberStatus === "INTERN").length, [filteredUsers]);
+
   return (
     <div className="grid gap-6">
-      <section className="grid gap-3 sm:grid-cols-1">
-        <Card className="shadow-none">
+      <section className="grid gap-4 sm:grid-cols-2">
+        <Card className="shadow-none border border-zinc-200 dark:border-zinc-800">
           <CardHeader className="p-4 text-center">
             <CardDescription className="font-medium text-zinc-500 dark:text-zinc-400">
-              Total Anggota
+              Total Team
             </CardDescription>
-            <CardTitle className="mt-1 text-4xl font-bold text-zinc-900 dark:text-zinc-50">
-              {totalMembers}
+            <CardTitle className="mt-1 text-4xl font-bold text-blue-700 dark:text-blue-400">
+              {totalTeam}
+            </CardTitle>
+          </CardHeader>
+        </Card>
+        <Card className="shadow-none border border-zinc-200 dark:border-zinc-800">
+          <CardHeader className="p-4 text-center">
+            <CardDescription className="font-medium text-zinc-500 dark:text-zinc-400">
+              Total Intern (Magang/PKL)
+            </CardDescription>
+            <CardTitle className="mt-1 text-4xl font-bold text-amber-600 dark:text-amber-400">
+              {totalIntern}
             </CardTitle>
           </CardHeader>
         </Card>

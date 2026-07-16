@@ -47,6 +47,12 @@ export default async function PicketPage({
       memberStatus: true,
       picketDay: true,
       defaultStudioId: true,
+      defaultStudio: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
       currentMood: true,
     },
     orderBy: { name: "asc" },

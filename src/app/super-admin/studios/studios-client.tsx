@@ -262,16 +262,63 @@ export function StudiosClient({ initialStudios }: Props) {
     );
   }
 
-  const filteredStudios = useMemo(() => {
+  // Sorting State
+  const [sortField, setSortField] = useState<string>("name");
+  const [sortAsc, setSortAsc] = useState<boolean>(true);
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortAsc(!sortAsc);
+    } else {
+      setSortField(field);
+      setSortAsc(true);
+    }
+  };
+
+  const sortedAndFilteredStudios = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
-    if (!q) return studios;
-    return studios.filter(
-      (s) =>
-        s.name.toLowerCase().includes(q) ||
-        s.slug.toLowerCase().includes(q) ||
-        s.address?.toLowerCase().includes(q)
-    );
-  }, [searchQuery, studios]);
+    let result = studios;
+    if (q) {
+      result = studios.filter(
+        (s) =>
+          s.name.toLowerCase().includes(q) ||
+          s.slug.toLowerCase().includes(q) ||
+          s.address?.toLowerCase().includes(q)
+      );
+    }
+
+    return [...result].sort((a, b) => {
+      let aVal: any = "";
+      let bVal: any = "";
+
+      if (sortField === "name") {
+        aVal = a.name.toLowerCase();
+        bVal = b.name.toLowerCase();
+      } else if (sortField === "slug") {
+        aVal = a.slug.toLowerCase();
+        bVal = b.slug.toLowerCase();
+      } else if (sortField === "address") {
+        aVal = (a.address ?? "").toLowerCase();
+        bVal = (b.address ?? "").toLowerCase();
+      } else if (sortField === "geofence") {
+        aVal = a.latitude !== null && a.longitude !== null ? `${a.latitude},${a.longitude}` : "";
+        bVal = b.latitude !== null && b.longitude !== null ? `${b.latitude},${b.longitude}` : "";
+      } else if (sortField === "radius") {
+        aVal = a.radiusMeters;
+        bVal = b.radiusMeters;
+      } else if (sortField === "weekStart") {
+        aVal = a.weekStartDay;
+        bVal = b.weekStartDay;
+      } else if (sortField === "isActive") {
+        aVal = a.isActive ? 1 : 0;
+        bVal = b.isActive ? 1 : 0;
+      }
+
+      if (aVal < bVal) return sortAsc ? -1 : 1;
+      if (aVal > bVal) return sortAsc ? 1 : -1;
+      return 0;
+    });
+  }, [searchQuery, studios, sortField, sortAsc]);
 
   const handleNameChange = (nameVal: string, isEdit: boolean) => {
     const slugVal = nameVal
@@ -409,25 +456,53 @@ export function StudiosClient({ initialStudios }: Props) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nama Studio</TableHead>
-                  <TableHead>Slug</TableHead>
-                  <TableHead>Alamat & Lokasi</TableHead>
-                  <TableHead>Koordinat Geofence</TableHead>
-                  <TableHead>Radius</TableHead>
-                  <TableHead>Hari Mulai</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead onClick={() => handleSort("name")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
+                    <div className="flex items-center gap-1">
+                      Nama Studio <ArrowUpDown className="size-3 text-zinc-400" />
+                    </div>
+                  </TableHead>
+                  <TableHead onClick={() => handleSort("slug")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
+                    <div className="flex items-center gap-1">
+                      Slug <ArrowUpDown className="size-3 text-zinc-400" />
+                    </div>
+                  </TableHead>
+                  <TableHead onClick={() => handleSort("address")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
+                    <div className="flex items-center gap-1">
+                      Alamat & Lokasi <ArrowUpDown className="size-3 text-zinc-400" />
+                    </div>
+                  </TableHead>
+                  <TableHead onClick={() => handleSort("geofence")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
+                    <div className="flex items-center gap-1">
+                      Koordinat Geofence <ArrowUpDown className="size-3 text-zinc-400" />
+                    </div>
+                  </TableHead>
+                  <TableHead onClick={() => handleSort("radius")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
+                    <div className="flex items-center gap-1">
+                      Radius <ArrowUpDown className="size-3 text-zinc-400" />
+                    </div>
+                  </TableHead>
+                  <TableHead onClick={() => handleSort("weekStart")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
+                    <div className="flex items-center gap-1">
+                      Hari Mulai <ArrowUpDown className="size-3 text-zinc-400" />
+                    </div>
+                  </TableHead>
+                  <TableHead onClick={() => handleSort("isActive")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
+                    <div className="flex items-center gap-1">
+                      Status <ArrowUpDown className="size-3 text-zinc-400" />
+                    </div>
+                  </TableHead>
                   <TableHead className="text-right">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredStudios.length === 0 ? (
+                {sortedAndFilteredStudios.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-8 text-zinc-500 text-sm">
                       Tidak ada data studio ditemukan.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredStudios.map((s) => (
+                  sortedAndFilteredStudios.map((s) => (
                     <TableRow key={s.id}>
                       <TableCell className="font-semibold text-zinc-900 dark:text-zinc-100">
                         {s.name}

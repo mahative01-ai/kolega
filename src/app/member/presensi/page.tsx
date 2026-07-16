@@ -20,6 +20,7 @@ const statusLabel: Record<string, string> = {
   WFH: "WFH",
   PERMISSION: "Izin",
   SICK: "Sakit",
+  DISPENSATION: "Dispensasi",
   LEAVE: "Cuti",
   ALPHA: "Alpha",
 };
@@ -31,6 +32,7 @@ const statusColor: Record<string, string> = {
   WFH: "bg-blue-100 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-900",
   PERMISSION: "bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-900",
   SICK: "bg-violet-100 dark:bg-violet-950/50 text-violet-800 dark:text-violet-300 border-violet-200 dark:border-violet-900",
+  DISPENSATION: "bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900",
   LEAVE: "bg-sky-100 dark:bg-sky-950/50 text-sky-800 dark:text-sky-300 border-sky-200 dark:border-sky-900",
   ALPHA: "bg-red-100 dark:bg-red-950/50 text-red-800 dark:text-red-300 border-red-200 dark:border-red-900",
 };

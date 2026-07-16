@@ -32,15 +32,17 @@ import { createRequestAction, cancelRequestAction } from "./actions";
 export const dynamic = "force-dynamic";
 
 const requestTypeLabel: Record<string, string> = {
-  PERMISSION: "Izin",
-  SICK: "Sakit",
-  LEAVE: "Cuti Tahunan",
+  PERMISSION: "Izin Pribadi",
+  SICK: "Sakit Resmi",
+  DISPENSATION: "Dispensasi",
+  LEAVE: "Cuti",
   WFH: "WFH",
 };
 
 const requestTypeColor: Record<string, string> = {
   PERMISSION: "bg-amber-100 text-amber-800",
   SICK: "bg-violet-100 text-violet-800",
+  DISPENSATION: "bg-emerald-100 text-emerald-800",
   LEAVE: "bg-blue-100 text-blue-800",
   WFH: "bg-indigo-100 text-indigo-800",
 };
@@ -80,13 +82,13 @@ const errorMessages: Record<string, string> = {
   "date-range": "Tanggal selesai tidak boleh sebelum tanggal mulai.",
   "file-size": "Ukuran file lampiran terlalu besar (maksimal 2MB).",
   "upload-failed": "Gagal memproses lampiran berkas.",
-  "leave-notice": "Pengajuan Izin/Ganti Hari hanya dapat diajukan minimal H-1.",
-  "missing-replacement": "Tanggal ganti hari wajib diisi untuk pengajuan izin.",
+  "leave-notice": "Pengajuan izin dan cuti hanya dapat diajukan minimal H-1.",
   "replacement-date": "Tanggal ganti hari harus setelah rentang izin.",
-  "sick-notice": "Pengajuan Sakit hari ini harus dilakukan maksimal 1 jam sebelum jam masuk (sebelum 07:00 pagi).",
+  "sick-notice": "Pengajuan sakit hari ini harus dilakukan maksimal 1 jam sebelum jam masuk (sebelum 07:00 pagi).",
+  "attachment-required": "Dispensasi wajib menyertakan lampiran resmi.",
   "past-date": "Tanggal mulai pengajuan tidak boleh berada di masa lampau.",
   "intern-wfh": "Intern tidak diperbolehkan mengajukan WFH. Hanya Anggota Team dan Admin yang dapat mengajukan WFH.",
-  "intern-leave": "Intern tidak memiliki akses pengajuan Cuti Tahunan. Gunakan Izin/Ganti Hari atau Sakit sesuai kebutuhan.",
+  "intern-leave": "Intern tidak memiliki akses pengajuan cuti. Gunakan izin atau sakit sesuai kebutuhan.",
   "overlapping-request": "Anda sudah memiliki pengajuan aktif (Menunggu/Disetujui) pada rentang tanggal tersebut.",
   "already-processed": "Pengajuan tidak dapat dibatalkan karena sudah ditinjau oleh Admin.",
   "not-found": "Pengajuan tidak ditemukan.",
@@ -111,7 +113,7 @@ export default async function MemberRequestsPage({
   const requests = await prisma.request.findMany({
     where: {
       userId: currentUser.id,
-      type: { in: ["PERMISSION", "SICK", "LEAVE", "WFH"] },
+      type: { in: ["PERMISSION", "SICK", "DISPENSATION", "LEAVE", "WFH"] },
     },
     orderBy: { createdAt: "desc" },
     include: {
@@ -126,8 +128,8 @@ export default async function MemberRequestsPage({
       user={currentUser}
       currentPath="/member/requests"
       badge="Formulir Member"
-      title="Pengajuan Izin / Sakit / WFH"
-      description="Ajukan izin dengan ganti hari, sakit, atau WFH di halaman ini."
+      title="Pengajuan Izin / Sakit / Dispensasi / WFH"
+      description="Ajukan izin pribadi, sakit resmi, dispensasi, atau WFH di halaman ini."
     >
       {params.success && successMessages[params.success] ? (
         <div className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
@@ -180,10 +182,11 @@ export default async function MemberRequestsPage({
                   className="h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-3 text-sm outline-none focus:border-zinc-950 dark:focus:border-zinc-300 focus:ring-1 focus:ring-zinc-950 dark:focus:ring-zinc-300"
                   required
                 >
-                  <option value="PERMISSION">Izin / Ganti Hari (Min H-1)</option>
-                  <option value="SICK">Sakit (Keterangan Dokter, Maks H-H 07:00)</option>
+                  <option value="PERMISSION">Izin Pribadi / Tanpa Surat (Min H-1)</option>
+                  <option value="SICK">Sakit Resmi (Surat Dokter; tanpa surat menjadi Izin)</option>
+                  <option value="DISPENSATION">Dispensasi Resmi (Wajib Lampiran)</option>
                   {canRequestAnnualLeave ? (
-                    <option value="LEAVE">Cuti Tahunan (Min H-1, Potong Saldo)</option>
+                    <option value="LEAVE">Cuti (Min H-1, Potong Saldo)</option>
                   ) : null}
                   <option value="WFH">Pengajuan WFH</option>
                 </select>
@@ -191,7 +194,7 @@ export default async function MemberRequestsPage({
 
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="replacement-date" className="text-sm font-medium">
-                  Tanggal Ganti Hari <span className="text-xs font-normal text-zinc-500">(khusus izin)</span>
+                  Tanggal Ganti Hari <span className="text-xs font-normal text-zinc-500">(opsional)</span>
                 </label>
                 <Input
                   id="replacement-date"
@@ -240,7 +243,7 @@ export default async function MemberRequestsPage({
 
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="attachment" className="text-sm font-medium">
-                  Lampiran Berkas (opsional, maks 2MB)
+                  Lampiran Berkas <span className="text-xs font-normal text-zinc-500">(wajib untuk Dispensasi; Sakit tanpa surat menjadi Izin, maks 2MB)</span>
                 </label>
                 <Input
                   id="attachment"
@@ -266,7 +269,7 @@ export default async function MemberRequestsPage({
               Riwayat Pengajuan
             </CardTitle>
             <CardDescription>
-              Daftar izin, sakit, dan WFH yang pernah Anda ajukan beserta status terkininya.
+              Daftar izin, sakit, dispensasi, dan WFH yang pernah Anda ajukan beserta status terkininya.
             </CardDescription>
           </CardHeader>
           <CardContent>

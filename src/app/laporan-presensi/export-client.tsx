@@ -40,6 +40,7 @@ const STATUS_LABELS: Record<string, string> = {
   WFH: "WFH",
   PERMISSION: "Izin",
   SICK: "Sakit",
+  DISPENSATION: "Dispensasi",
   LEAVE: "Cuti",
   ALPHA: "Alpha",
   HOLIDAY: "Hari Libur",

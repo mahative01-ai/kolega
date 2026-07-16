@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useMemo, useState, useTransition } from "react";
-import { Plus, Search, Check, X, Milestone } from "lucide-react";
+import { Plus, Search, Check, X, Milestone, ArrowUpDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Combobox } from "@/components/ui/combobox";
 import {
   Card,
   CardContent,
@@ -68,6 +69,10 @@ export function PlacementsClient({ initialPlacements, users, studios }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isPending, startTransition] = useTransition();
 
+  // Sorting State
+  const [sortField, setSortField] = useState<string>("userName");
+  const [sortAsc, setSortAsc] = useState<boolean>(true);
+
   // Add Dialog State
   const [addOpen, setAddOpen] = useState(false);
   const [addUserId, setAddUserId] = useState("");
@@ -77,17 +82,61 @@ export function PlacementsClient({ initialPlacements, users, studios }: Props) {
   const [addReason, setAddReason] = useState("");
   const [addError, setAddError] = useState("");
 
-  const filteredPlacements = useMemo(() => {
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortAsc(!sortAsc);
+    } else {
+      setSortField(field);
+      setSortAsc(true);
+    }
+  };
+
+  const userOptions = useMemo(() => {
+    return users.map((u) => ({
+      value: u.id,
+      label: `${u.name} (${u.email})`,
+    }));
+  }, [users]);
+
+  const sortedAndFilteredPlacements = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
-    if (!q) return placements;
-    return placements.filter(
-      (p) =>
-        p.user.name.toLowerCase().includes(q) ||
-        p.user.email.toLowerCase().includes(q) ||
-        p.studio.name.toLowerCase().includes(q) ||
-        p.reason?.toLowerCase().includes(q)
-    );
-  }, [searchQuery, placements]);
+    let result = placements;
+    if (q) {
+      result = placements.filter(
+        (p) =>
+          p.user.name.toLowerCase().includes(q) ||
+          p.user.email.toLowerCase().includes(q) ||
+          p.studio.name.toLowerCase().includes(q) ||
+          p.reason?.toLowerCase().includes(q)
+      );
+    }
+
+    return [...result].sort((a, b) => {
+      let aVal: any = "";
+      let bVal: any = "";
+
+      if (sortField === "userName") {
+        aVal = a.user.name.toLowerCase();
+        bVal = b.user.name.toLowerCase();
+      } else if (sortField === "studio") {
+        aVal = a.studio.name.toLowerCase();
+        bVal = b.studio.name.toLowerCase();
+      } else if (sortField === "startDate") {
+        aVal = new Date(a.startDate).getTime();
+        bVal = new Date(b.startDate).getTime();
+      } else if (sortField === "endDate") {
+        aVal = a.endDate ? new Date(a.endDate).getTime() : Infinity;
+        bVal = b.endDate ? new Date(b.endDate).getTime() : Infinity;
+      } else if (sortField === "status") {
+        aVal = a.status;
+        bVal = b.status;
+      }
+
+      if (aVal < bVal) return sortAsc ? -1 : 1;
+      if (aVal > bVal) return sortAsc ? 1 : -1;
+      return 0;
+    });
+  }, [searchQuery, placements, sortField, sortAsc]);
 
   function formatDate(dVal: Date | string | null) {
     if (!dVal) return "-";
@@ -199,24 +248,44 @@ export function PlacementsClient({ initialPlacements, users, studios }: Props) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Anggota</TableHead>
-                  <TableHead>Studio Penugasan</TableHead>
-                  <TableHead>Tanggal Mulai</TableHead>
-                  <TableHead>Tanggal Selesai</TableHead>
+                  <TableHead onClick={() => handleSort("userName")} className="cursor-pointer select-none hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50">
+                    <div className="flex items-center gap-1.5">
+                      Anggota <ArrowUpDown className="size-3.5 text-zinc-400" />
+                    </div>
+                  </TableHead>
+                  <TableHead onClick={() => handleSort("studio")} className="cursor-pointer select-none hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50">
+                    <div className="flex items-center gap-1.5">
+                      Studio Penugasan <ArrowUpDown className="size-3.5 text-zinc-400" />
+                    </div>
+                  </TableHead>
+                  <TableHead onClick={() => handleSort("startDate")} className="cursor-pointer select-none hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50">
+                    <div className="flex items-center gap-1.5">
+                      Tanggal Mulai <ArrowUpDown className="size-3.5 text-zinc-400" />
+                    </div>
+                  </TableHead>
+                  <TableHead onClick={() => handleSort("endDate")} className="cursor-pointer select-none hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50">
+                    <div className="flex items-center gap-1.5">
+                      Tanggal Selesai <ArrowUpDown className="size-3.5 text-zinc-400" />
+                    </div>
+                  </TableHead>
                   <TableHead>Keterangan / Alasan</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead onClick={() => handleSort("status")} className="cursor-pointer select-none hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50">
+                    <div className="flex items-center gap-1.5">
+                      Status <ArrowUpDown className="size-3.5 text-zinc-400" />
+                    </div>
+                  </TableHead>
                   <TableHead className="text-right">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredPlacements.length === 0 ? (
+                {sortedAndFilteredPlacements.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8 text-zinc-500 text-sm">
                       Tidak ada data penempatan ditemukan.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredPlacements.map((p) => (
+                  sortedAndFilteredPlacements.map((p) => (
                     <TableRow key={p.id}>
                       <TableCell>
                         <div className="flex flex-col">
@@ -287,21 +356,14 @@ export function PlacementsClient({ initialPlacements, users, studios }: Props) {
           </DialogHeader>
           <form onSubmit={handleAddSubmit} className="space-y-4">
             <div className="grid gap-1.5">
-              <Label htmlFor="add-user">Anggota *</Label>
-              <select
-                id="add-user"
-                className="h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2.5 text-sm outline-none"
+              <Label>Anggota *</Label>
+              <Combobox
+                options={userOptions}
                 value={addUserId}
-                onChange={(e) => setAddUserId(e.target.value)}
-                required
-              >
-                <option value="">Pilih Anggota</option>
-                {users.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.name} ({u.email})
-                  </option>
-                ))}
-              </select>
+                onChange={setAddUserId}
+                placeholder="Pilih Anggota"
+                searchPlaceholder="Cari anggota..."
+              />
             </div>
 
             <div className="grid gap-1.5">

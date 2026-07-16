@@ -33,6 +33,11 @@ import { swapHolidayAction, deleteSwappedHolidayAction, deleteCalendarEventActio
 import { EVENT_TYPE_CONFIG } from "./page-config";
 import { cn } from "@/lib/utils";
 
+const MONTH_NAMES = [
+  "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+  "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+];
+
 type Studio = { id: string; name: string };
 
 type CalendarEvent = {
@@ -254,17 +259,51 @@ export function CalendarGridClient({
                 Sync Kalender
               </Button>
             )}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
+              <select
+                value={String(month).padStart(2, "0")}
+                onChange={(e) => {
+                  const newMonth = e.target.value;
+                  window.location.href = `?month=${year}-${newMonth}${activeStudioId ? `&studioId=${activeStudioId}` : ""}`;
+                }}
+                className="h-8 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 px-2 text-xs focus:outline-none"
+              >
+                {MONTH_NAMES.map((name, idx) => (
+                  <option key={idx} value={String(idx + 1).padStart(2, "0")}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={String(year)}
+                onChange={(e) => {
+                  const newYear = e.target.value;
+                  const monthStr = String(month).padStart(2, "0");
+                  window.location.href = `?month=${newYear}-${monthStr}${activeStudioId ? `&studioId=${activeStudioId}` : ""}`;
+                }}
+                className="h-8 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 px-2 text-xs focus:outline-none"
+              >
+                {Array.from({ length: 11 }).map((_, i) => {
+                  const y = new Date().getFullYear() - 5 + i;
+                  return (
+                    <option key={y} value={String(y)}>
+                      {y}
+                    </option>
+                  );
+                })}
+              </select>
+
               <a
                 href={`?month=${prevMonthKey}${activeStudioId ? `&studioId=${activeStudioId}` : ""}`}
-                className={buttonVariants({ variant: "outline", size: "icon" })}
+                className={buttonVariants({ variant: "outline", size: "icon", className: "h-8 w-8" })}
                 aria-label="Bulan sebelumnya"
               >
                 <ChevronLeft className="size-4" />
               </a>
               <a
                 href={`?month=${nextMonthKey}${activeStudioId ? `&studioId=${activeStudioId}` : ""}`}
-                className={buttonVariants({ variant: "outline", size: "icon" })}
+                className={buttonVariants({ variant: "outline", size: "icon", className: "h-8 w-8" })}
                 aria-label="Bulan berikutnya"
               >
                 <ChevronRight className="size-4" />

@@ -95,7 +95,7 @@ export async function materializeDailyAlpha(now = new Date()) {
         requests: {
           none: {
             status: "APPROVED",
-            type: { in: ["PERMISSION", "SICK", "LEAVE"] },
+            type: { in: ["PERMISSION", "SICK", "DISPENSATION", "LEAVE"] },
             startDate: { lte: attendanceDate },
             endDate: { gte: attendanceDate },
           },

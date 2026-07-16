@@ -198,7 +198,7 @@ export async function submitWfoAttendanceAction(formData: FormData) {
           startDate: { lte: attendanceDate },
           endDate: { gte: attendanceDate },
         },
-        select: { id: true },
+        select: { id: true, type: true },
       }),
       prisma.calendarEvent.findFirst({
         where: {
@@ -239,7 +239,12 @@ export async function submitWfoAttendanceAction(formData: FormData) {
   const locationValidationStatus =
     distance > maxRadius ? "OUTSIDE_RADIUS" : "INSIDE_RADIUS";
 
-  const isWeekendOrHoliday = (holiday && !replacementWorkday) || (weeklyRule?.isWorkday === false && personalSchedule?.workMode !== "WFO" && !replacementWorkday);
+  const isHardHoliday = holiday?.type === "NATIONAL_HOLIDAY" || holiday?.type === "COMPANY_LEAVE";
+  const isOptionalMondayWfo = dayOfWeek === 1 && !isHardHoliday && personalSchedule?.workMode !== "WFH";
+  const isWeekendOrHoliday =
+    ((holiday && !replacementWorkday) ||
+      (weeklyRule?.isWorkday === false && personalSchedule?.workMode !== "WFO" && !replacementWorkday)) &&
+    !isOptionalMondayWfo;
 
   // WFO override WFH: Block WFO scan only if they already checked in WFH
   if (existingRecord?.workMode === "WFH" && existingRecord.checkInAt) {
@@ -275,20 +280,35 @@ export async function submitWfoAttendanceAction(formData: FormData) {
       );
     }
 
-    const result = await prisma.attendanceRecord.updateMany({
-      where: {
-        id: existingRecord.id,
-        checkOutAt: null,
-      },
-      data: {
-        checkOutAt: now,
-        checkOutLatitude: userLat,
-        checkOutLongitude: userLng,
-        distanceMeters: distance,
-        locationValidationStatus,
-        earlyCheckoutMinutes: checkoutEligibility.earlyCheckoutMinutes,
-        updatedAt: now,
-      },
+    const result = await prisma.$transaction(async (tx) => {
+      const updateResult = await tx.attendanceRecord.updateMany({
+        where: {
+          id: existingRecord.id,
+          checkOutAt: null,
+        },
+        data: {
+          checkOutAt: now,
+          checkOutLatitude: userLat,
+          checkOutLongitude: userLng,
+          distanceMeters: distance,
+          locationValidationStatus,
+          earlyCheckoutMinutes: checkoutEligibility.earlyCheckoutMinutes,
+          updatedAt: now,
+        },
+      });
+
+      if (updateResult.count === 1 && isOptionalMondayWfo) {
+        await tx.user.update({
+          where: { id: currentUser.id },
+          data: {
+            workDayBalance: {
+              increment: 1,
+            },
+          },
+        });
+      }
+
+      return updateResult;
     });
 
     revalidatePersonalAttendance(currentUser.role);

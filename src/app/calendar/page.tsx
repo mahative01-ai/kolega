@@ -26,9 +26,9 @@ function getMonthKey(date = new Date()) {
 }
 
 function parseMonthKey(key?: string) {
-  const raw = key ?? getMonthKey();
+  const raw = key && key.trim() !== "" ? key : getMonthKey();
   const [y, m] = raw.split("-").map(Number);
-  const year = Number.isFinite(y) ? y : new Date().getFullYear();
+  const year = Number.isFinite(y) && y > 0 ? y : new Date().getFullYear();
   const month = Number.isFinite(m) && m >= 1 && m <= 12 ? m : new Date().getMonth() + 1;
   return { year, month };
 }

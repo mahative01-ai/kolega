@@ -134,10 +134,17 @@ export async function deletePicketAction(id: string) {
 export async function updateUserPicketDayAction(userId: string, picketDay: string | null) {
   const actor = await requireAnyRole(["SUPER_ADMIN", "ADMIN"]);
 
-  const VALID_DAYS = ["SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU", "MINGGU", null];
-  const normalizedDay = picketDay ? picketDay.toUpperCase() : null;
-  if (!VALID_DAYS.includes(normalizedDay)) {
-    throw new Error("Hari piket tidak valid.");
+  const VALID_DAYS = ["SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU", "MINGGU"];
+  let normalizedDay: string | null = null;
+
+  if (picketDay && picketDay.trim() !== "") {
+    const days = picketDay.split(",").map(d => d.trim().toUpperCase());
+    for (const d of days) {
+      if (!VALID_DAYS.includes(d)) {
+        throw new Error(`Hari piket "${d}" tidak valid.`);
+      }
+    }
+    normalizedDay = days.join(",");
   }
 
   const target = await prisma.user.findUnique({

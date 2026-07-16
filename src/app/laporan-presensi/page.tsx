@@ -35,6 +35,7 @@ const FILTERABLE_STATUSES = [
   "LATE",
   "WFH",
   "SICK",
+  "DISPENSATION",
   "LEAVE",
   "ALPHA",
 ] as const;
