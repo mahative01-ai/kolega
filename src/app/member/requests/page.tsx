@@ -116,7 +116,16 @@ export default async function MemberRequestsPage({
       type: { in: ["PERMISSION", "SICK", "DISPENSATION", "LEAVE", "WFH"] },
     },
     orderBy: { createdAt: "desc" },
-    include: {
+    select: {
+      id: true,
+      type: true,
+      status: true,
+      startDate: true,
+      endDate: true,
+      reason: true,
+      attachmentUrl: true,
+      createdAt: true,
+      updatedAt: true,
       reviewer: {
         select: { name: true },
       },
@@ -190,17 +199,6 @@ export default async function MemberRequestsPage({
                   ) : null}
                   <option value="WFH">Pengajuan WFH</option>
                 </select>
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="replacement-date" className="text-sm font-medium">
-                  Tanggal Ganti Hari <span className="text-xs font-normal text-zinc-500">(opsional)</span>
-                </label>
-                <Input
-                  id="replacement-date"
-                  name="replacementDate"
-                  type="date"
-                />
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -279,7 +277,6 @@ export default async function MemberRequestsPage({
                   <TableHead>Tipe</TableHead>
                   <TableHead>Mulai</TableHead>
                   <TableHead>Selesai</TableHead>
-                  <TableHead>Ganti Hari</TableHead>
                   <TableHead>Alasan / Catatan</TableHead>
                   <TableHead>Lampiran</TableHead>
                   <TableHead>Status</TableHead>
@@ -291,7 +288,7 @@ export default async function MemberRequestsPage({
                 {requests.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={9}
+                      colSpan={8}
                       className="h-24 text-center text-sm text-zinc-500"
                     >
                       Belum ada riwayat pengajuan perizinan.
@@ -310,7 +307,6 @@ export default async function MemberRequestsPage({
                       </TableCell>
                       <TableCell>{formatDate(req.startDate)}</TableCell>
                       <TableCell>{formatDate(req.endDate)}</TableCell>
-                      <TableCell>{req.replacementDate ? formatDate(req.replacementDate) : "-"}</TableCell>
                       <TableCell className="max-w-[200px] truncate" title={req.reason}>
                         {req.reason}
                       </TableCell>

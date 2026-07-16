@@ -12,7 +12,6 @@ export async function createRequestAction(formData: FormData) {
   const requestedType = String(formData.get("type") ?? "");
   const startDateStr = String(formData.get("startDate") ?? "");
   const endDateStr = String(formData.get("endDate") ?? "");
-  const replacementDateStr = String(formData.get("replacementDate") ?? "");
   const reason = String(formData.get("reason") ?? "").trim();
 
   // Validate fields
@@ -66,17 +65,6 @@ export async function createRequestAction(formData: FormData) {
   // 3. Validasi izin/cuti: minimal H-1.
   if ((requestedType === "PERMISSION" || requestedType === "LEAVE") && startDateTime < tomorrowDate) {
     redirect("/member/requests?error=leave-notice");
-  }
-
-  let replacementDate: Date | null = null;
-  if (replacementDateStr) {
-    replacementDate = new Date(replacementDateStr);
-    if (isNaN(replacementDate.getTime())) {
-      redirect("/member/requests?error=invalid-dates");
-    }
-    if (replacementDate <= endDate) {
-      redirect("/member/requests?error=replacement-date");
-    }
   }
 
   // 4. Validasi Sakit (SICK): maksimal 1 jam sebelum jam masuk jika diajukan hari H
@@ -134,7 +122,6 @@ export async function createRequestAction(formData: FormData) {
       status: "PENDING",
       startDate,
       endDate,
-      replacementDate,
       reason,
       attachmentUrl,
     },

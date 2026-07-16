@@ -83,7 +83,19 @@ export default async function AdminApprovalsPage({
     prisma.request.findMany({
       where: scopedWhereRequests,
       orderBy: { createdAt: "desc" },
-      include: {
+      select: {
+        id: true,
+        userId: true,
+        type: true,
+        status: true,
+        startDate: true,
+        endDate: true,
+        reason: true,
+        attachmentUrl: true,
+        reviewerId: true,
+        reviewedAt: true,
+        createdAt: true,
+        updatedAt: true,
         user: {
           select: {
             name: true,
@@ -121,7 +133,19 @@ export default async function AdminApprovalsPage({
       where: scopedWhereHistoryRequests,
       orderBy: { updatedAt: "desc" },
       take: 50,
-      include: {
+      select: {
+        id: true,
+        userId: true,
+        type: true,
+        status: true,
+        startDate: true,
+        endDate: true,
+        reason: true,
+        attachmentUrl: true,
+        reviewerId: true,
+        reviewedAt: true,
+        createdAt: true,
+        updatedAt: true,
         user: {
           select: {
             name: true,

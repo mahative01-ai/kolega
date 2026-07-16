@@ -47,7 +47,6 @@ type RequestItem = {
   status: string;
   startDate: Date;
   endDate: Date;
-  replacementDate: Date | null;
   reason: string;
   attachmentUrl: string | null;
   reviewerId: string | null;
@@ -493,12 +492,6 @@ export function ApprovalsTabsClient({
                                   <p className="text-xs font-semibold text-zinc-400">Periode Absen</p>
                                   <p className="mt-1 font-medium">{formatDate(req.startDate)} s.d. {formatDate(req.endDate)}</p>
                                 </div>
-                                {req.replacementDate && (
-                                  <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Tanggal Ganti Hari</p>
-                                    <p className="mt-1">{formatDate(req.replacementDate)}</p>
-                                  </div>
-                                )}
                                 <div>
                                   <p className="text-xs font-semibold text-zinc-400">Alasan Lengkap</p>
                                   <p className="mt-1 whitespace-pre-wrap leading-relaxed text-zinc-850 dark:text-zinc-200">{req.reason}</p>
