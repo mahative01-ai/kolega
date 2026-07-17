@@ -133,21 +133,37 @@ export default async function MemberCorrectionsPage({
     }
   }
 
-  // Fetch submitted corrections history
-  const corrections = await prisma.attendanceCorrection.findMany({
+  // Fetch submitted corrections history. Attendance records are loaded separately
+  // so the page still renders if an old correction points to a missing record.
+  const correctionRows = await prisma.attendanceCorrection.findMany({
     where: { requestedById: currentUser.id },
     orderBy: { createdAt: "desc" },
     include: {
-      attendanceRecord: {
-        select: {
-          attendanceDate: true,
-        },
-      },
       approvedBy: {
         select: { name: true },
       },
     },
   });
+  const correctionRecordIds = [...new Set(correctionRows.map((corr) => corr.attendanceRecordId))];
+  const correctionRecords = correctionRecordIds.length
+    ? await prisma.attendanceRecord.findMany({
+        where: {
+          id: { in: correctionRecordIds },
+          userId: currentUser.id,
+        },
+        select: {
+          id: true,
+          attendanceDate: true,
+        },
+      })
+    : [];
+  const correctionRecordMap = new Map(
+    correctionRecords.map((record) => [record.id, record])
+  );
+  const corrections = correctionRows.map((corr) => ({
+    ...corr,
+    attendanceRecord: correctionRecordMap.get(corr.attendanceRecordId) ?? null,
+  }));
 
   return (
     <DashboardShell
@@ -227,7 +243,9 @@ export default async function MemberCorrectionsPage({
                   corrections.map((corr) => (
                     <TableRow key={corr.id}>
                       <TableCell className="font-medium">
-                        {formatDate(corr.attendanceRecord.attendanceDate)}
+                        {corr.attendanceRecord
+                          ? formatDate(corr.attendanceRecord.attendanceDate)
+                          : "-"}
                       </TableCell>
                       <TableCell>
                         {corr.previousStatus ? (

@@ -107,7 +107,7 @@ export function CorrectionFormClient({
           <option value="WFH">WFH (Penuh)</option>
           <option value="PERMISSION">Izin</option>
           <option value="SICK">Sakit</option>
-          <option value="LEAVE">Cuti</option>
+          <option value="LEAVE">Ganti Hari</option>
         </select>
       </div>
 
