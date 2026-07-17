@@ -1,3 +1,4 @@
+import fs from "fs";
 import path from "path";
 import QRCode from "qrcode";
 import sharp from "sharp";
@@ -5,6 +6,21 @@ import { requireAnyRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
+
+let cachedFontBase64: string | null = null;
+
+function getGeistFontBase64() {
+  if (cachedFontBase64) return cachedFontBase64;
+  try {
+    const fontPath = path.join(process.cwd(), "fonts", "Geist-Regular.ttf");
+    if (fs.existsSync(fontPath)) {
+      cachedFontBase64 = fs.readFileSync(fontPath).toString("base64");
+    }
+  } catch {
+    cachedFontBase64 = null;
+  }
+  return cachedFontBase64;
+}
 
 function escapeXml(value: string) {
   return value
@@ -23,10 +39,8 @@ export async function GET(request: Request) {
     return new Response("Format QR Card tidak didukung.", { status: 400 });
   }
 
-  // Set FONTCONFIG_PATH so Sharp can locate fonts inside Next.js process (only on non-Windows)
-  if (process.platform !== "win32") {
-    process.env.FONTCONFIG_PATH = path.join(process.cwd(), "fonts");
-  }
+  // Set FONTCONFIG_PATH so Sharp / librsvg can locate fonts inside Next.js process
+  process.env.FONTCONFIG_PATH = path.join(process.cwd(), "fonts");
 
   const currentUser = await requireAnyRole(["ADMIN", "MEMBER"]);
   const credential = await prisma.qrCredential.findFirst({
@@ -62,23 +76,47 @@ export async function GET(request: Request) {
   const studio = escapeXml(currentUser.defaultStudio?.name ?? "Belum ada studio");
   const qrUid = escapeXml(credential.qrUid);
 
+  const fontBase64 = getGeistFontBase64();
+  const fontStyleDef = fontBase64
+    ? `<defs>
+    <style type="text/css">
+      @font-face {
+        font-family: 'GeistFont';
+        src: url('data:font/ttf;charset=utf-8;base64,${fontBase64}');
+        font-weight: normal;
+        font-style: normal;
+      }
+      text {
+        font-family: 'GeistFont', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+      }
+    </style>
+  </defs>`
+    : `<defs>
+    <style type="text/css">
+      text {
+        font-family: 'GeistFont', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+      }
+    </style>
+  </defs>`;
+
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="720" height="460" viewBox="0 0 720 460">
+  ${fontStyleDef}
   <rect width="720" height="460" rx="28" fill="#ffffff"/>
   <rect x="24" y="24" width="672" height="412" rx="24" fill="#f8fafc" stroke="#d4d4d8"/>
   <rect x="48" y="48" width="624" height="76" rx="18" fill="#09090b"/>
-  <text x="76" y="82" fill="#ffffff" font-family="sans-serif" font-size="24" font-weight="700">${studio}</text>
-  <text x="76" y="106" fill="#a1a1aa" font-family="sans-serif" font-size="12" font-weight="700" letter-spacing="1">DEFAULT STUDIO</text>
+  <text x="76" y="82" fill="#ffffff" font-size="24" font-weight="700">${studio}</text>
+  <text x="76" y="106" fill="#a1a1aa" font-size="12" font-weight="700" letter-spacing="1">DEFAULT STUDIO</text>
   <g transform="translate(54 150)">
     ${qrSvg.replace("<svg", '<svg x="0" y="0"')}
   </g>
-  <text x="350" y="174" fill="#71717a" font-family="sans-serif" font-size="13" font-weight="700">NAMA</text>
-  <text x="350" y="202" fill="#18181b" font-family="sans-serif" font-size="28" font-weight="700">${name}</text>
-  <text x="350" y="235" fill="#71717a" font-family="sans-serif" font-size="13" font-weight="700">EMAIL</text>
-  <text x="350" y="262" fill="#27272a" font-family="sans-serif" font-size="17">${email}</text>
-  <text x="350" y="295" fill="#71717a" font-family="sans-serif" font-size="13" font-weight="700">QR UID</text>
-  <text x="350" y="322" fill="#09090b" font-family="sans-serif" font-size="20" font-weight="700">${qrUid}</text>
-  <text x="350" y="360" fill="#71717a" font-family="sans-serif" font-size="13">Aktif sejak ${escapeXml(issuedAt)}</text>
+  <text x="350" y="174" fill="#71717a" font-size="13" font-weight="700">NAMA</text>
+  <text x="350" y="202" fill="#18181b" font-size="28" font-weight="700">${name}</text>
+  <text x="350" y="235" fill="#71717a" font-size="13" font-weight="700">EMAIL</text>
+  <text x="350" y="262" fill="#27272a" font-size="17">${email}</text>
+  <text x="350" y="295" fill="#71717a" font-size="13" font-weight="700">QR UID</text>
+  <text x="350" y="322" fill="#09090b" font-size="20" font-weight="700">${qrUid}</text>
+  <text x="350" y="360" fill="#71717a" font-size="13">Aktif sejak ${escapeXml(issuedAt)}</text>
 </svg>`;
 
   if (format === "html") {
