@@ -324,11 +324,7 @@ export default async function MemberCorrectionsPage({
                       </TableCell>
                       <TableCell className="text-right">
                         {corr.status === "PENDING" ? (
-                          <form action={cancelCorrectionAction} method="POST" onSubmit={(e) => {
-                            if (!confirm("Apakah Anda yakin ingin membatalkan pengajuan koreksi ini?")) {
-                              e.preventDefault();
-                            }
-                          }}>
+                          <form action={cancelCorrectionAction} method="POST">
                             <input type="hidden" name="correctionId" value={corr.id} />
                             <Button type="submit" size="sm" variant="ghost" className="text-red-650 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 h-8 px-2">
                               <Trash2 className="size-4 mr-1" />
