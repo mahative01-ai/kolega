@@ -155,3 +155,80 @@ export async function toggleStudioActiveAction(id: string, isActive: boolean) {
   revalidatePath("/super-admin/studios");
   return { success: true, studio: updatedStudio };
 }
+
+export async function deleteStudioAction(id: string) {
+  const actor = await requireAnyRole(["SUPER_ADMIN"]);
+
+  const studio = await prisma.studio.findUnique({
+    where: { id },
+    select: { id: true, name: true, slug: true },
+  });
+
+  if (!studio) {
+    throw new Error("Studio tidak ditemukan.");
+  }
+
+  const [
+    defaultMemberCount,
+    placementCount,
+    attendanceCount,
+    scheduleCount,
+    policyCount,
+    weeklyRuleCount,
+    calendarEventCount,
+    picketCount,
+    reminderCount,
+  ] = await Promise.all([
+    prisma.user.count({ where: { defaultStudioId: id } }),
+    prisma.placement.count({ where: { studioId: id } }),
+    prisma.attendanceRecord.count({
+      where: {
+        OR: [{ ownerStudioId: id }, { locationStudioId: id }],
+      },
+    }),
+    prisma.personalWorkSchedule.count({ where: { studioId: id } }),
+    prisma.attendancePolicy.count({ where: { studioId: id } }),
+    prisma.weeklyWorkRule.count({ where: { studioId: id } }),
+    prisma.calendarEvent.count({ where: { studioId: id } }),
+    prisma.picketSchedule.count({ where: { studioId: id } }),
+    prisma.reminder.count({ where: { studioId: id } }),
+  ]);
+
+  const relationCount =
+    defaultMemberCount +
+    placementCount +
+    attendanceCount +
+    scheduleCount +
+    policyCount +
+    weeklyRuleCount +
+    calendarEventCount +
+    picketCount +
+    reminderCount;
+
+  if (relationCount > 0) {
+    throw new Error(
+      "Studio tidak bisa dihapus karena masih dipakai oleh user, presensi, jadwal, kalender, piket, atau pengingat. Nonaktifkan studio jika hanya ingin menyembunyikannya."
+    );
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.studio.delete({ where: { id } });
+
+    await tx.auditLog.create({
+      data: {
+        actorId: actor.id,
+        entity: "Studio",
+        entityId: studio.id,
+        action: "DELETE_STUDIO",
+        metadata: {
+          name: studio.name,
+          slug: studio.slug,
+        },
+      },
+    });
+  });
+
+  revalidatePath("/super-admin/studios");
+  revalidatePath("/settings");
+  return { success: true, deletedId: id };
+}

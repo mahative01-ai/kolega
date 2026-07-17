@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState, useTransition, useEffect, useRef } from "react";
-import { ArrowUpDown, Building2, Edit2, Plus, Search, Navigation, Loader2 } from "lucide-react";
+import { ArrowUpDown, Building2, Edit2, Plus, Search, Navigation, Loader2, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +30,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { createStudioAction, updateStudioAction, toggleStudioActiveAction } from "./actions";
+import { createStudioAction, updateStudioAction, toggleStudioActiveAction, deleteStudioAction } from "./actions";
 
 type LeafletLatLng = { lat: number; lng: number };
 type LeafletMarker = {
@@ -425,6 +425,23 @@ export function StudiosClient({ initialStudios }: Props) {
     });
   };
 
+  const handleDeleteStudio = (studio: Studio) => {
+    if (!confirm(`Hapus studio "${studio.name}" secara permanen? Studio yang masih dipakai data lain akan otomatis ditolak sistem.`)) {
+      return;
+    }
+
+    startTransition(async () => {
+      try {
+        const res = await deleteStudioAction(studio.id);
+        if (res.success) {
+          setStudios(studios.filter((s) => s.id !== res.deletedId));
+        }
+      } catch (err: unknown) {
+        alert(err instanceof Error ? err.message : "Gagal menghapus studio.");
+      }
+    });
+  };
+
   return (
     <div className="grid gap-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -543,14 +560,27 @@ export function StudiosClient({ initialStudios }: Props) {
                         </Button>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditClick(s)}
-                          className="h-8 w-8 p-0"
-                        >
-                          <Edit2 className="size-3.5 text-zinc-500 hover:text-zinc-900" />
-                        </Button>
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditClick(s)}
+                            className="h-8 w-8 p-0"
+                            title="Edit studio"
+                          >
+                            <Edit2 className="size-3.5 text-zinc-500 hover:text-zinc-900" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={isPending}
+                            onClick={() => handleDeleteStudio(s)}
+                            className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/20"
+                            title="Hapus studio"
+                          >
+                            <Trash2 className="size-3.5" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))

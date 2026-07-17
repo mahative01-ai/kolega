@@ -56,7 +56,7 @@ export function Combobox({
   }, [closeCombobox]);
 
   return (
-    <div ref={containerRef} className={cn("relative w-full", className)}>
+    <div ref={containerRef} className={cn("relative w-full", open && "z-[120]", className)}>
       <button
         type="button"
         disabled={disabled}
@@ -76,7 +76,7 @@ export function Combobox({
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm animate-in fade-in-50 slide-in-from-top-1 duration-100">
+        <div className="absolute z-[130] mt-1 max-h-60 w-full overflow-auto rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm animate-in fade-in-50 slide-in-from-top-1 duration-100">
           <div className="sticky top-0 z-10 flex items-center border-b border-zinc-150 dark:border-zinc-850 bg-white dark:bg-zinc-950 px-3 py-1.5">
             <Search className="mr-2 h-4 w-4 shrink-0 text-zinc-400" />
             <input
