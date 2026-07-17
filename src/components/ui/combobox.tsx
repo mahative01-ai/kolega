@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { Check, ChevronsUpDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +31,9 @@ export function Combobox({
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
+  const [dropdownStyle, setDropdownStyle] = React.useState<React.CSSProperties>({});
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
 
   const selectedOption = options.find((opt) => opt.value === value);
 
@@ -43,9 +46,43 @@ export function Combobox({
     setSearch("");
   }, []);
 
+  const updateDropdownPosition = React.useCallback(() => {
+    const trigger = containerRef.current;
+    if (!trigger) return;
+
+    const rect = trigger.getBoundingClientRect();
+    const availableHeight = Math.max(window.innerHeight - rect.bottom - 12, 120);
+
+    setDropdownStyle({
+      position: "fixed",
+      top: rect.bottom + 4,
+      left: rect.left,
+      width: rect.width,
+      maxHeight: Math.min(240, availableHeight),
+      zIndex: 1000,
+    });
+  }, []);
+
+  React.useLayoutEffect(() => {
+    if (!open) return;
+
+    updateDropdownPosition();
+    window.addEventListener("resize", updateDropdownPosition);
+    window.addEventListener("scroll", updateDropdownPosition, true);
+
+    return () => {
+      window.removeEventListener("resize", updateDropdownPosition);
+      window.removeEventListener("scroll", updateDropdownPosition, true);
+    };
+  }, [open, updateDropdownPosition]);
+
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const clickedTrigger = containerRef.current?.contains(target);
+      const clickedDropdown = dropdownRef.current?.contains(target);
+
+      if (!clickedTrigger && !clickedDropdown) {
         closeCombobox();
       }
     }
@@ -75,8 +112,12 @@ export function Combobox({
         <ChevronsUpDown className="h-4 w-4 shrink-0 text-zinc-500" />
       </button>
 
-      {open && (
-        <div className="absolute z-[130] mt-1 max-h-60 w-full overflow-auto rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm animate-in fade-in-50 slide-in-from-top-1 duration-100">
+      {open && typeof document !== "undefined" && createPortal(
+        <div
+          ref={dropdownRef}
+          style={dropdownStyle}
+          className="overflow-auto rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm animate-in fade-in-50 slide-in-from-top-1 duration-100"
+        >
           <div className="sticky top-0 z-10 flex items-center border-b border-zinc-150 dark:border-zinc-850 bg-white dark:bg-zinc-950 px-3 py-1.5">
             <Search className="mr-2 h-4 w-4 shrink-0 text-zinc-400" />
             <input
@@ -121,7 +162,8 @@ export function Combobox({
               })
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
