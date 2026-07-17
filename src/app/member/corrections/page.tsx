@@ -98,72 +98,109 @@ export default async function MemberCorrectionsPage({
   const currentUser = await requireAnyRole(["ADMIN", "MEMBER"]);
   const params = await searchParams;
   const recordIdParam = params.recordId ?? "";
+  const loadErrors: string[] = [];
 
   const todayKey = getJakartaDateKey(new Date());
   const todayMidnight = new Date(`${todayKey}T00:00:00.000Z`);
   const minDate = new Date(todayMidnight.getTime() - 7 * 24 * 60 * 60 * 1000);
   const maxDate = todayMidnight;
 
-  const recentRecords = await prisma.attendanceRecord.findMany({
-    where: {
-      userId: currentUser.id,
-      attendanceDate: {
-        gte: minDate,
-        lte: maxDate,
+  let recentRecords: Array<{
+    id: string;
+    attendanceDate: Date;
+    status: string;
+  }> = [];
+
+  try {
+    recentRecords = await prisma.attendanceRecord.findMany({
+      where: {
+        userId: currentUser.id,
+        attendanceDate: {
+          gte: minDate,
+          lte: maxDate,
+        },
       },
-    },
-    orderBy: { attendanceDate: "desc" },
-    select: {
-      id: true,
-      attendanceDate: true,
-      status: true,
-    },
-  });
+      orderBy: { attendanceDate: "desc" },
+      select: {
+        id: true,
+        attendanceDate: true,
+        status: true,
+      },
+    });
+  } catch (error) {
+    console.error("Failed to load correction attendance records", error);
+    loadErrors.push("Catatan presensi terbaru belum bisa dimuat.");
+  }
 
   // If recordId param is provided, fetch it
-  let preselectedRecord = null;
+  let preselectedRecord: {
+    id: string;
+    attendanceDate: Date;
+    status: string;
+  } | null = null;
   if (recordIdParam) {
-    preselectedRecord = recentRecords.find((r) => r.id === recordIdParam);
+    preselectedRecord = recentRecords.find((r) => r.id === recordIdParam) ?? null;
     if (!preselectedRecord) {
       // Fallback: try fetching from DB directly in case it's older than 30 records
-      preselectedRecord = await prisma.attendanceRecord.findFirst({
-        where: { id: recordIdParam, userId: currentUser.id },
-        select: { id: true, attendanceDate: true, status: true },
-      });
+      try {
+        preselectedRecord = await prisma.attendanceRecord.findFirst({
+          where: { id: recordIdParam, userId: currentUser.id },
+          select: { id: true, attendanceDate: true, status: true },
+        });
+      } catch (error) {
+        console.error("Failed to load preselected correction record", error);
+        loadErrors.push("Catatan presensi yang dipilih belum bisa dimuat.");
+      }
     }
   }
 
   // Fetch submitted corrections history. Attendance records are loaded separately
   // so the page still renders if an old correction points to a missing record.
-  const correctionRows = await prisma.attendanceCorrection.findMany({
-    where: { requestedById: currentUser.id },
-    orderBy: { createdAt: "desc" },
-    include: {
-      approvedBy: {
-        select: { name: true },
+  let corrections: Array<{
+    id: string;
+    attendanceRecordId: string;
+    previousStatus: string | null;
+    newStatus: string | null;
+    reason: string;
+    status: string;
+    approvedBy: { name: string } | null;
+    attendanceRecord: { id: string; attendanceDate: Date } | null;
+  }> = [];
+
+  try {
+    const correctionRows = await prisma.attendanceCorrection.findMany({
+      where: { requestedById: currentUser.id },
+      orderBy: { createdAt: "desc" },
+      include: {
+        approvedBy: {
+          select: { name: true },
+        },
       },
-    },
-  });
-  const correctionRecordIds = [...new Set(correctionRows.map((corr) => corr.attendanceRecordId))];
-  const correctionRecords = correctionRecordIds.length
-    ? await prisma.attendanceRecord.findMany({
-        where: {
-          id: { in: correctionRecordIds },
-          userId: currentUser.id,
-        },
-        select: {
-          id: true,
-          attendanceDate: true,
-        },
-      })
-    : [];
-  const correctionRecordMap = new Map(
-    correctionRecords.map((record) => [record.id, record])
-  );
-  const corrections = correctionRows.map((corr) => ({
-    ...corr,
-    attendanceRecord: correctionRecordMap.get(corr.attendanceRecordId) ?? null,
-  }));
+    });
+    const correctionRecordIds = [...new Set(correctionRows.map((corr) => corr.attendanceRecordId))];
+    const correctionRecords = correctionRecordIds.length
+      ? await prisma.attendanceRecord.findMany({
+          where: {
+            id: { in: correctionRecordIds },
+            userId: currentUser.id,
+          },
+          select: {
+            id: true,
+            attendanceDate: true,
+          },
+        })
+      : [];
+    const correctionRecordMap = new Map(
+      correctionRecords.map((record) => [record.id, record])
+    );
+    corrections = correctionRows.map((corr) => ({
+      ...corr,
+      attendanceRecord: correctionRecordMap.get(corr.attendanceRecordId) ?? null,
+    }));
+  } catch (error) {
+    console.error("Failed to load correction history", error);
+    loadErrors.push("Riwayat koreksi belum bisa dimuat.");
+  }
 
   return (
     <DashboardShell
@@ -182,6 +219,12 @@ export default async function MemberCorrectionsPage({
       {params.error && errorMessages[params.error] ? (
         <div className="rounded-md border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/20 px-4 py-3 text-sm text-red-700 dark:text-red-400">
           {errorMessages[params.error]}
+        </div>
+      ) : null}
+
+      {loadErrors.length > 0 ? (
+        <div className="rounded-md border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/20 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
+          {loadErrors.join(" ")} Silakan reload halaman atau coba lagi beberapa saat.
         </div>
       ) : null}
 
