@@ -56,7 +56,7 @@ function readInternData(formData: FormData) {
   }
 
   if (endDate < startDate) {
-    throw new Error("Tanggal selesai Intern tidak boleh sebelum tanggal mulai.");
+    throw new Error("Intern end date cannot be earlier than the start date.");
   }
 
   return { program, institution, startDate, endDate, mentorId };
@@ -105,7 +105,7 @@ export async function createUserAction(formData: FormData) {
     const picketDay = String(formData.get("picketDay") ?? "") || null;
 
     if (!name || !email || password.length < 6) {
-      throw new Error("Nama, email, dan password minimal 6 karakter wajib diisi.");
+      throw new Error("Name, email, and a password of at least 6 characters are required.");
     }
 
     if (username && !/^[a-z0-9._-]{3,30}$/.test(username)) {
@@ -147,7 +147,7 @@ export async function createUserAction(formData: FormData) {
     const birthDate = birthDateStr ? parseDateInput(birthDateStr) : null;
 
     if (birthDateStr && !birthDate) {
-      throw new Error("Tanggal lahir tidak valid.");
+      throw new Error("Birth date is invalid.");
     }
 
     const internData =
@@ -219,7 +219,7 @@ export async function createUserAction(formData: FormData) {
     revalidatePath("/super-admin");
     return { success: true };
   } catch (err: unknown) {
-    return { success: false, error: err instanceof Error ? err.message : "Gagal membuat user." };
+    return { success: false, error: err instanceof Error ? err.message : "Failed to create user." };
   }
 }
 
@@ -255,7 +255,7 @@ export async function updateUserAction(formData: FormData) {
       : Number(workDayBalanceInput);
 
     if (!userId || !name || !email || !accountStatus) {
-      throw new Error("ID, Nama, dan Email wajib diisi.");
+      throw new Error("ID, name, and email are required.");
     }
 
     if (!Number.isFinite(workDayBalance)) {
@@ -354,7 +354,7 @@ export async function updateUserAction(formData: FormData) {
     const birthDate = birthDateStr ? parseDateInput(birthDateStr) : null;
 
     if (birthDateStr && !birthDate) {
-      throw new Error("Tanggal lahir tidak valid.");
+      throw new Error("Birth date is invalid.");
     }
 
     const internData =
@@ -485,6 +485,7 @@ export async function updateUserAction(formData: FormData) {
     revalidatePath("/super-admin");
     return { success: true };
   } catch (err: unknown) {
-    return { success: false, error: err instanceof Error ? err.message : "Gagal memperbarui user." };
+    return { success: false, error: err instanceof Error ? err.message : "Failed to update user." };
   }
 }
+

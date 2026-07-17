@@ -25,11 +25,11 @@ export function WfoJournalForm({ initialJournal }: Props) {
 
     try {
       await saveWfoJournalAction(formData);
-      toast.success("Jurnal WFO berhasil disimpan.");
+      toast.success("WFO journal saved.");
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Gagal menyimpan jurnal WFO.");
+      toast.error(err instanceof Error ? err.message : "Failed to save WFO journal.");
     } finally {
       setLoading(false);
     }
@@ -40,20 +40,20 @@ export function WfoJournalForm({ initialJournal }: Props) {
       <div className="flex flex-col gap-2">
         <label htmlFor="wfoJournal" className="text-xs font-semibold text-zinc-500 flex items-center gap-1">
           <FileText className="size-3.5 text-zinc-400" />
-          Laporan Hasil Pekerjaan / Jurnal Hari Ini
+          Work Result Report / Today&apos;s Journal
         </label>
         <textarea
           id="wfoJournal"
           rows={3}
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Tuliskan progress pekerjaan yang Anda lakukan hari ini..."
+          placeholder="Write the work progress you completed today..."
           className="w-full rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-3 text-sm outline-none focus:border-zinc-950 dark:focus:border-zinc-300 focus:ring-1 focus:ring-zinc-950 dark:focus:ring-zinc-300 disabled:opacity-50"
           required
           disabled={loading}
         />
         <p className="text-[10px] text-zinc-450 dark:text-zinc-550 leading-relaxed">
-          Tulis progress kerja Anda hari ini secara ringkas dan jelas. Boleh diperbarui kapan saja.
+          Keep today&apos;s work progress concise and clear. You can update it anytime.
         </p>
       </div>
 
@@ -65,7 +65,7 @@ export function WfoJournalForm({ initialJournal }: Props) {
         ) : (
           <Send className="size-3.5" />
         )}
-        {loading ? "Menyimpan..." : saved ? "Tersimpan!" : "Simpan Jurnal WFO"}
+        {loading ? "Saving..." : saved ? "Saved!" : "Save WFO Journal"}
       </Button>
     </form>
   );

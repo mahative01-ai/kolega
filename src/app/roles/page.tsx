@@ -78,6 +78,19 @@ async function getRoleData(actor: Awaited<ReturnType<typeof requireAnyRole>>) {
             mentorId: true,
           },
         },
+        attendanceRecords: {
+          orderBy: [{ attendanceDate: "desc" }, { createdAt: "desc" }],
+          take: 120,
+          select: {
+            id: true,
+            attendanceDate: true,
+            workMode: true,
+            status: true,
+            checkInAt: true,
+            checkOutAt: true,
+            lateMinutes: true,
+          },
+        },
       },
     }),
     isSuperAdmin
@@ -130,12 +143,12 @@ export default async function RolesPage() {
     <DashboardShell
       user={currentUser}
       currentPath="/roles"
-      badge={canEditRoles ? "Manajemen User" : "View Only"}
-      title={canEditRoles ? "User dan Role" : "User Studio"}
+      badge={canEditRoles ? "User Management" : "View Only"}
+      title={canEditRoles ? "Users and Roles" : "Studio Users"}
       description={
         canEditRoles
-          ? "Super Admin mengelola anggota Mahative dan Kipa berdasarkan studio, jenis anggota, placement, dan status akun."
-          : `Admin hanya melihat user aktif di studio ${currentUser.defaultStudio?.name ?? "yang sama"}. Perubahan akun hanya bisa dilakukan Super Admin.`
+          ? "Super Admin manages Mahative and Kipa members by studio, member type, placement, and account status."
+          : `Admin can only view active users in ${currentUser.defaultStudio?.name ?? "their own studio"}. Account changes are controlled by Super Admin.`
       }
     >
       <RolesClient

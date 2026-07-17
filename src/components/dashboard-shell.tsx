@@ -4,7 +4,6 @@ import { ROLE_LABEL } from "@/lib/roles";
 import { prisma } from "@/lib/prisma";
 import { NotificationBellClient } from "@/app/notifications/notification-bell-client";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { LanguageToggle } from "@/components/language-toggle";
 import {
   SidebarInset,
   SidebarProvider,
@@ -40,16 +39,16 @@ const BREADCRUMB_MAP: Record<string, string> = {
   "super-admin": "Super Admin",
   roles: "User",
   schedules: "WFO/WFH",
-  calendar: "Kalender",
-  piket: "Jadwal Piket",
-  "laporan-presensi": "Presensi",
-  requests: "Izin & Sakit",
-  corrections: "Koreksi Presensi",
+  calendar: "Calendar",
+  piket: "Picket Schedule",
+  "laporan-presensi": "Attendance",
+  requests: "Requests",
+  corrections: "Attendance Corrections",
   "audit-logs": "Audit Trail",
-  settings: "Pengaturan",
-  presensi: "Presensi",
-  riwayat: "Riwayat",
-  "laporan-wfh": "Laporan WFH",
+  settings: "Settings",
+  presensi: "Attendance",
+  riwayat: "History",
+  "laporan-wfh": "WFH Report",
 };
 
 export async function DashboardShell({
@@ -146,7 +145,6 @@ export async function DashboardShell({
           </div>
 
           <div className="flex items-center gap-3">
-            <LanguageToggle />
             <ThemeToggle />
             <NotificationBellClient
               key={`${unreadCount}:${unreadNotifications.map((item) => `${item.id}:${item.readAt ?? "unread"}`).join("|")}`}

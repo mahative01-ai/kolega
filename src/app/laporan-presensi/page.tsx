@@ -117,25 +117,25 @@ export default async function AttendanceReportPage({
   const summary = summarizeAttendanceStatuses(groups);
   const metrics = [
     {
-      label: "Jumlah Presensi",
+      label: "Total Attendance",
       value: summary.total,
       icon: ClipboardCheck,
       color: "text-blue-700",
     },
     {
-      label: "Sakit",
+      label: "Sick",
       value: summary.sick,
       icon: HeartPulse,
       color: "text-violet-700",
     },
     {
-      label: "Terlambat",
+      label: "Late",
       value: summary.late,
       icon: Clock3,
       color: "text-orange-700",
     },
     {
-      label: "Tepat Waktu",
+      label: "On Time",
       value: summary.onTime,
       icon: CheckCircle2,
       color: "text-emerald-700",
@@ -177,12 +177,12 @@ export default async function AttendanceReportPage({
     <DashboardShell
       user={currentUser}
       currentPath="/laporan-presensi"
-      badge="Data PostgreSQL"
-      title="Laporan Presensi"
+      badge="PostgreSQL Data"
+      title="Attendance Report"
       description={`${formatMonthLabel(month)}. ${
         isGlobalSuperAdmin
-          ? "Scope dapat mencakup seluruh studio."
-          : `Scope dikunci ke ${currentUser.defaultStudio?.name ?? "studio Admin"}.`
+          ? "Scope can include all studios."
+          : `Scope is locked to ${currentUser.defaultStudio?.name ?? "the Admin studio"}.`
       }`}
     >
       {/* CSS @media print helper to hide shell UI */}
@@ -212,7 +212,7 @@ export default async function AttendanceReportPage({
             <form method="GET" className="flex flex-wrap items-end gap-3 flex-1">
               <div className="grid gap-1.5">
                 <label htmlFor="report-month" className="text-sm font-medium">
-                  Bulan
+                  Month
                 </label>
                 <input
                   id="report-month"
@@ -225,7 +225,7 @@ export default async function AttendanceReportPage({
 
               <div className="grid gap-1.5">
                 <label htmlFor="report-status" className="text-sm font-medium">
-                  Status Detail
+                  Detail Status
                 </label>
                 <select
                   id="report-status"
@@ -233,7 +233,7 @@ export default async function AttendanceReportPage({
                   defaultValue={status}
                   className="h-9 rounded-md border border-input bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 px-3 text-sm focus:outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
                 >
-                  <option value="ALL">Semua Status</option>
+                  <option value="ALL">All Statuses</option>
                   {FILTERABLE_STATUSES.map((item) => (
                     <option key={item} value={item}>
                       {ATTENDANCE_STATUS_LABEL[item]}
@@ -243,7 +243,7 @@ export default async function AttendanceReportPage({
               </div>
               <div className="grid gap-1.5">
                 <div className="h-5" />
-                <Button type="submit" className="h-9">Terapkan Filter</Button>
+                <Button type="submit" className="h-9">Apply Filter</Button>
               </div>
             </form>
 

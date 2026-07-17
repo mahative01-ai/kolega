@@ -22,10 +22,10 @@ type RecordItem = {
 };
 
 const LOCATION_VALIDATION_LABELS: Record<string, string> = {
-  INSIDE_RADIUS: "Dalam radius",
-  OUTSIDE_RADIUS: "Diluar jangkauan",
-  UNAVAILABLE: "Belum tersedia",
-  NOT_REQUIRED: "Tidak perlu",
+  INSIDE_RADIUS: "Inside radius",
+  OUTSIDE_RADIUS: "Outside radius",
+  UNAVAILABLE: "Unavailable",
+  NOT_REQUIRED: "Not required",
 };
 
 type Props = {
@@ -34,16 +34,16 @@ type Props = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  PRESENT: "Hadir",
-  ON_TIME: "Tepat Waktu",
-  LATE: "Terlambat",
+  PRESENT: "Present",
+  ON_TIME: "On Time",
+  LATE: "Late",
   WFH: "WFH",
-  PERMISSION: "Izin",
-  SICK: "Sakit",
-  DISPENSATION: "Dispensasi",
-  LEAVE: "Ganti Hari",
+  PERMISSION: "Permission",
+  SICK: "Sick",
+  DISPENSATION: "Dispensation",
+  LEAVE: "Replacement Day",
   ALPHA: "Alpha",
-  HOLIDAY: "Hari Libur",
+  HOLIDAY: "Holiday",
   OFF_DAY: "Off Day",
 };
 
@@ -52,8 +52,8 @@ export function AttendanceReportExportClient({ records, monthLabel }: Props) {
 
   function formatDate(dStr: string) {
     const d = new Date(dStr);
-    return new Intl.DateTimeFormat("id-ID", {
-      day: "2-digit",
+    return new Intl.DateTimeFormat("en-US", {
+      day: "numeric",
       month: "short",
       year: "numeric",
       timeZone: "UTC",
@@ -63,7 +63,7 @@ export function AttendanceReportExportClient({ records, monthLabel }: Props) {
   function formatTime(tStr: string | null) {
     if (!tStr) return "-";
     const d = new Date(tStr);
-    return new Intl.DateTimeFormat("id-ID", {
+    return new Intl.DateTimeFormat("en-US", {
       hour: "2-digit",
       minute: "2-digit",
       timeZone: "Asia/Jakarta",
@@ -74,25 +74,25 @@ export function AttendanceReportExportClient({ records, monthLabel }: Props) {
     setExporting(true);
     try {
       const data = records.map((r) => ({
-        "Nama": r.user.name,
+        "Name": r.user.name,
         "Email": r.user.email,
-        "Tanggal": formatDate(r.attendanceDate),
-        "Studio Asal": r.ownerStudio.name,
-        "Lokasi Check-in": r.locationStudio?.name || "Tidak perlu lokasi",
-        "Validasi Lokasi": LOCATION_VALIDATION_LABELS[r.locationValidationStatus] || r.locationValidationStatus,
-        "Jarak Scan": typeof r.distanceMeters === "number" ? `${Math.round(r.distanceMeters)} meter` : "-",
-        "Mode Kerja": r.workMode,
+        "Date": formatDate(r.attendanceDate),
+        "Default Studio": r.ownerStudio.name,
+        "Check-in Location": r.locationStudio?.name || "No location required",
+        "Location Check": LOCATION_VALIDATION_LABELS[r.locationValidationStatus] || r.locationValidationStatus,
+        "Scan Distance": typeof r.distanceMeters === "number" ? `${Math.round(r.distanceMeters)} meters` : "-",
+        "Work Mode": r.workMode,
         "Status": STATUS_LABELS[r.status] || r.status,
         "Check-in": formatTime(r.checkInAt),
         "Check-out": formatTime(r.checkOutAt),
-        "Keterlambatan": r.lateMinutes > 0 ? `${r.lateMinutes} menit` : "-",
-        "Pulang Cepat": r.earlyCheckoutMinutes > 0 ? `${r.earlyCheckoutMinutes} menit` : "-",
+        "Late Minutes": r.lateMinutes > 0 ? `${r.lateMinutes} minutes` : "-",
+        "Early Out": r.earlyCheckoutMinutes > 0 ? `${r.earlyCheckoutMinutes} minutes` : "-",
       }));
 
       const ws = XLSX.utils.json_to_sheet(data);
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Laporan Presensi");
-      XLSX.writeFile(wb, `Laporan_Presensi_${monthLabel.replace(/\s+/g, "_")}.xlsx`);
+      XLSX.utils.book_append_sheet(wb, ws, "Attendance Report");
+      XLSX.writeFile(wb, `Attendance_Report_${monthLabel.replace(/\s+/g, "_")}.xlsx`);
     } catch (e) {
       console.error("Export Excel error:", e);
     } finally {
@@ -108,11 +108,11 @@ export function AttendanceReportExportClient({ records, monthLabel }: Props) {
     <div className="flex gap-2 no-print">
       <Button variant="outline" onClick={handleExportExcel} disabled={exporting || records.length === 0}>
         <Download className="size-4 mr-1.5" />
-        Ekspor Excel
+        Export Excel
       </Button>
       <Button variant="outline" onClick={handlePrintPDF} disabled={records.length === 0}>
         <Printer className="size-4 mr-1.5" />
-        Cetak PDF
+        Print PDF
       </Button>
     </div>
   );

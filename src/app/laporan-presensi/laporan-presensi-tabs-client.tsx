@@ -64,6 +64,8 @@ export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }:
   const [sortField, setSortField] = useState<string>("date");
   const [sortAsc, setSortAsc] = useState<boolean>(false);
   const [studioFilter, setStudioFilter] = useState("ALL");
+  const [attendancePage, setAttendancePage] = useState(1);
+  const attendancePageSize = 25;
 
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -86,7 +88,7 @@ export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }:
     ];
 
     return [
-      { value: "ALL", label: "Semua" },
+      { value: "ALL", label: "All" },
       ...ordered.map((name) => ({ value: name, label: name.replace(" Studio", "") })),
     ];
   }, [records]);
@@ -142,6 +144,12 @@ export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }:
     });
   }, [records, sortField, sortAsc, studioFilter]);
 
+  const attendanceTotalPages = Math.max(1, Math.ceil(sortedRecords.length / attendancePageSize));
+  const paginatedAttendanceRecords = sortedRecords.slice(
+    (Math.min(attendancePage, attendanceTotalPages) - 1) * attendancePageSize,
+    Math.min(attendancePage, attendanceTotalPages) * attendancePageSize
+  );
+
   // WFH-only records
   const wfhRecords = sortedRecords.filter((r) => r.workMode === "WFH");
 
@@ -151,7 +159,10 @@ export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }:
         {studioTabs.map((studio) => (
           <button
             key={studio.value}
-            onClick={() => setStudioFilter(studio.value)}
+            onClick={() => {
+              setStudioFilter(studio.value);
+              setAttendancePage(1);
+            }}
             type="button"
             className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
               studioFilter === studio.value
@@ -167,11 +178,11 @@ export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }:
       <TabsList className="grid w-full max-w-md grid-cols-2 bg-zinc-100 dark:bg-zinc-900">
         <TabsTrigger value="attendance-log" className="flex items-center gap-1.5">
           <FileText className="size-4" />
-          Log Kehadiran
+          Attendance Log
         </TabsTrigger>
         <TabsTrigger value="wfh-reports" className="flex items-center gap-1.5">
           <Home className="size-4" />
-          Jurnal & Hasil WFH
+          WFH Journal
         </TabsTrigger>
       </TabsList>
 
@@ -180,10 +191,10 @@ export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }:
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
               <FileText className="size-5 text-blue-700 dark:text-blue-400" />
-              Detail Presensi
+              Attendance Details
             </CardTitle>
             <CardDescription className="text-zinc-500 dark:text-zinc-400">
-              Menampilkan catatan presensi umum sesuai filter terpilih.
+              Showing attendance records for the selected filters.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
@@ -192,13 +203,13 @@ export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }:
                 <TableRow>
                   <TableHead className="cursor-pointer select-none" onClick={() => handleSort("name")}>
                     <div className="flex items-center gap-1 hover:text-zinc-900 dark:hover:text-zinc-100">
-                      Nama
+                      Name
                       <ArrowUpDown className={`size-3 ${sortField === "name" ? "text-blue-600 dark:text-blue-400" : "text-zinc-450"}`} />
                     </div>
                   </TableHead>
                   <TableHead className="cursor-pointer select-none" onClick={() => handleSort("date")}>
                     <div className="flex items-center gap-1 hover:text-zinc-900 dark:hover:text-zinc-100">
-                      Tanggal
+                      Date
                       <ArrowUpDown className={`size-3 ${sortField === "date" ? "text-blue-600 dark:text-blue-400" : "text-zinc-455"}`} />
                     </div>
                   </TableHead>
@@ -208,16 +219,16 @@ export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }:
                       <ArrowUpDown className={`size-3 ${sortField === "studio" ? "text-blue-600 dark:text-blue-400" : "text-zinc-456"}`} />
                     </div>
                   </TableHead>
-                  <TableHead>Lokasi</TableHead>
+                  <TableHead>Location</TableHead>
                   <TableHead className="cursor-pointer select-none" onClick={() => handleSort("validation")}>
                     <div className="flex items-center gap-1 hover:text-zinc-900 dark:hover:text-zinc-100">
-                      Validasi Lokasi
+                      Location Check
                       <ArrowUpDown className={`size-3 ${sortField === "validation" ? "text-blue-600 dark:text-blue-400" : "text-zinc-457"}`} />
                     </div>
                   </TableHead>
                   <TableHead className="cursor-pointer select-none" onClick={() => handleSort("distance")}>
                     <div className="flex items-center gap-1 hover:text-zinc-900 dark:hover:text-zinc-100">
-                      Jarak
+                      Distance
                       <ArrowUpDown className={`size-3 ${sortField === "distance" ? "text-blue-600 dark:text-blue-400" : "text-zinc-458"}`} />
                     </div>
                   </TableHead>
@@ -247,25 +258,51 @@ export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }:
                   </TableHead>
                   <TableHead className="cursor-pointer select-none" onClick={() => handleSort("late")}>
                     <div className="flex items-center gap-1 hover:text-zinc-900 dark:hover:text-zinc-100">
-                      Terlambat
+                      Late
                       <ArrowUpDown className={`size-3 ${sortField === "late" ? "text-blue-600 dark:text-blue-400" : "text-zinc-463"}`} />
                     </div>
                   </TableHead>
                   <TableHead className="cursor-pointer select-none" onClick={() => handleSort("early")}>
                     <div className="flex items-center gap-1 hover:text-zinc-900 dark:hover:text-zinc-100">
-                      Pulang Cepat
+                      Early Out
                       <ArrowUpDown className={`size-3 ${sortField === "early" ? "text-blue-600 dark:text-blue-400" : "text-zinc-464"}`} />
                     </div>
                   </TableHead>
                 </TableRow>
               </TableHeader>
               <AttendanceTableBodyClient
-                records={sortedRecords}
+                records={paginatedAttendanceRecords}
                 statusColor={statusColor}
                 statusLabel={statusLabel}
               />
             </Table>
           </CardContent>
+          {sortedRecords.length > attendancePageSize && (
+            <div className="flex flex-col gap-2 border-t border-zinc-100 px-4 py-3 text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400 sm:flex-row sm:items-center sm:justify-between">
+              <span>
+                Showing {(attendancePage - 1) * attendancePageSize + 1}-{Math.min(attendancePage * attendancePageSize, sortedRecords.length)} of {sortedRecords.length} records
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={attendancePage <= 1}
+                  onClick={() => setAttendancePage((prev) => Math.max(1, prev - 1))}
+                  className="rounded-md border border-zinc-200 px-2 py-1 disabled:opacity-50 dark:border-zinc-800"
+                >
+                  Previous
+                </button>
+                <span className="font-medium text-zinc-700 dark:text-zinc-300">Page {attendancePage} / {attendanceTotalPages}</span>
+                <button
+                  type="button"
+                  disabled={attendancePage >= attendanceTotalPages}
+                  onClick={() => setAttendancePage((prev) => Math.min(attendanceTotalPages, prev + 1))}
+                  className="rounded-md border border-zinc-200 px-2 py-1 disabled:opacity-50 dark:border-zinc-800"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </Card>
       </TabsContent>
 
@@ -274,29 +311,29 @@ export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }:
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
               <Home className="size-5 text-sky-700 dark:text-sky-400" />
-              Laporan Rencana & Hasil Kerja WFH
+              WFH Work Plan and Results
             </CardTitle>
             <CardDescription className="text-zinc-500 dark:text-zinc-400">
-              Meninjau apa yang direncanakan (pagi) dan apa yang dilaporkan (sore) oleh karyawan saat WFH.
+              Review morning plans and end-of-day reports from WFH members.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nama</TableHead>
-                  <TableHead>Tanggal</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Date</TableHead>
                   <TableHead>Default Studio</TableHead>
-                  <TableHead>Jam In/Out</TableHead>
-                  <TableHead className="w-[30%]">Rencana Kerja (Pagi)</TableHead>
-                  <TableHead className="w-[30%]">Laporan Hasil Kerja (Sore)</TableHead>
+                  <TableHead>In/Out Time</TableHead>
+                  <TableHead className="w-[30%]">Morning Work Plan</TableHead>
+                  <TableHead className="w-[30%]">End-of-Day Report</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {wfhRecords.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="h-24 text-center text-sm text-zinc-500">
-                      Tidak ada catatan kerja WFH pada filter terpilih.
+                      No WFH records found for the selected filter.
                     </TableCell>
                   </TableRow>
                 ) : (

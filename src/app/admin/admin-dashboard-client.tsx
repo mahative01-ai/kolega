@@ -31,6 +31,7 @@ import {
 import { cn } from "@/lib/utils";
 import { createPersonalQrCredentialAction } from "@/app/member/presensi/actions";
 import { WfhForm } from "@/app/member/presensi/wfh-form";
+import { WfoJournalForm } from "@/app/member/presensi/wfo-journal-form";
 import { DashboardCharts } from "@/components/dashboard-charts";
 import { AttendanceSummary } from "@/lib/attendance-report";
 import {
@@ -137,17 +138,17 @@ type Props = {
 };
 
 const statusLabel: Record<string, string> = {
-  PRESENT: "Hadir",
-  ON_TIME: "Tepat Waktu",
-  LATE: "Terlambat",
+  PRESENT: "Present",
+  ON_TIME: "On Time",
+  LATE: "Late",
   WFH: "WFH",
-  PERMISSION: "Izin",
-  SICK: "Sakit",
-  DISPENSATION: "Dispensasi",
-  LEAVE: "Ganti Hari",
+  PERMISSION: "Permission",
+  SICK: "Sick",
+  DISPENSATION: "Dispensation",
+  LEAVE: "Replacement Day",
   ALPHA: "Alpha",
-  HOLIDAY: "Libur",
-  OFF_DAY: "Libur",
+  HOLIDAY: "Holiday",
+  OFF_DAY: "Holiday",
 };
 
 const statusColor: Record<string, string> = {
@@ -165,8 +166,8 @@ const statusColor: Record<string, string> = {
 };
 
 const workModeLabels: Record<string, string> = {
-  WFO: "WFO (Kantor)",
-  WFH: "WFH (Rumah)",
+  WFO: "WFO (Office)",
+  WFH: "WFH (Home)",
 };
 
 const workModeStyles: Record<string, string> = {
@@ -271,37 +272,37 @@ export function AdminDashboardClient({
 
   const personalMetrics = [
     {
-      label: `Kehadiran Saya ${data.monthLabel}`,
+      label: `My Attendance ${data.monthLabel}`,
       value: data.personalSummary.total,
       icon: ClipboardCheck,
       color: "text-blue-700 dark:text-blue-400",
     },
     {
-      label: `Sakit Saya ${data.monthLabel}`,
+      label: `My Sick Days ${data.monthLabel}`,
       value: data.personalSummary.sick,
       icon: HeartPulse,
       color: "text-violet-700 dark:text-violet-400",
     },
     {
-      label: `Terlambat Saya ${data.monthLabel}`,
+      label: `My Late Days ${data.monthLabel}`,
       value: data.personalSummary.late,
       icon: Clock3,
       color: "text-orange-700 dark:text-orange-400",
     },
     {
-      label: `Alpha Saya ${data.monthLabel}`,
+      label: `My Alpha Days ${data.monthLabel}`,
       value: data.personalSummary.alpha,
       icon: AlertTriangle,
       color: "text-red-700 dark:text-red-400",
     },
     {
-      label: `WFH Saya ${data.monthLabel}`,
+      label: `My WFH ${data.monthLabel}`,
       value: data.personalSummary.wfh,
       icon: Home,
       color: "text-sky-700 dark:text-sky-400",
     },
     {
-      label: "Saldo Hari Kerja",
+      label: "Workday Balance",
       value: data.personalWorkDayBalance,
       icon: ShieldCheck,
       color:
@@ -315,19 +316,19 @@ export function AdminDashboardClient({
 
   const studioMetrics = [
     {
-      label: `Kehadiran Tim ${data.monthLabel}`,
+      label: `Team Attendance ${data.monthLabel}`,
       value: data.summary.total,
       icon: ClipboardCheck,
       color: "text-blue-700 dark:text-blue-400",
     },
     {
-      label: `Sakit Tim ${data.monthLabel}`,
+      label: `Team Sick Days ${data.monthLabel}`,
       value: data.summary.sick,
       icon: HeartPulse,
       color: "text-violet-700 dark:text-violet-400",
     },
     {
-      label: `Terlambat Tim ${data.monthLabel}`,
+      label: `Team Late Days ${data.monthLabel}`,
       value: data.summary.late,
       icon: Clock3,
       color: "text-orange-700 dark:text-orange-400",
@@ -361,7 +362,7 @@ export function AdminDashboardClient({
           setTimeout(() => setBroadcastSucc(""), 3000);
         }
       } catch (err: unknown) {
-        setBroadcastErr(getErrorMessage(err, "Gagal menyebarkan pengumuman."));
+        setBroadcastErr(getErrorMessage(err, "Failed to broadcast announcement."));
       }
     });
   }
@@ -374,7 +375,7 @@ export function AdminDashboardClient({
         await quickAssignPicketAction(picketUserId, todayStr);
         setPicketUserId("");
       } catch (err: unknown) {
-        alert(getErrorMessage(err, "Gagal menunjuk petugas piket."));
+        alert(getErrorMessage(err, "Failed to assign picket officer."));
       }
     });
   }
@@ -385,7 +386,7 @@ export function AdminDashboardClient({
       try {
         await quickRemovePicketAction(picketId);
       } catch (err: unknown) {
-        alert(getErrorMessage(err, "Gagal menghapus piket."));
+        alert(getErrorMessage(err, "Failed to remove picket."));
       } finally {
         setRemovingPickets((prev) => ({ ...prev, [picketId]: false }));
       }
@@ -398,7 +399,7 @@ export function AdminDashboardClient({
       try {
         await quickReviewRequestAction(requestId, approve);
       } catch (err: unknown) {
-        alert(getErrorMessage(err, "Gagal memproses pengajuan."));
+        alert(getErrorMessage(err, "Failed to process request."));
       } finally {
         setReviewingRequests((prev) => ({ ...prev, [requestId]: false }));
       }
@@ -411,7 +412,7 @@ export function AdminDashboardClient({
       try {
         await quickReviewCorrectionAction(correctionId, approve);
       } catch (err: unknown) {
-        alert(getErrorMessage(err, "Gagal memproses koreksi."));
+        alert(getErrorMessage(err, "Failed to process correction."));
       } finally {
         setReviewingCorrections((prev) => ({ ...prev, [correctionId]: false }));
       }
@@ -478,7 +479,7 @@ export function AdminDashboardClient({
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
                 <Clock3 className="size-5 text-blue-700 dark:text-blue-400" />
-                Presensi Pribadi Hari Ini
+                My Attendance Today
               </CardTitle>
               <CardDescription className="text-zinc-500 dark:text-zinc-400">
                 {formatFullDate(new Date())}
@@ -508,7 +509,7 @@ export function AdminDashboardClient({
                     </Badge>
                   ) : (
                     <Badge variant="outline" className="text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-xs px-2 py-0.5 shadow-none">
-                      Belum Presensi
+                      Not Checked In
                     </Badge>
                   )}
                 </div>
@@ -520,7 +521,7 @@ export function AdminDashboardClient({
                 className={cn(buttonVariants({ variant: "outline", size: "sm" }), "flex items-center gap-1.5")}
               >
                 <History className="size-4" />
-                Lihat Riwayat Presensi Saya
+                View My Attendance History
               </Link>
               {!isWfhMode && (!data.todayRecord || !data.todayRecord.checkOutAt) && (
                 isCheckoutLocked ? (
@@ -533,7 +534,7 @@ export function AdminDashboardClient({
                     )}
                   >
                     <Camera className="size-4" />
-                    Check-out dibuka {checkoutAvailableTime}
+                    Check-out opens {checkoutAvailableTime}
                   </span>
                 ) : (
                   <Link
@@ -541,7 +542,7 @@ export function AdminDashboardClient({
                     className={cn(buttonVariants({ variant: "default", size: "sm" }), "flex items-center gap-1.5")}
                   >
                     <Camera className="size-4" />
-                    {data.todayRecord?.checkInAt ? "Scan Check-out WFO" : "Presensi WFO (Kamera/QR)"}
+                    {data.todayRecord?.checkInAt ? "Scan WFO Check-out" : "WFO Attendance (Camera/QR)"}
                   </Link>
                 )
               )}
@@ -551,13 +552,24 @@ export function AdminDashboardClient({
                 <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 p-4 bg-zinc-50/50 dark:bg-zinc-900/10">
                   <h3 className="text-sm font-semibold mb-3 text-zinc-900 dark:text-zinc-50 flex items-center gap-1.5">
                     <Home className="size-4 text-emerald-600" />
-                    Presensi WFH
+                    WFH Attendance
                   </h3>
                   <WfhForm
                     hasCheckedIn={!!data.todayRecord?.checkInAt}
                     hasCheckedOut={!!data.todayRecord?.checkOutAt}
                     checkInPlan={data.todayRecord?.wfhPlan}
                   />
+                </div>
+              </CardContent>
+            )}
+            {!isWfhMode && data.todayRecord?.checkInAt && (
+              <CardContent className="border-t border-zinc-100 pt-4 dark:border-zinc-800">
+                <div className="rounded-lg border border-zinc-200 bg-zinc-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-900/10">
+                  <h3 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+                    <ClipboardCheck className="size-4 text-emerald-600" />
+                    Today&apos;s WFO Journal
+                  </h3>
+                  <WfoJournalForm initialJournal={data.todayRecord.wfhReport} />
                 </div>
               </CardContent>
             )}
@@ -597,7 +609,7 @@ export function AdminDashboardClient({
                         className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-full flex items-center justify-center gap-1.5")}
                       >
                         <Download className="size-4" />
-                        Lihat QR Card
+                        View QR Card
                       </a>
                     </div>
                   </>
@@ -605,7 +617,7 @@ export function AdminDashboardClient({
                   <form action={createPersonalQrCredentialAction}>
                     <Button type="submit" className="w-full">
                       <ShieldCheck className="mr-1.5 size-4" />
-                      Aktifkan QR Card
+                      Activate QR Card
                     </Button>
                   </form>
                 )}
@@ -617,10 +629,10 @@ export function AdminDashboardClient({
               <CardHeader>
                 <CardTitle className="text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
                   <CalendarDays className="size-5 text-blue-700 dark:text-blue-400" />
-                  Jadwal Kalender Kerja Saya
+                  My Work Calendar
                 </CardTitle>
                 <CardDescription className="text-zinc-500 dark:text-zinc-400">
-                  Mode kerja kalender pribadi Anda bulan ini.
+                  Your personal work mode calendar for this month.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -685,7 +697,7 @@ export function AdminDashboardClient({
 
                           {isRealHoliday ? (
                             <div className="text-[8px] font-bold px-1 py-0.5 rounded border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 text-center select-none font-semibold">
-                              Libur
+                              Holiday
                             </div>
                           ) : schedule ? (
                             <div
@@ -750,17 +762,17 @@ export function AdminDashboardClient({
               <CardHeader className="pb-3 border-b border-zinc-100 dark:border-zinc-800">
                 <CardTitle className="text-base text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
                   <ShieldCheck className="size-5 text-blue-700 dark:text-blue-400" />
-                  Persetujuan Cepat (Pending Approvals)
+                  Quick Approvals
                 </CardTitle>
                 <CardDescription className="text-xs text-zinc-500">
-                  Tinjau pengajuan izin magang & koreksi presensi harian anggota studio Anda di bawah ini secara cepat.
+                  Quickly review member requests and attendance corrections for your studio.
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-4 space-y-4">
                 {/* 1. Requests (Sakit, Cuti, Izin) */}
                 {data.pendingRequestList && data.pendingRequestList.length > 0 && (
                   <div className="space-y-2.5">
-                    <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Izin & Sakit</h4>
+                    <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Requests and Sick Leave</h4>
                     <div className="grid gap-3 sm:grid-cols-2">
                       {data.pendingRequestList.map((req) => {
                         const isReviewing = reviewingRequests[req.id] || false;
@@ -772,7 +784,7 @@ export function AdminDashboardClient({
                                 <Badge className="text-[10px] font-semibold">{req.type}</Badge>
                               </div>
                               <p className="text-[10px] text-zinc-500 font-medium">
-                                Tanggal: {new Date(req.startDate).toLocaleDateString("id-ID", { day: "numeric", month: "short" })} - {new Date(req.endDate).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
+                                Date: {new Date(req.startDate).toLocaleDateString("id-ID", { day: "numeric", month: "short" })} - {new Date(req.endDate).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}
                               </p>
                               <p className="text-zinc-600 dark:text-zinc-400 mt-2 font-normal italic">&ldquo;{req.reason}&rdquo;</p>
                             </div>
@@ -785,7 +797,7 @@ export function AdminDashboardClient({
                                 disabled={isPending || isReviewing}
                               >
                                 {isReviewing ? <Loader2 className="size-3 animate-spin" /> : <X className="size-3 mr-1" />}
-                                Tolak
+                                Reject
                               </Button>
                               <Button
                                 size="sm"
@@ -795,7 +807,7 @@ export function AdminDashboardClient({
                                 disabled={isPending || isReviewing}
                               >
                                 {isReviewing ? <Loader2 className="size-3 animate-spin" /> : <Check className="size-3 mr-1" />}
-                                Setujui
+                                Approve
                               </Button>
                             </div>
                           </div>
@@ -808,7 +820,7 @@ export function AdminDashboardClient({
                 {/* 2. Corrections */}
                 {data.pendingCorrectionList && data.pendingCorrectionList.length > 0 && (
                   <div className="space-y-2.5 pt-2">
-                    <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Koreksi Presensi</h4>
+                    <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Attendance Corrections</h4>
                     <div className="grid gap-3 sm:grid-cols-2">
                       {data.pendingCorrectionList.map((corr) => {
                         const isReviewing = reviewingCorrections[corr.id] || false;
@@ -817,7 +829,7 @@ export function AdminDashboardClient({
                             <div>
                               <div className="flex items-center justify-between mb-1">
                                 <span className="font-semibold text-zinc-800 dark:text-zinc-200">{corr.requestedBy.name}</span>
-                                <Badge variant="outline" className="text-[10px] border-amber-300 bg-amber-50 text-amber-800 font-semibold">Koreksi: {corr.newStatus}</Badge>
+                                <Badge variant="outline" className="text-[10px] border-amber-300 bg-amber-50 text-amber-800 font-semibold">Correction: {corr.newStatus}</Badge>
                               </div>
                               <p className="text-zinc-600 dark:text-zinc-400 mt-2 font-normal italic">&ldquo;{corr.reason}&rdquo;</p>
                             </div>
@@ -830,7 +842,7 @@ export function AdminDashboardClient({
                                 disabled={isPending || isReviewing}
                               >
                                 {isReviewing ? <Loader2 className="size-3 animate-spin" /> : <X className="size-3 mr-1" />}
-                                Tolak
+                                Reject
                               </Button>
                               <Button
                                 size="sm"
@@ -840,7 +852,7 @@ export function AdminDashboardClient({
                                 disabled={isPending || isReviewing}
                               >
                                 {isReviewing ? <Loader2 className="size-3 animate-spin" /> : <Check className="size-3 mr-1" />}
-                                Setujui
+                                Approve
                               </Button>
                             </div>
                           </div>
@@ -856,8 +868,8 @@ export function AdminDashboardClient({
               <div className="rounded-full bg-emerald-50 dark:bg-emerald-950/20 p-2.5 text-emerald-600 mb-3">
                 <Check className="size-5" />
               </div>
-              <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">Semua Beres!</p>
-              <p className="text-xs text-zinc-500 mt-0.5">Tidak ada pengajuan izin atau koreksi presensi yang menanti persetujuan.</p>
+              <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">All Clear!</p>
+              <p className="text-xs text-zinc-500 mt-0.5">No requests or attendance corrections are waiting for approval.</p>
             </div>
           )}
 
@@ -868,16 +880,16 @@ export function AdminDashboardClient({
               <CardHeader className="pb-3 border-b border-zinc-100 dark:border-zinc-800">
                 <CardTitle className="text-sm font-bold flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
                   <Brush className="size-4 text-blue-700 dark:text-blue-400" />
-                  Petugas Piket Studio Hari Ini
+                  Today&apos;s Studio Picket Officers
                 </CardTitle>
                 <CardDescription className="text-zinc-500 dark:text-zinc-400">
-                  Staf yang bertanggung jawab atas ketertiban studio hari ini.
+                  Staff responsible for today&apos;s studio order.
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-4 space-y-4">
                 {data.picketToday.length === 0 ? (
                   <p className="text-center py-6 text-xs text-zinc-400 dark:text-zinc-500">
-                    Belum ada petugas piket yang ditugaskan hari ini.
+                    No picket officers assigned today.
                   </p>
                 ) : (
                   <div className="flex flex-wrap gap-2.5">
@@ -894,7 +906,7 @@ export function AdminDashboardClient({
                             onClick={() => handleQuickRemovePicket(picket.id)}
                             disabled={isPending || isRemoving}
                             className="rounded-full hover:bg-blue-100 dark:hover:bg-blue-900 p-0.5 text-blue-400 hover:text-red-600 transition-colors shrink-0"
-                            title="Hapus petugas piket"
+                            title="Remove picket officer"
                           >
                             {isRemoving ? <Loader2 className="size-3 animate-spin" /> : <X className="size-3" />}
                           </button>
@@ -907,14 +919,14 @@ export function AdminDashboardClient({
                 {/* Quick Picket Switcher Selection */}
                 {data.studioMembers && data.studioMembers.length > 0 && (
                   <div className="flex flex-wrap items-center gap-2.5 pt-3 border-t border-dashed border-zinc-100 dark:border-zinc-800">
-                    <Label htmlFor="picket-select" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Tunjuk Petugas:</Label>
+                    <Label htmlFor="picket-select" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Assign Officer:</Label>
                     <select
                       id="picket-select"
                       value={picketUserId}
                       onChange={(e) => setPicketUserId(e.target.value)}
                       className="rounded border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-2 py-1 text-xs text-zinc-700 dark:text-zinc-300 outline-none"
                     >
-                      <option value="">-- Pilih Anggota --</option>
+                      <option value="">-- Select Member --</option>
                       {data.studioMembers.map((m) => (
                         <option key={m.id} value={m.id}>{m.name}</option>
                       ))}
@@ -925,7 +937,7 @@ export function AdminDashboardClient({
                       onClick={handleQuickAssignPicket}
                       disabled={isPending || !picketUserId}
                     >
-                      Tunjuk
+                      Assign
                     </Button>
                   </div>
                 )}
@@ -938,15 +950,15 @@ export function AdminDashboardClient({
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-bold text-zinc-900 dark:text-zinc-50 flex items-center gap-1.5">
                     <Megaphone className="size-4 text-blue-700 dark:text-blue-400" />
-                    Broadcast Pengumuman
+                    Broadcast Announcement
                   </CardTitle>
                   <CardDescription className="text-xs text-zinc-500">
-                    Kirim pesan cepat ke dasbor semua anggota studio Anda.
+                    Send a quick message to every member dashboard in your studio.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <Textarea
-                    placeholder="Tulis pengumuman studio..."
+                    placeholder="Write a studio announcement..."
                     className="min-h-20 text-xs resize-none"
                     value={announcementMsg}
                     onChange={(e) => setAnnouncementMsg(e.target.value)}
@@ -963,7 +975,7 @@ export function AdminDashboardClient({
                   disabled={isPending || !announcementMsg.trim()}
                 >
                   {isPending ? <Loader2 className="size-3.5 animate-spin mr-1.5" /> : null}
-                  Sebarkan Pesan
+                  Broadcast Message
                 </Button>
               </CardContent>
             </Card>
@@ -974,18 +986,18 @@ export function AdminDashboardClient({
             <CardHeader>
               <CardTitle className="text-base text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
                 <Users className="size-5 text-blue-700 dark:text-blue-400" />
-                Presensi Tim Hari Ini
+                Today&apos;s Team Attendance
               </CardTitle>
               <CardDescription className="text-zinc-500 dark:text-zinc-400">
-                Daftar kehadiran staf studio {data.studio?.name ?? ""} hari ini.
+                Attendance list for studio staff {data.studio?.name ?? ""} today.
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nama</TableHead>
-                    <TableHead>Lokasi Presensi</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Attendance Location</TableHead>
                     <TableHead>Mode</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Check-in</TableHead>
@@ -996,7 +1008,7 @@ export function AdminDashboardClient({
                   {data.recentAttendance.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="h-24 text-center text-sm text-zinc-500">
-                        Belum ada data presensi staf hari ini.
+                        No staff attendance data for today.
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -1006,7 +1018,7 @@ export function AdminDashboardClient({
                           <div>{item.user.name}</div>
                           <div className="text-xs font-normal text-zinc-500">{item.user.email}</div>
                         </TableCell>
-                        <TableCell>{item.locationStudio?.name ?? "Tidak perlu lokasi"}</TableCell>
+                        <TableCell>{item.locationStudio?.name ?? "No location required"}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-300">
                             {item.workMode}
@@ -1031,3 +1043,4 @@ export function AdminDashboardClient({
     </div>
   );
 }
+

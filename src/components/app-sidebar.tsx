@@ -82,27 +82,27 @@ function getMenuGroups(role: SidebarUser["role"]): MenuGroup[] {
 
   if (role === "SUPER_ADMIN") {
     return [
-      { label: "Utama", items: main },
+      { label: "Main", items: main },
       {
-        label: "Manajemen",
+        label: "Management",
         items: [
           { label: "User", href: "/roles", icon: UserRound },
           { label: "Studio", href: "/super-admin/studios", icon: MapPin },
           { label: "Placement", href: "/super-admin/placements", icon: BriefcaseBusiness },
           { label: "WFO/WFH", href: "/schedules", icon: CalendarClock },
-          { label: "Kalender", href: "/calendar", icon: CalendarClock },
-          { label: "Jadwal Piket", href: "/piket", icon: BrushCleaning },
-          { label: "Slip Gaji", href: "/super-admin/payslips", icon: ClipboardCheck },
+          { label: "Calendar", href: "/calendar", icon: CalendarClock },
+          { label: "Picket Schedule", href: "/piket", icon: BrushCleaning },
+          { label: "Payslip", href: "/super-admin/payslips", icon: ClipboardCheck },
         ],
       },
       {
         label: "Monitoring",
         items: [
-          { label: "Presensi", href: "/laporan-presensi", icon: Clipboard },
-          { label: "Persetujuan", href: "/admin/requests", icon: MessageSquare },
+          { label: "Attendance", href: "/laporan-presensi", icon: Clipboard },
+          { label: "Approvals", href: "/admin/requests", icon: MessageSquare },
           { label: "Audit Trail", href: "/super-admin/audit-logs", icon: FileWarning },
-          { label: "Arsip Akun", href: "/super-admin/archived-accounts", icon: Archive },
-          { label: "Pengaturan", href: "/settings", icon: Settings },
+          { label: "Archived Accounts", href: "/super-admin/archived-accounts", icon: Archive },
+          { label: "Settings", href: "/settings", icon: Settings },
         ],
       },
     ];
@@ -110,41 +110,41 @@ function getMenuGroups(role: SidebarUser["role"]): MenuGroup[] {
 
   if (role === "ADMIN") {
     return [
-      { label: "Utama", items: main },
+      { label: "Main", items: main },
       {
-        label: "Presensi Saya",
+        label: "My Attendance",
         items: [
-          { label: "Riwayat", href: "/member/presensi/riwayat", icon: History },
-          { label: "Ajukan Izin", href: "/member/requests", icon: MessageSquare },
-          { label: "Koreksi Presensi", href: "/member/corrections", icon: ClipboardCheck },
-          { label: "Laporan WFH", href: "/member/laporan-wfh", icon: Clipboard },
-          { label: "Slip Gaji", href: "/member/payslips", icon: ClipboardCheck },
+          { label: "History", href: "/member/presensi/riwayat", icon: History },
+          { label: "Submit Request", href: "/member/requests", icon: MessageSquare },
+          { label: "Attendance Correction", href: "/member/corrections", icon: ClipboardCheck },
+          { label: "WFH Report", href: "/member/laporan-wfh", icon: Clipboard },
+          { label: "Payslip", href: "/member/payslips", icon: ClipboardCheck },
         ],
       },
       {
-        label: "Operasional",
+        label: "Operations",
         items: [
-          { label: "User Studio", href: "/roles", icon: UserRound },
-          { label: "Jadwal Tim", href: "/schedules", icon: CalendarClock },
-          { label: "Laporan Presensi", href: "/laporan-presensi", icon: Clipboard },
-          { label: "Persetujuan", href: "/admin/requests", icon: MessageSquare },
-          { label: "Piket", href: "/piket", icon: BrushCleaning },
+          { label: "Studio Users", href: "/roles", icon: UserRound },
+          { label: "Team Schedule", href: "/schedules", icon: CalendarClock },
+          { label: "Attendance Report", href: "/laporan-presensi", icon: Clipboard },
+          { label: "Approvals", href: "/admin/requests", icon: MessageSquare },
+          { label: "Picket", href: "/piket", icon: BrushCleaning },
         ],
       },
     ];
   }
 
   return [
-    { label: "Utama", items: main },
+    { label: "Main", items: main },
     {
-      label: "Presensi",
+      label: "Attendance",
       items: [
-        { label: "Riwayat", href: "/member/presensi/riwayat", icon: History },
-        { label: "Izin/Sakit/Cuti", href: "/member/requests", icon: MessageSquare },
-        { label: "Koreksi Presensi", href: "/member/corrections", icon: ClipboardCheck },
-        { label: "Jadwal Piket", href: "/piket", icon: BrushCleaning },
-        { label: "Laporan WFH", href: "/member/laporan-wfh", icon: Clipboard },
-        { label: "Slip Gaji", href: "/member/payslips", icon: ClipboardCheck },
+        { label: "History", href: "/member/presensi/riwayat", icon: History },
+        { label: "Requests", href: "/member/requests", icon: MessageSquare },
+        { label: "Attendance Correction", href: "/member/corrections", icon: ClipboardCheck },
+        { label: "Picket Schedule", href: "/piket", icon: BrushCleaning },
+        { label: "WFH Report", href: "/member/laporan-wfh", icon: Clipboard },
+        { label: "Payslip", href: "/member/payslips", icon: ClipboardCheck },
       ],
     },
   ];

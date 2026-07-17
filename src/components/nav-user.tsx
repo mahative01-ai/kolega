@@ -64,12 +64,12 @@ export function NavUser({ user }: { user: SidebarUser }) {
     startTransition(async () => {
       try {
         await updateMoodAction(formData);
-        toast.success("Mood harian berhasil diperbarui.");
+        toast.success("Daily mood updated.");
         setMoodOpen(false);
         // Refresh page to propagate new mood immediately
         window.location.reload();
       } catch (err: unknown) {
-        toast.error(err instanceof Error ? err.message : "Gagal memperbarui mood.");
+        toast.error(err instanceof Error ? err.message : "Failed to update mood.");
       }
     });
   };
@@ -136,11 +136,11 @@ export function NavUser({ user }: { user: SidebarUser }) {
               <DropdownMenuGroup>
                 <DropdownMenuItem onClick={() => setMoodOpen(true)}>
                   <Smile className="size-4 text-blue-600 dark:text-blue-400" />
-                  <span>Set Mood Harian</span>
+                  <span>Set Daily Mood</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => { window.location.href = "/settings"; }}>
                   <Settings className="size-4" />
-                  <span>Pengaturan</span>
+                  <span>Settings</span>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
@@ -151,7 +151,7 @@ export function NavUser({ user }: { user: SidebarUser }) {
                 }}
               >
                 <LogOut className="size-4" />
-                <span>Keluar</span>
+                <span>Log out</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -164,10 +164,10 @@ export function NavUser({ user }: { user: SidebarUser }) {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-1.5">
               <Smile className="size-5 text-blue-650" />
-              Bagaimana Kabarmu Hari Ini?
+              How Are You Today?
             </DialogTitle>
             <DialogDescription>
-              Bagikan suasana hati dan status singkat Anda dengan rekan satu studio.
+              Share your mood and short status with your studio teammates.
             </DialogDescription>
           </DialogHeader>
 
@@ -195,13 +195,13 @@ export function NavUser({ user }: { user: SidebarUser }) {
 
             <div className="space-y-1.5">
               <label htmlFor="mood-note" className="text-xs font-semibold text-zinc-500">
-                Pesan Status Singkat (Maks 50 karakter)
+                Short Status Message (Max 50 characters)
               </label>
               <Input
                 id="mood-note"
                 value={moodNote}
                 onChange={(e) => setMoodNote(e.target.value.slice(0, 50))}
-                placeholder="Sedang fokus coding... / Ngopi dulu ☕"
+                placeholder="Focused on coding... / Coffee first"
                 className="h-9"
               />
             </div>
@@ -209,7 +209,7 @@ export function NavUser({ user }: { user: SidebarUser }) {
 
           <DialogFooter>
             <Button variant="outline" size="sm" onClick={() => setMoodOpen(false)} disabled={isPending}>
-              Batal
+              Cancel
             </Button>
             <Button
               size="sm"
@@ -218,7 +218,7 @@ export function NavUser({ user }: { user: SidebarUser }) {
               className="bg-blue-700 hover:bg-blue-800 text-white flex items-center gap-1"
             >
               {isPending && <Loader2 className="size-3 animate-spin" />}
-              {isPending ? "Menyimpan..." : "Simpan Mood"}
+              {isPending ? "Saving..." : "Save Mood"}
             </Button>
           </DialogFooter>
         </DialogContent>
