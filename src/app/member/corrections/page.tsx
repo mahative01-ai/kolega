@@ -36,7 +36,7 @@ const statusLabel: Record<string, string> = {
   WFH: "WFH",
   PERMISSION: "Izin",
   SICK: "Sakit",
-  LEAVE: "Cuti",
+  LEAVE: "Ganti Hari",
   ALPHA: "Alpha",
   HOLIDAY: "Libur",
   OFF_DAY: "Libur",
@@ -82,10 +82,11 @@ const successMessages: Record<string, string> = {
 
 const errorMessages: Record<string, string> = {
   "missing-fields": "Mohon lengkapi semua data formulir.",
+  "missing-checkout": "Koreksi lupa absensi untuk hari yang sudah lewat wajib menyertakan jam masuk dan jam pulang.",
   "not-found": "Catatan presensi tidak ditemukan.",
   unauthorized: "Anda tidak berwenang mengoreksi data ini.",
   "already-pending": "Catatan presensi ini sedang dalam proses pengajuan koreksi pending.",
-  "out-of-range": "Pengajuan koreksi hanya dapat diajukan untuk kehadiran antara 2 hingga 7 hari yang lalu.",
+  "out-of-range": "Pengajuan koreksi hanya dapat diajukan untuk kehadiran antara hari ini hingga 7 hari yang lalu.",
   "already-processed": "Pengajuan tidak dapat dibatalkan karena sudah ditinjau oleh Admin.",
 };
 
@@ -101,7 +102,7 @@ export default async function MemberCorrectionsPage({
   const todayKey = getJakartaDateKey(new Date());
   const todayMidnight = new Date(`${todayKey}T00:00:00.000Z`);
   const minDate = new Date(todayMidnight.getTime() - 7 * 24 * 60 * 60 * 1000);
-  const maxDate = new Date(todayMidnight.getTime() - 2 * 24 * 60 * 60 * 1000);
+  const maxDate = todayMidnight;
 
   const recentRecords = await prisma.attendanceRecord.findMany({
     where: {

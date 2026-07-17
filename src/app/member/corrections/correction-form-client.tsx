@@ -30,6 +30,7 @@ export function CorrectionFormClient({
   action,
 }: Props) {
   const [newStatus, setNewStatus] = useState("ON_TIME");
+  const [selectedRecordId, setSelectedRecordId] = useState(preselectedRecord?.id ?? "");
 
   function formatDate(date: Date) {
     return new Intl.DateTimeFormat("id-ID", {
@@ -41,6 +42,12 @@ export function CorrectionFormClient({
   }
 
   const showTimeInput = newStatus === "ON_TIME" || newStatus === "LATE";
+  const selectedRecord = preselectedRecord ?? recentRecords.find((record) => record.id === selectedRecordId) ?? null;
+  const todayKey = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
+  const selectedDateKey = selectedRecord
+    ? new Date(selectedRecord.attendanceDate).toISOString().slice(0, 10)
+    : "";
+  const isPastRecord = Boolean(selectedDateKey && selectedDateKey < todayKey);
 
   return (
     <form action={action} method="POST" className="grid gap-4">
@@ -68,6 +75,8 @@ export function CorrectionFormClient({
           <select
             id="record-select"
             name="recordId"
+            value={selectedRecordId}
+            onChange={(event) => setSelectedRecordId(event.target.value)}
             className="h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-3 text-sm outline-none focus:border-zinc-950 dark:focus:border-zinc-300 focus:ring-1 focus:ring-zinc-950 dark:focus:ring-zinc-300"
             required
           >
@@ -103,19 +112,39 @@ export function CorrectionFormClient({
       </div>
 
       {showTimeInput && (
-        <div className="flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-1 duration-150">
-          <label htmlFor="proposed-time" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-            Usulan Jam Masuk (WIB) <span className="text-red-500">*</span>
-          </label>
-          <Input
-            id="proposed-time"
-            name="proposedCheckInTime"
-            type="time"
-            required={showTimeInput}
-            defaultValue="08:00"
-            className="w-full h-9 bg-white dark:bg-zinc-950"
-          />
-          <p className="text-[10px] text-zinc-500">Masukkan perkiraan jam kedatangan Anda di studio.</p>
+        <div className="grid gap-3 animate-in fade-in slide-in-from-top-1 duration-150 sm:grid-cols-2">
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="proposed-check-in-time" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+              Usulan Jam Masuk (WIB) <span className="text-red-500">*</span>
+            </label>
+            <Input
+              id="proposed-check-in-time"
+              name="proposedCheckInTime"
+              type="time"
+              required={showTimeInput}
+              defaultValue="08:00"
+              className="w-full h-9 bg-white dark:bg-zinc-950"
+            />
+            <p className="text-[10px] text-zinc-500">Isi perkiraan jam hadir di studio.</p>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="proposed-check-out-time" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+              Usulan Jam Pulang (WIB) {isPastRecord ? <span className="text-red-500">*</span> : <span className="text-zinc-400">(opsional)</span>}
+            </label>
+            <Input
+              id="proposed-check-out-time"
+              name="proposedCheckOutTime"
+              type="time"
+              required={isPastRecord}
+              defaultValue={isPastRecord ? "16:00" : undefined}
+              className="w-full h-9 bg-white dark:bg-zinc-950"
+            />
+            <p className="text-[10px] text-zinc-500">
+              {isPastRecord
+                ? "Tanggal terlewat wajib menyertakan jam pulang agar presensi tidak menggantung."
+                : "Untuk hari ini boleh dikosongkan jika belum pulang."}
+            </p>
+          </div>
         </div>
       )}
 

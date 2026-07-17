@@ -1,6 +1,5 @@
 import { CalendarDays, Home, UsersRound } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -8,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { requireAnyRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -28,6 +26,7 @@ import { dedupeCalendarEvents, isApiHolidayCoveredByDbEvent } from "@/lib/calend
 export const dynamic = "force-dynamic";
 
 import { ToggleScheduleButton } from "./toggle-schedule-button";
+import { ScheduleFilterClient } from "./schedule-filter-client";
 
 async function getScheduleData({
   actor,
@@ -352,45 +351,12 @@ export default async function WorkSchedulesPage({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
-            <input type="hidden" name="studioId" value={filterStudioId} />
-            <div className="flex flex-col gap-2">
-              <label htmlFor="month" className="text-sm font-medium">
-                Bulan
-              </label>
-              <Input
-                id="month"
-                name="month"
-                type="month"
-                defaultValue={month.monthKey}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="userId" className="text-sm font-medium">
-                User
-              </label>
-              <select
-                id="userId"
-                name="userId"
-                className="h-8 rounded-lg border border-input bg-transparent dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                defaultValue={data.selectedUser?.id ?? ""}
-              >
-                {data.users.length === 0 ? (
-                  <option value="">Tidak ada user aktif</option>
-                ) : null}
-                {data.users.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.name} - {user.defaultStudio?.name ?? "Tanpa studio"}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex items-end">
-              <Button type="submit" className="w-full md:w-auto">
-                Tampilkan
-              </Button>
-            </div>
-          </form>
+          <ScheduleFilterClient
+            users={data.users}
+            initialUserId={data.selectedUser?.id ?? ""}
+            initialMonth={month.monthKey}
+            studioId={filterStudioId}
+          />
         </CardContent>
       </Card>
 

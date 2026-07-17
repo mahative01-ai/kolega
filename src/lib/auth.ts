@@ -2,6 +2,7 @@ import "server-only";
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { ensureAnnualLeaveForUser } from "@/lib/annual-leave";
 import { prisma } from "@/lib/prisma";
 
 const SESSION_COOKIE = "kolega_session";
@@ -110,7 +111,7 @@ export async function getCurrentUser() {
     return null;
   }
 
-  return prisma.user.findFirst({
+  const user = await prisma.user.findFirst({
     where: {
       id: session.userId,
       accountStatus: "ACTIVE",
@@ -122,6 +123,7 @@ export async function getCurrentUser() {
       username: true,
       role: true,
       memberStatus: true,
+      annualLeaveYear: true,
       workDayBalance: true,
       defaultStudioId: true,
       currentMood: true,
@@ -136,6 +138,12 @@ export async function getCurrentUser() {
       },
     },
   });
+
+  if (!user) {
+    return null;
+  }
+
+  return ensureAnnualLeaveForUser(user);
 }
 
 export async function requireUser() {

@@ -422,19 +422,6 @@ export function RolesClient({
                       <ArrowUpDown className={`size-3.5 ${sortField === "name" ? "text-blue-600 dark:text-blue-400" : "text-zinc-400"}`} />
                     </div>
                   </TableHead>
-                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("email")}>
-                    <div className="flex items-center gap-1.5 hover:text-zinc-900 dark:hover:text-zinc-100">
-                      Email / Lahir
-                      <ArrowUpDown className={`size-3.5 ${sortField === "email" ? "text-blue-600 dark:text-blue-400" : "text-zinc-400"}`} />
-                    </div>
-                  </TableHead>
-                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("studio")}>
-                    <div className="flex items-center gap-1.5 hover:text-zinc-900 dark:hover:text-zinc-100">
-                      Default Studio
-                      <ArrowUpDown className={`size-3.5 ${sortField === "studio" ? "text-blue-600 dark:text-blue-400" : "text-zinc-400"}`} />
-                    </div>
-                  </TableHead>
-                  <TableHead>Placement</TableHead>
                   <TableHead className="cursor-pointer select-none" onClick={() => handleSort("memberStatus")}>
                     <div className="flex items-center gap-1.5 hover:text-zinc-900 dark:hover:text-zinc-100">
                       Status Member
@@ -453,12 +440,6 @@ export function RolesClient({
                       <ArrowUpDown className={`size-3.5 ${sortField === "accountStatus" ? "text-blue-600 dark:text-blue-400" : "text-zinc-400"}`} />
                     </div>
                   </TableHead>
-                  <TableHead className="cursor-pointer select-none" onClick={() => handleSort("role")}>
-                    <div className="flex items-center gap-1.5 hover:text-zinc-900 dark:hover:text-zinc-100">
-                      Role
-                      <ArrowUpDown className={`size-3.5 ${sortField === "role" ? "text-blue-600 dark:text-blue-400" : "text-zinc-400"}`} />
-                    </div>
-                  </TableHead>
                   {canShowActions && <TableHead className="text-right">Aksi</TableHead>}
                 </TableRow>
               </TableHeader>
@@ -466,7 +447,7 @@ export function RolesClient({
                 {filteredUsers.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={canShowActions ? 9 : 8}
+                      colSpan={canShowActions ? 5 : 4}
                       className="h-24 text-center text-sm text-zinc-500"
                     >
                       Tidak ada anggota yang sesuai dengan pencarian atau
@@ -474,8 +455,6 @@ export function RolesClient({
                     </TableCell>
                   </TableRow>
                 ) : filteredUsers.map((user) => {
-                  const activePlacement = user.placements[0];
-
                   return (
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">
@@ -490,22 +469,6 @@ export function RolesClient({
                             </div>
                           </div>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm text-zinc-700 dark:text-zinc-300">{user.email}</div>
-                        <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                          Lahir: {formatDate(user.birthDate)}
-                        </div>
-                      </TableCell>
-                      <TableCell>{user.defaultStudio?.name ?? "Belum diatur"}</TableCell>
-                      <TableCell>
-                        {activePlacement ? (
-                          <Badge variant="outline" className="border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300">
-                            {activePlacement.studio.name}
-                          </Badge>
-                        ) : (
-                          <span className="text-xs text-zinc-400 dark:text-zinc-500">Tidak ada</span>
-                        )}
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col gap-1 items-start">
@@ -525,14 +488,6 @@ export function RolesClient({
                       <TableCell>
                         <Badge className={accountStatusColor[user.accountStatus]}>
                           {accountStatusLabel[user.accountStatus]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="secondary"
-                          className={user.role === "ADMIN" ? "bg-blue-100 text-blue-800" : ""}
-                        >
-                          {ROLE_LABEL[user.role]}
                         </Badge>
                       </TableCell>
                       {canShowActions && (
@@ -646,15 +601,6 @@ export function RolesClient({
                 </select>
               </div>
             </div>
-
-            {addMemberStatus === "TEAM" && (
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold">Jatah Cuti Tahunan *</label>
-                  <Input name="annualLeaveBalance" type="number" defaultValue={12} required min={0} />
-                </div>
-              </div>
-            )}
 
             {addMemberStatus === "INTERN" && (
               <div className="flex flex-col gap-1.5">
@@ -853,15 +799,6 @@ export function RolesClient({
                 </div>
               </div>
 
-              {editMemberStatus === "TEAM" && (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold">Jatah Cuti Tahunan *</label>
-                    <Input name="annualLeaveBalance" type="number" defaultValue={selectedUser.annualLeaveBalance} required min={0} />
-                  </div>
-                </div>
-              )}
-
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-semibold">Saldo Hari Kerja</label>
@@ -1020,10 +957,6 @@ export function RolesClient({
               <div className="grid grid-cols-3 gap-1 border-b border-zinc-100 dark:border-zinc-800 pb-2">
                 <span className="font-semibold text-zinc-500">Status Akun</span>
                 <span className="col-span-2 text-zinc-900 dark:text-zinc-100">{accountStatusLabel[viewUser.accountStatus]}</span>
-              </div>
-              <div className="grid grid-cols-3 gap-1 border-b border-zinc-100 dark:border-zinc-800 pb-2">
-                <span className="font-semibold text-zinc-500">Jatah Cuti Tahunan</span>
-                <span className="col-span-2 font-semibold text-blue-600 dark:text-blue-400">{viewUser.annualLeaveBalance} Hari</span>
               </div>
               <div className="grid grid-cols-3 gap-1 border-b border-zinc-100 dark:border-zinc-800 pb-2">
                 <span className="font-semibold text-zinc-500">Saldo Hari Kerja</span>

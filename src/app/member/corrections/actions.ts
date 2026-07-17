@@ -13,6 +13,7 @@ export async function createCorrectionAction(formData: FormData) {
   const newStatus = String(formData.get("newStatus") ?? "");
   const reason = String(formData.get("reason") ?? "").trim();
   let proposedCheckInTime = String(formData.get("proposedCheckInTime") ?? "") || null;
+  let proposedCheckOutTime = String(formData.get("proposedCheckOutTime") ?? "") || null;
 
   // Validate fields
   const validStatuses = [
@@ -30,12 +31,19 @@ export async function createCorrectionAction(formData: FormData) {
     redirect("/member/corrections?error=missing-fields");
   }
 
-  if (newStatus === "ON_TIME" || newStatus === "LATE") {
+  const isPhysicalCorrection = newStatus === "ON_TIME" || newStatus === "LATE";
+
+  if (isPhysicalCorrection) {
     if (!proposedCheckInTime || !/^\d{2}:\d{2}$/.test(proposedCheckInTime)) {
+      redirect("/member/corrections?error=missing-fields");
+    }
+
+    if (proposedCheckOutTime && !/^\d{2}:\d{2}$/.test(proposedCheckOutTime)) {
       redirect("/member/corrections?error=missing-fields");
     }
   } else {
     proposedCheckInTime = null;
+    proposedCheckOutTime = null;
   }
 
   // Fetch the attendance record
@@ -52,15 +60,19 @@ export async function createCorrectionAction(formData: FormData) {
     redirect("/member/corrections?error=unauthorized");
   }
 
-  // Validate time limit (2 to 7 days ago)
+  // Validate time limit (0 to 7 days ago)
   const todayKey = getJakartaDateKey(new Date());
   const todayMidnight = new Date(`${todayKey}T00:00:00.000Z`);
   const recordDate = new Date(record.attendanceDate);
   const diffTime = todayMidnight.getTime() - recordDate.getTime();
   const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
-  if (diffDays < 2 || diffDays > 7) {
+  if (diffDays < 0 || diffDays > 7) {
     redirect("/member/corrections?error=out-of-range");
+  }
+
+  if (isPhysicalCorrection && diffDays > 0 && !proposedCheckOutTime) {
+    redirect("/member/corrections?error=missing-checkout");
   }
 
   // Check for existing pending corrections for this record
@@ -83,6 +95,7 @@ export async function createCorrectionAction(formData: FormData) {
       previousStatus: record.status,
       newStatus: newStatus as typeof record.status,
       proposedCheckInTime,
+      proposedCheckOutTime,
       reason,
       status: "PENDING",
     },

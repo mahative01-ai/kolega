@@ -144,7 +144,7 @@ const statusLabel: Record<string, string> = {
   PERMISSION: "Izin",
   SICK: "Sakit",
   DISPENSATION: "Dispensasi",
-  LEAVE: "Cuti",
+  LEAVE: "Ganti Hari",
   ALPHA: "Alpha",
   HOLIDAY: "Libur",
   OFF_DAY: "Libur",

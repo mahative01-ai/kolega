@@ -54,7 +54,7 @@ const statusLabel: Record<string, string> = {
   PERMISSION: "Izin",
   SICK: "Sakit",
   DISPENSATION: "Dispensasi",
-  LEAVE: "Cuti",
+  LEAVE: "Ganti Hari",
   ALPHA: "Alpha",
   HOLIDAY: "Libur",
   OFF_DAY: "Libur",
@@ -366,7 +366,7 @@ export default async function SuperAdminDashboardPage() {
       {isBirthday && (
         <>
           <ConfettiTrigger preset="fireworks" />
-          <div className="rounded-xl border border-pink-200 dark:border-pink-900 bg-pink-50 dark:bg-pink-950/20 p-5 text-sm text-pink-850 dark:text-pink-300 mb-6 flex items-center gap-4 shadow-sm animate-bounce">
+          <div className="rounded-xl border border-pink-200 dark:border-pink-900 bg-pink-50 dark:bg-pink-950/20 p-5 text-sm text-pink-850 dark:text-pink-300 mb-6 flex items-center gap-4 shadow-sm">
             <span className="text-3xl">🎂</span>
             <div>
               <h3 className="font-bold text-base text-pink-900 dark:text-pink-400">Selamat Ulang Tahun, {currentUser.name}! 🎉</h3>

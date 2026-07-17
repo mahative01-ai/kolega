@@ -42,6 +42,7 @@ type SidebarUser = {
   email: string;
   role: keyof typeof ROLE_LABEL;
   currentMood?: string;
+  moodNote?: string | null;
   defaultStudio?: {
     name: string;
   } | null;
@@ -125,6 +126,7 @@ function getMenuGroups(role: SidebarUser["role"]): MenuGroup[] {
         items: [
           { label: "User Studio", href: "/roles", icon: UserRound },
           { label: "Jadwal Tim", href: "/schedules", icon: CalendarClock },
+          { label: "Laporan Presensi", href: "/laporan-presensi", icon: Clipboard },
           { label: "Persetujuan", href: "/admin/requests", icon: MessageSquare },
           { label: "Piket", href: "/piket", icon: BrushCleaning },
         ],

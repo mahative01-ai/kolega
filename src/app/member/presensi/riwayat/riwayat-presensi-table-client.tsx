@@ -41,7 +41,7 @@ const statusLabel: Record<string, string> = {
   WFH: "WFH",
   PERMISSION: "Izin",
   SICK: "Sakit",
-  LEAVE: "Cuti",
+  LEAVE: "Ganti Hari",
   ALPHA: "Alpha",
   HOLIDAY: "Libur",
   OFF_DAY: "Libur",

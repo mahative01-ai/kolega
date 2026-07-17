@@ -77,7 +77,7 @@ export default async function LoginPage({
         statusText = "Sakit (Izin)";
         statusColor = "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-900/50";
       } else if (attendance.status === "LEAVE") {
-        statusText = "Cuti (Izin)";
+        statusText = "Ganti Hari";
         statusColor = "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900/50";
       } else if (attendance.status === "PERMISSION") {
         statusText = "Izin Khusus";

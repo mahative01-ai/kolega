@@ -579,3 +579,37 @@ export async function submitWfhAttendanceAction(formData: FormData) {
     redirect(`${dashboardPath}?success=checkout`);
   }
 }
+
+export async function saveWfoJournalAction(formData: FormData) {
+  const currentUser = await requireAnyRole(["ADMIN", "MEMBER"]);
+  const journalText = String(formData.get("wfoJournal") ?? "").trim();
+
+  if (!journalText) {
+    throw new Error("Jurnal WFO wajib diisi.");
+  }
+
+  const todayKey = getJakartaDateKey(new Date());
+  const todayDate = dateOnlyFromKey(todayKey);
+
+  const existingRecord = await prisma.attendanceRecord.findUnique({
+    where: {
+      userId_attendanceDate: {
+        userId: currentUser.id,
+        attendanceDate: todayDate,
+      },
+    },
+  });
+
+  if (!existingRecord) {
+    throw new Error("Data presensi hari ini tidak ditemukan. Silakan check-in terlebih dahulu.");
+  }
+
+  await prisma.attendanceRecord.update({
+    where: { id: existingRecord.id },
+    data: {
+      wfhReport: journalText, // reuse wfhReport for WFO journal
+    },
+  });
+
+  revalidatePath(currentUser.role === "ADMIN" ? "/admin" : "/member");
+}

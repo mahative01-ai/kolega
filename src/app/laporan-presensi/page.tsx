@@ -25,7 +25,7 @@ import {
   normalizeReportMonth,
   summarizeAttendanceStatuses,
 } from "@/lib/attendance-report";
-import { requireRole } from "@/lib/auth";
+import { requireAnyRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -50,7 +50,7 @@ export default async function AttendanceReportPage({
   searchParams: Promise<{ month?: string; studio?: string; status?: string }>;
 }) {
   const [currentUser, params] = await Promise.all([
-    requireRole("SUPER_ADMIN"),
+    requireAnyRole(["SUPER_ADMIN", "ADMIN"]),
     searchParams,
   ]);
   const month = normalizeReportMonth(params.month);
@@ -59,28 +59,10 @@ export default async function AttendanceReportPage({
 
   const isGlobalSuperAdmin = currentUser.role === "SUPER_ADMIN" && currentUser.defaultStudioId === null;
 
-  const availableStudios =
-    isGlobalSuperAdmin
-      ? await prisma.studio.findMany({
-          where: { isActive: true },
-          orderBy: { name: "asc" },
-          select: { id: true, name: true },
-        })
-      : currentUser.defaultStudioId && currentUser.defaultStudio
-        ? [
-            {
-              id: currentUser.defaultStudioId,
-              name: currentUser.defaultStudio.name,
-            },
-          ]
-        : [];
-
   const selectedStudioId =
     !isGlobalSuperAdmin
       ? (currentUser.defaultStudioId ?? "__unassigned__")
-      : availableStudios.some((studio) => studio.id === params.studio)
-        ? params.studio
-        : undefined;
+      : undefined;
 
   const baseWhere: Prisma.AttendanceRecordWhereInput = {
     attendanceDate: { gte: start, lt: endExclusive },
@@ -240,26 +222,7 @@ export default async function AttendanceReportPage({
                   className="h-9 rounded-md border border-input bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 px-3 text-sm focus:outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
                 />
               </div>
-              {isGlobalSuperAdmin ? (
-                <div className="grid gap-1.5">
-                  <label htmlFor="report-studio" className="text-sm font-medium">
-                    Default Studio
-                  </label>
-                  <select
-                    id="report-studio"
-                    name="studio"
-                    defaultValue={selectedStudioId ?? ""}
-                    className="h-9 rounded-md border border-input bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 px-3 text-sm focus:outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                  >
-                    <option value="">Semua Studio</option>
-                    {availableStudios.map((studio) => (
-                      <option key={studio.id} value={studio.id}>
-                        {studio.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ) : null}
+
               <div className="grid gap-1.5">
                 <label htmlFor="report-status" className="text-sm font-medium">
                   Status Detail

@@ -1,11 +1,14 @@
 import { DashboardShell } from "@/components/dashboard-shell";
 import { prisma } from "@/lib/prisma";
 import { requireAnyRole } from "@/lib/auth";
+import { ensureAnnualLeaveForActiveTeams } from "@/lib/annual-leave";
 import { RolesClient } from "./roles-client";
 
 export const dynamic = "force-dynamic";
 
 async function getRoleData(actor: Awaited<ReturnType<typeof requireAnyRole>>) {
+  await ensureAnnualLeaveForActiveTeams();
+
   const isSuperAdmin = actor.role === "SUPER_ADMIN";
   
   const scopedWhere = isSuperAdmin

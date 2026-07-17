@@ -54,12 +54,21 @@ export async function createRequestAction(formData: FormData) {
   const todayKey = getJakartaDateKey(new Date());
   const todayDate = new Date(`${todayKey}T00:00:00.000Z`);
   const tomorrowDate = new Date(todayDate.getTime() + 24 * 60 * 60 * 1000);
+  const yesterdayDate = new Date(todayDate.getTime() - 24 * 60 * 60 * 1000);
 
   const startDateTime = new Date(`${startDateStr}T00:00:00.000Z`);
 
-  // 2. Blokir tanggal di masa lampau (hari sebelum hari ini)
-  if (startDateTime < todayDate) {
-    redirect("/member/requests?error=past-date");
+  // 2. Blokir tanggal di masa lampau
+  if (requestedType === "SICK") {
+    // Sakit diperbolehkan maksimal H+1 (kemarin)
+    if (startDateTime < yesterdayDate) {
+      redirect("/member/requests?error=past-date");
+    }
+  } else {
+    // Tipe izin lain tidak boleh di masa lampau sebelum hari ini
+    if (startDateTime < todayDate) {
+      redirect("/member/requests?error=past-date");
+    }
   }
 
   // 3. Validasi izin/cuti: minimal H-1.
@@ -67,8 +76,8 @@ export async function createRequestAction(formData: FormData) {
     redirect("/member/requests?error=leave-notice");
   }
 
-  // 4. Validasi Sakit (SICK): maksimal 1 jam sebelum jam masuk jika diajukan hari H
-  if (requestedType === "SICK" && startDateTime.getTime() === todayDate.getTime()) {
+  // 4. Validasi Sakit (SICK): maksimal 1 jam sebelum jam masuk (sebelum 07:00 pagi) pada hari pengisian jika diajukan untuk hari ini atau kemarin
+  if (requestedType === "SICK" && (startDateTime.getTime() === todayDate.getTime() || startDateTime.getTime() === yesterdayDate.getTime())) {
     const currentMinutes = getJakartaMinutes(new Date());
     // Batas 07:00 pagi adalah 7 * 60 = 420 menit
     if (currentMinutes >= 420) {

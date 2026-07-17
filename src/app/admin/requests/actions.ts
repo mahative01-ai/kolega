@@ -24,7 +24,6 @@ export async function reviewRequestAction(formData: FormData) {
           id: true,
           role: true,
           defaultStudioId: true,
-          annualLeaveBalance: true,
         },
       },
     },
@@ -92,7 +91,7 @@ export async function reviewRequestAction(formData: FormData) {
       const start = new Date(request.startDate);
       const end = new Date(request.endDate);
 
-      // Hitung hari cuti
+      // Hitung jumlah hari pengajuan.
       let daysCount = 0;
       const countDate = new Date(start);
       while (countDate <= end) {
@@ -100,26 +99,7 @@ export async function reviewRequestAction(formData: FormData) {
         countDate.setUTCDate(countDate.getUTCDate() + 1);
       }
 
-      if (request.type === "LEAVE") {
-        const userWithBalance = await tx.user.findUnique({
-          where: { id: request.userId },
-          select: { annualLeaveBalance: true },
-        });
-        if (!userWithBalance) throw new Error("Staf tidak ditemukan.");
-        if (userWithBalance.annualLeaveBalance < daysCount) {
-          throw new Error(`Saldo cuti staf tidak mencukupi untuk disetujui (dibutuhkan ${daysCount} hari, sisa ${userWithBalance.annualLeaveBalance} hari).`);
-        }
-        await tx.user.update({
-          where: { id: request.userId },
-          data: {
-            annualLeaveBalance: {
-              decrement: daysCount,
-            },
-          },
-        });
-      }
-
-      if (request.type === "PERMISSION") {
+      if (request.type === "PERMISSION" || request.type === "LEAVE") {
         await tx.user.update({
           where: { id: request.userId },
           data: {
@@ -231,7 +211,6 @@ export async function quickReviewRequestAction(requestId: string, approve: boole
           id: true,
           role: true,
           defaultStudioId: true,
-          annualLeaveBalance: true,
         },
       },
     },
@@ -299,7 +278,7 @@ export async function quickReviewRequestAction(requestId: string, approve: boole
       const start = new Date(request.startDate);
       const end = new Date(request.endDate);
 
-      // Hitung hari cuti
+      // Hitung jumlah hari pengajuan.
       let daysCount = 0;
       const countDate = new Date(start);
       while (countDate <= end) {
@@ -307,26 +286,7 @@ export async function quickReviewRequestAction(requestId: string, approve: boole
         countDate.setUTCDate(countDate.getUTCDate() + 1);
       }
 
-      if (request.type === "LEAVE") {
-        const userWithBalance = await tx.user.findUnique({
-          where: { id: request.userId },
-          select: { annualLeaveBalance: true },
-        });
-        if (!userWithBalance) throw new Error("Staf tidak ditemukan.");
-        if (userWithBalance.annualLeaveBalance < daysCount) {
-          throw new Error(`Saldo cuti staf tidak mencukupi untuk disetujui (dibutuhkan ${daysCount} hari, sisa ${userWithBalance.annualLeaveBalance} hari).`);
-        }
-        await tx.user.update({
-          where: { id: request.userId },
-          data: {
-            annualLeaveBalance: {
-              decrement: daysCount,
-            },
-          },
-        });
-      }
-
-      if (request.type === "PERMISSION") {
+      if (request.type === "PERMISSION" || request.type === "LEAVE") {
         await tx.user.update({
           where: { id: request.userId },
           data: {
@@ -442,25 +402,8 @@ export async function deleteRequestAction(formData: FormData) {
       const start = new Date(request.startDate);
       const end = new Date(request.endDate);
 
-      // 1. Revert annual leave balance
-      if (request.type === "LEAVE") {
-        let daysCount = 0;
-        const countDate = new Date(start);
-        while (countDate <= end) {
-          daysCount++;
-          countDate.setUTCDate(countDate.getUTCDate() + 1);
-        }
-        await tx.user.update({
-          where: { id: request.userId },
-          data: {
-            annualLeaveBalance: {
-              increment: daysCount,
-            },
-          },
-        });
-      }
-
-      if (request.type === "PERMISSION") {
+      // 1. Revert work-day balance side effect
+      if (request.type === "PERMISSION" || request.type === "LEAVE") {
         let daysCount = 0;
         const countDate = new Date(start);
         while (countDate <= end) {

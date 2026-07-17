@@ -5,6 +5,13 @@ import { redirect } from "next/navigation";
 import { requireAnyRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+function jakartaTimeOnDate(date: Date, time: string) {
+  const [hours, minutes] = time.split(":").map(Number);
+  const result = new Date(date);
+  result.setUTCHours(hours - 7, minutes, 0, 0);
+  return result;
+}
+
 // ─── Review Correction (Redirecting Action) ─────────────────────────────────
 
 export async function reviewCorrectionAction(formData: FormData) {
@@ -111,8 +118,10 @@ export async function reviewCorrectionAction(formData: FormData) {
       const isPhysical = correction.newStatus === "ON_TIME" || correction.newStatus === "LATE";
       if (isPhysical && correction.proposedCheckInTime) {
         const [h, m] = correction.proposedCheckInTime.split(":").map(Number);
-        checkInAt = new Date(correction.attendanceRecord.attendanceDate);
-        checkInAt.setUTCHours(h - 7, m, 0, 0); // Convert Jakarta time to UTC
+        checkInAt = jakartaTimeOnDate(
+          correction.attendanceRecord.attendanceDate,
+          correction.proposedCheckInTime
+        );
 
         if (correction.newStatus === "LATE") {
           // Find active policy for this studio
@@ -131,12 +140,17 @@ export async function reviewCorrectionAction(formData: FormData) {
           lateMinutes = 0;
         }
 
-        // Retain checkOut if it exists
+        // Use proposed check-out if provided, otherwise retain existing check-out.
         const existingRecord = await tx.attendanceRecord.findUnique({
           where: { id: correction.attendanceRecordId },
           select: { checkOutAt: true },
         });
-        checkOutAt = existingRecord?.checkOutAt ?? null;
+        checkOutAt = correction.proposedCheckOutTime
+          ? jakartaTimeOnDate(
+              correction.attendanceRecord.attendanceDate,
+              correction.proposedCheckOutTime
+            )
+          : existingRecord?.checkOutAt ?? null;
       } else {
         // Non-physical presence reset
         checkInAt = null;
@@ -268,8 +282,10 @@ export async function quickReviewCorrectionAction(correctionId: string, approve:
       const isPhysical = correction.newStatus === "ON_TIME" || correction.newStatus === "LATE";
       if (isPhysical && correction.proposedCheckInTime) {
         const [h, m] = correction.proposedCheckInTime.split(":").map(Number);
-        checkInAt = new Date(correction.attendanceRecord.attendanceDate);
-        checkInAt.setUTCHours(h - 7, m, 0, 0); // Convert Jakarta time to UTC
+        checkInAt = jakartaTimeOnDate(
+          correction.attendanceRecord.attendanceDate,
+          correction.proposedCheckInTime
+        );
 
         if (correction.newStatus === "LATE") {
           // Find active policy for this studio
@@ -288,12 +304,17 @@ export async function quickReviewCorrectionAction(correctionId: string, approve:
           lateMinutes = 0;
         }
 
-        // Retain checkOut if it exists
+        // Use proposed check-out if provided, otherwise retain existing check-out.
         const existingRecord = await tx.attendanceRecord.findUnique({
           where: { id: correction.attendanceRecordId },
           select: { checkOutAt: true },
         });
-        checkOutAt = existingRecord?.checkOutAt ?? null;
+        checkOutAt = correction.proposedCheckOutTime
+          ? jakartaTimeOnDate(
+              correction.attendanceRecord.attendanceDate,
+              correction.proposedCheckOutTime
+            )
+          : existingRecord?.checkOutAt ?? null;
       } else {
         // Non-physical presence reset
         checkInAt = null;

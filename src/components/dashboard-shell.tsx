@@ -4,6 +4,7 @@ import { ROLE_LABEL } from "@/lib/roles";
 import { prisma } from "@/lib/prisma";
 import { NotificationBellClient } from "@/app/notifications/notification-bell-client";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LanguageToggle } from "@/components/language-toggle";
 import {
   SidebarInset,
   SidebarProvider,
@@ -145,6 +146,7 @@ export async function DashboardShell({
           </div>
 
           <div className="flex items-center gap-3">
+            <LanguageToggle />
             <ThemeToggle />
             <NotificationBellClient
               key={`${unreadCount}:${unreadNotifications.map((item) => `${item.id}:${item.readAt ?? "unread"}`).join("|")}`}

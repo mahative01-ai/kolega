@@ -291,9 +291,33 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
     });
   }
 
+  const studioColleagues = defaultStudioId
+    ? await prisma.user.findMany({
+        where: {
+          defaultStudioId: defaultStudioId,
+          accountStatus: "ACTIVE",
+          id: { not: userId },
+          birthDate: { not: null },
+        },
+        select: {
+          id: true,
+          name: true,
+          birthDate: true,
+        },
+      })
+    : [];
+
+  const today = new Date();
+  const colleaguesBirthdays = studioColleagues.filter((u) => {
+    if (!u.birthDate) return false;
+    const bd = new Date(u.birthDate);
+    return bd.getUTCDate() === today.getDate() && bd.getUTCMonth() === today.getMonth();
+  });
+
   return {
     studio,
     activeMembers,
+    colleaguesBirthdays,
     personalWorkDayBalance: personalBalance?.workDayBalance ?? 0,
     summary: summarizeAttendanceStatuses(groups),
     personalSummary: summarizeAttendanceStatuses(personalGroups),
@@ -370,7 +394,7 @@ export default async function AdminDashboardPage({
       {isBirthday && (
         <>
           <ConfettiTrigger preset="fireworks" />
-          <div className="rounded-xl border border-pink-200 dark:border-pink-900 bg-pink-50 dark:bg-pink-950/20 p-5 text-sm text-pink-850 dark:text-pink-300 mb-6 flex items-center gap-4 shadow-sm animate-bounce">
+          <div className="rounded-xl border border-pink-200 dark:border-pink-900 bg-pink-50 dark:bg-pink-950/20 p-5 text-sm text-pink-850 dark:text-pink-300 mb-6 flex items-center gap-4 shadow-sm">
             <span className="text-3xl">🎂</span>
             <div>
               <h3 className="font-bold text-base text-pink-900 dark:text-pink-400">Selamat Ulang Tahun, {currentUser.name}! 🎉</h3>
@@ -378,6 +402,18 @@ export default async function AdminDashboardPage({
             </div>
           </div>
         </>
+      )}
+
+      {data.colleaguesBirthdays && data.colleaguesBirthdays.length > 0 && (
+        <div className="rounded-xl border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/20 p-4 text-sm text-blue-800 dark:text-blue-300 mb-6 flex items-center gap-3 shadow-sm">
+          <span className="text-2xl">🎉</span>
+          <div>
+            <h4 className="font-bold text-zinc-900 dark:text-zinc-100">Hari ini rekan kerja Anda di studio sedang berulang tahun:</h4>
+            <p className="text-xs text-blue-700 dark:text-blue-450 mt-0.5">
+              {data.colleaguesBirthdays.map((c) => c.name).join(", ")}. Jangan lupa berikan ucapan terbaikmu! 🎂
+            </p>
+          </div>
+        </div>
       )}
 
       <AdminDashboardClient

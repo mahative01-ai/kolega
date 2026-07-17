@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { CalendarRange, UserCheck, HelpCircle, X, Edit2 } from "lucide-react";
+import { CalendarRange, UserCheck, HelpCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -98,25 +98,6 @@ export function PicketBoardClient({ members, isManager }: Props) {
     });
   };
 
-  // Remove only one specific day from user's picketDay
-  const handleRemoveSingleDay = (member: Member, dayToRemove: string) => {
-    if (!member.picketDay) return;
-    const days = member.picketDay.split(",").map(d => d.trim().toUpperCase());
-    const remainingDays = days.filter(d => d !== dayToRemove);
-    const newValue = remainingDays.length > 0 ? remainingDays.join(",") : null;
-
-    startTransition(async () => {
-      try {
-        const res = await updateUserPicketDayAction(member.id, newValue);
-        if (res.success) {
-          toast.success(`Berhasil menghapus hari ${DAYS.find(d => d.key === dayToRemove)?.label} dari jadwal.`);
-        }
-      } catch (err: unknown) {
-        toast.error(err instanceof Error ? err.message : "Gagal memperbarui jadwal piket.");
-      }
-    });
-  };
-
   return (
     <div className="space-y-6">
       {/* 📅 Weekly Picket Board */}
@@ -143,7 +124,11 @@ export function PicketBoardClient({ members, isManager }: Props) {
                   list.map((m) => (
                     <div
                       key={`${m.id}-${day.key}`}
-                      className="group rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-2 text-xs transition-all hover:shadow-sm"
+                      onClick={isManager ? () => handleOpenEdit(m) : undefined}
+                      className={`group rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-2 text-xs transition-all ${
+                        isManager ? "cursor-pointer hover:border-zinc-400 dark:hover:border-zinc-700 hover:shadow-sm" : ""
+                      }`}
+                      title={isManager ? "Klik untuk ubah hari piket" : undefined}
                     >
                       <div className="flex items-center justify-between gap-1">
                         <div className="flex items-center gap-1.5 min-w-0">
@@ -153,28 +138,6 @@ export function PicketBoardClient({ members, isManager }: Props) {
                           <span className="font-semibold text-zinc-900 dark:text-zinc-100 break-words line-clamp-1" title={m.name}>
                             {m.name}
                           </span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          {isManager && (
-                            <button
-                              disabled={isPending}
-                              onClick={() => handleOpenEdit(m)}
-                              className="text-zinc-400 hover:text-blue-600 rounded p-0.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-                              title="Ubah Hari Piket"
-                            >
-                              <Edit2 className="size-3" />
-                            </button>
-                          )}
-                          {isManager && (
-                            <button
-                              disabled={isPending}
-                              onClick={() => handleRemoveSingleDay(m, day.key)}
-                              className="text-zinc-400 hover:text-red-500 rounded p-0.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-                              title="Hapus hari ini dari Jadwal"
-                            >
-                              <X className="size-3" />
-                            </button>
-                          )}
                         </div>
                       </div>
                     </div>
@@ -208,7 +171,11 @@ export function PicketBoardClient({ members, isManager }: Props) {
               {unscheduled.map((m) => (
                 <div
                   key={m.id}
-                  className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-2.5 py-1.5 text-xs"
+                  onClick={isManager ? () => handleOpenEdit(m) : undefined}
+                  className={`inline-flex items-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-2.5 py-1.5 text-xs transition-colors ${
+                    isManager ? "cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900/40" : ""
+                  }`}
+                  title={isManager ? "Klik untuk atur hari piket" : undefined}
                 >
                   <span className="text-sm select-none" title={getMood(m.currentMood).label}>
                     {getMood(m.currentMood).emoji}
@@ -219,12 +186,16 @@ export function PicketBoardClient({ members, isManager }: Props) {
                   </Badge>
                   {isManager && (
                     <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleOpenEdit(m)}
-                      className="h-6 text-[10px] px-2"
+                      variant="secondary"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Avoid double triggering
+                        handleOpenEdit(m);
+                      }}
+                      className="h-5 w-5 rounded bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 ml-1"
+                      title="Atur Hari Piket"
                     >
-                      + Jadwal Piket
+                      +
                     </Button>
                   )}
                 </div>

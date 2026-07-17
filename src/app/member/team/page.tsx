@@ -1,3 +1,4 @@
+import type { Prisma } from "@/generated/prisma/client";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard-shell";
@@ -10,10 +11,16 @@ export const dynamic = "force-dynamic";
 export default async function TeamMoodPage() {
   const currentUser = await requireUser();
 
+  const whereClause: Prisma.UserWhereInput = {
+    accountStatus: "ACTIVE",
+  };
+
+  if (currentUser.role !== "SUPER_ADMIN" && currentUser.defaultStudioId) {
+    whereClause.defaultStudioId = currentUser.defaultStudioId;
+  }
+
   const users = await prisma.user.findMany({
-    where: {
-      accountStatus: "ACTIVE",
-    },
+    where: whereClause,
     orderBy: { name: "asc" },
     select: {
       id: true,

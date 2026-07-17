@@ -69,6 +69,7 @@ type CorrectionItem = {
   previousStatus: string | null;
   newStatus: string | null;
   proposedCheckInTime: string | null;
+  proposedCheckOutTime: string | null;
   reason: string;
   status: string;
   createdAt: Date;
@@ -97,7 +98,7 @@ const requestTypeLabel: Record<string, string> = {
   PERMISSION: "Izin",
   SICK: "Sakit",
   DISPENSATION: "Dispensasi",
-  LEAVE: "Cuti Legacy",
+  LEAVE: "Ganti Hari",
   WFH: "WFH",
 };
 
@@ -131,7 +132,7 @@ const statusLabel: Record<string, string> = {
   PERMISSION: "Izin",
   SICK: "Sakit",
   DISPENSATION: "Dispensasi",
-  LEAVE: "Cuti",
+  LEAVE: "Ganti Hari",
   ALPHA: "Alpha",
   HOLIDAY: "Libur",
   OFF_DAY: "Libur",
@@ -831,6 +832,10 @@ export function ApprovalsTabsClient({
                                     <p className="text-xs font-semibold text-zinc-400">Jam Check-In Baru</p>
                                     <p className="mt-1 font-medium">{corr.proposedCheckInTime ? corr.proposedCheckInTime : "-"}</p>
                                   </div>
+                                  <div>
+                                    <p className="text-xs font-semibold text-zinc-400">Jam Check-Out Baru</p>
+                                    <p className="mt-1 font-medium">{corr.proposedCheckOutTime ? corr.proposedCheckOutTime : "-"}</p>
+                                  </div>
                                 </div>
                                 <div>
                                   <p className="text-xs font-semibold text-zinc-400">Alasan Lengkap</p>
@@ -1001,6 +1006,10 @@ export function ApprovalsTabsClient({
                                   <div>
                                     <p className="text-xs font-semibold text-zinc-400">Jam Check-In Baru</p>
                                     <p className="mt-1 font-medium">{corr.proposedCheckInTime ? corr.proposedCheckInTime : "-"}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-semibold text-zinc-400">Jam Check-Out Baru</p>
+                                    <p className="mt-1 font-medium">{corr.proposedCheckOutTime ? corr.proposedCheckOutTime : "-"}</p>
                                   </div>
                                 </div>
                                 <div>
