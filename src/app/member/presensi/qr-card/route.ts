@@ -1,26 +1,11 @@
-import fs from "fs";
 import path from "path";
 import QRCode from "qrcode";
 import sharp from "sharp";
 import { requireAnyRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { GEIST_FONT_BASE64 } from "@/lib/fonts/geist-base64";
 
 export const dynamic = "force-dynamic";
-
-let cachedFontBase64: string | null = null;
-
-function getGeistFontBase64() {
-  if (cachedFontBase64) return cachedFontBase64;
-  try {
-    const fontPath = path.join(process.cwd(), "fonts", "Geist-Regular.ttf");
-    if (fs.existsSync(fontPath)) {
-      cachedFontBase64 = fs.readFileSync(fontPath).toString("base64");
-    }
-  } catch {
-    cachedFontBase64 = null;
-  }
-  return cachedFontBase64;
-}
 
 function escapeXml(value: string) {
   return value
@@ -76,23 +61,14 @@ export async function GET(request: Request) {
   const studio = escapeXml(currentUser.defaultStudio?.name ?? "Belum ada studio");
   const qrUid = escapeXml(credential.qrUid);
 
-  const fontBase64 = getGeistFontBase64();
-  const fontStyleDef = fontBase64
-    ? `<defs>
+  const fontStyleDef = `<defs>
     <style type="text/css">
       @font-face {
         font-family: 'GeistFont';
-        src: url('data:font/ttf;charset=utf-8;base64,${fontBase64}');
+        src: url('data:font/ttf;charset=utf-8;base64,${GEIST_FONT_BASE64}');
         font-weight: normal;
         font-style: normal;
       }
-      text {
-        font-family: 'GeistFont', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-      }
-    </style>
-  </defs>`
-    : `<defs>
-    <style type="text/css">
       text {
         font-family: 'GeistFont', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
       }
@@ -237,7 +213,7 @@ export async function GET(request: Request) {
               <div class="actions">
                 <button class="button primary" onclick="window.print()">Cetak / Simpan PDF</button>
                 <a class="button" href="/member/presensi/qr-card?format=svg" download="kolega-qr-card.svg">Unduh SVG</a>
-                <a class="button primary" href="/member/presensi/qr-card?format=png" download="kolega-qr-card.png">Unduh PNG</a>
+                <button class="button primary" onclick="downloadPngClient()">Unduh PNG</button>
               </div>
             </div>
             <div class="card-container">
@@ -247,6 +223,41 @@ export async function GET(request: Request) {
               Jika ingin menyimpan sebagai gambar, buka dari perangkat yang akan dipakai lalu gunakan fitur screenshot atau cetak sebagai PDF.
             </p>
           </main>
+
+          <script>
+            function downloadPngClient() {
+              const svgEl = document.querySelector('.card-container svg');
+              if (!svgEl) {
+                window.location.href = '/member/presensi/qr-card?format=png';
+                return;
+              }
+              const xml = new XMLSerializer().serializeToString(svgEl);
+              const svgBlob = new Blob([xml], { type: 'image/svg+xml;charset=utf-8' });
+              const url = URL.createObjectURL(svgBlob);
+              const img = new Image();
+              img.onload = function () {
+                const canvas = document.createElement('canvas');
+                canvas.width = 1440;
+                canvas.height = 920;
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                  ctx.scale(2, 2);
+                  ctx.drawImage(img, 0, 0);
+                  const a = document.createElement('a');
+                  a.download = 'kolega-qr-card.png';
+                  a.href = canvas.toDataURL('image/png');
+                  a.click();
+                } else {
+                  window.location.href = '/member/presensi/qr-card?format=png';
+                }
+                URL.revokeObjectURL(url);
+              };
+              img.onerror = function () {
+                window.location.href = '/member/presensi/qr-card?format=png';
+              };
+              img.src = url;
+            }
+          </script>
         </body>
       </html>
     `, {
@@ -277,3 +288,4 @@ export async function GET(request: Request) {
     },
   });
 }
+
