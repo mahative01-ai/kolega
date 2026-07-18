@@ -19,7 +19,7 @@ export function QrLoginScanner({
   currentUser,
   action,
   disabled = false,
-  disabledMessage = "Aksi scan belum tersedia.",
+  disabledMessage = "Scan action not available.",
 }: {
   autoStart?: boolean;
   currentUser?: CurrentUserProp;
@@ -35,15 +35,15 @@ export function QrLoginScanner({
   const defaultMsg = disabled
     ? disabledMessage
     : currentUser
-      ? "Arahkan kartu QR Card Anda ke kamera webcam untuk presensi harian WFO."
-      : "Arahkan kartu QR Card Anda ke kamera webcam untuk login & presensi otomatis.";
+      ? "Point your QR Card at the webcam camera for daily WFO attendance."
+      : "Point your QR Card at the webcam camera to sign in & log attendance automatically.";
 
   const [message, setMessage] = useState(defaultMsg);
   const [statusType, setStatusType] = useState<"info" | "success" | "error" | null>(null);
 
   async function getCurrentPosition() {
     if (!navigator.geolocation) {
-      throw new Error("Akses lokasi tidak didukung di browser ini.");
+      throw new Error("Location access is not supported in this browser.");
     }
 
     return new Promise<GeolocationPosition>((resolve, reject) => {
@@ -84,12 +84,12 @@ export function QrLoginScanner({
     if (loading) return;
 
     if (!navigator.mediaDevices?.getUserMedia) {
-      setMessage("Akses kamera tidak didukung di browser ini.");
+      setMessage("Camera access is not supported in this browser.");
       setStatusType("error");
       return;
     }
 
-    setMessage("Membuka kamera...");
+    setMessage("Opening camera...");
     setStatusType("info");
 
     try {
@@ -111,14 +111,14 @@ export function QrLoginScanner({
           if (!qrUid) return;
 
           setLoading(true);
-          setMessage("QR terdeteksi. Mengambil lokasi...");
+          setMessage("QR detected. Getting location...");
           setStatusType("info");
           await stopScanner();
 
           try {
             const position = await getCurrentPosition();
 
-            setMessage("Lokasi didapat. Memproses presensi...");
+            setMessage("Location obtained. Processing attendance...");
 
             const res = (await loginAndAttendWithQrAction(qrUid, {
               action,
@@ -144,7 +144,7 @@ export function QrLoginScanner({
                 setMessage(res.message);
                 setStatusType("success");
               } else {
-                setMessage("Berhasil. Mengalihkan...");
+                setMessage("Success. Redirecting...");
                 setStatusType("success");
               }
               
@@ -153,7 +153,7 @@ export function QrLoginScanner({
                 window.location.href = res.redirectUrl || "/";
               }, delay);
             } else {
-              setMessage(res.error || "Gagal memproses QR.");
+              setMessage(res.error || "Failed to process QR.");
               setStatusType("error");
               setLoading(false);
             }
@@ -161,7 +161,7 @@ export function QrLoginScanner({
             setMessage(
               error instanceof Error
                 ? error.message
-                : "Terjadi kesalahan sistem saat memproses."
+                : "System error while processing."
             );
             setStatusType("error");
             setLoading(false);
@@ -173,11 +173,11 @@ export function QrLoginScanner({
       );
 
       setIsScanning(true);
-      setMessage("Arahkan kartu QR ke kamera.");
+      setMessage("Point your QR Card at the camera.");
       setStatusType("info");
     } catch {
       await stopScanner();
-      setMessage("Gagal mengaktifkan kamera. Pastikan izin kamera diberikan.");
+      setMessage("Failed to activate camera. Please ensure camera permissions are granted.");
       setStatusType("error");
     }
   }
@@ -195,7 +195,6 @@ export function QrLoginScanner({
     return () => {
       void stopScanner();
     };
-    // Kamera auto-start hanya mengikuti perubahan mode halaman.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoStart, disabled]);
 
@@ -210,7 +209,7 @@ export function QrLoginScanner({
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-zinc-200/60 mt-1">
-            <span className="text-[11px] text-zinc-400 font-medium">Status hari ini:</span>
+            <span className="text-[11px] text-zinc-400 font-medium">Today's status:</span>
             <span className={`text-[11px] font-semibold px-2 py-0.5 rounded border ${currentUser.statusColor}`}>
               {currentUser.statusText}
             </span>
@@ -225,12 +224,12 @@ export function QrLoginScanner({
         />
         {!isScanning && !loading ? (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-zinc-400">
-            Kamera belum aktif
+            Camera not active
           </div>
         ) : null}
         {loading ? (
           <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/80 text-sm text-zinc-100">
-            Memproses...
+            Processing...
           </div>
         ) : null}
       </div>
@@ -245,7 +244,7 @@ export function QrLoginScanner({
             className="w-full"
           >
             <Camera aria-hidden="true" className="mr-1.5 size-4" />
-            Mulai Pindai QR
+            Start QR Scanning
           </Button>
         </div>
       ) : null}
