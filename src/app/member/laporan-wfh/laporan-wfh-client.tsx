@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Home, Calendar, Clock, BookOpen, CheckCircle, AlertCircle, Edit2 } from "lucide-react";
-import { updateOwnJournalAction } from "./actions";
+import { Home, Calendar, Clock, BookOpen, CheckCircle, AlertCircle, Edit2, Trash2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { updateOwnJournalAction, createOwnJournalAction, deleteOwnJournalAction } from "./actions";
 import { toast } from "sonner";
 
 type SerializedRecord = {
@@ -54,6 +55,64 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
   const [planVal, setPlanVal] = useState("");
   const [reportVal, setReportVal] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Create Modal State
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createDate, setCreateDate] = useState(() => {
+    const today = new Date();
+    return today.toLocaleDateString("en-CA"); // YYYY-MM-DD format in local time
+  });
+  const [createMode, setCreateMode] = useState<"WFO" | "WFH">("WFO");
+  const [createPlan, setCreatePlan] = useState("");
+  const [createReport, setCreateReport] = useState("");
+
+  const handleCreateSubmit = async () => {
+    if (!createDate) {
+      toast.error("Tanggal wajib dipilih.");
+      return;
+    }
+    if (!createReport.trim()) {
+      toast.error("Laporan / Jurnal wajib diisi.");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const res = await createOwnJournalAction(createDate, createMode, createPlan, createReport);
+      if (res.success) {
+        toast.success(res.message);
+        setCreateOpen(false);
+        setCreatePlan("");
+        setCreateReport("");
+        // Reload to update RSC query
+        window.location.reload();
+      } else {
+        toast.error("Gagal membuat jurnal.");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Terjadi kesalahan.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (recordId: string) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus jurnal untuk tanggal ini? Rencana dan hasil kerja akan dikosongkan.")) return;
+    try {
+      const res = await deleteOwnJournalAction(recordId);
+      if (res.success) {
+        toast.success(res.message);
+        setRecords((prev) =>
+          prev.map((r) =>
+            r.id === recordId ? { ...r, wfhPlan: null, wfhReport: null } : r
+          )
+        );
+      } else {
+        toast.error("Gagal menghapus jurnal.");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Terjadi kesalahan.");
+    }
+  };
 
   const openEditModal = (record: SerializedRecord) => {
     setEditingRecord(record);
@@ -106,22 +165,30 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <form method="GET" className="flex flex-wrap items-end gap-3">
-            <div className="grid gap-1.5">
-              <select
-                name="month"
-                defaultValue={monthKey}
-                className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 px-3 text-sm focus:outline-none"
-              >
-                {monthOptions.map((opt) => (
-                  <option key={opt.key} value={opt.key}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <Button type="submit">Tampilkan</Button>
-          </form>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <form method="GET" className="flex flex-wrap items-end gap-3">
+              <div className="grid gap-1.5">
+                <select
+                  name="month"
+                  defaultValue={monthKey}
+                  className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 px-3 text-sm focus:outline-none"
+                >
+                  {monthOptions.map((opt) => (
+                    <option key={opt.key} value={opt.key}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <Button type="submit">Tampilkan</Button>
+            </form>
+            <Button
+              onClick={() => setCreateOpen(true)}
+              className="bg-blue-700 hover:bg-blue-800 text-white dark:bg-blue-600 dark:hover:bg-blue-700"
+            >
+              + Buat Jurnal Baru
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -186,6 +253,16 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
                           title="Tulis/Edit Jurnal"
                         >
                           <Edit2 className="size-3.5 text-blue-600 dark:text-blue-400" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(record.id)}
+                          className="size-8 rounded border border-zinc-200 dark:border-zinc-800 hover:bg-red-50 hover:border-red-200 dark:hover:bg-red-950/20 disabled:opacity-30 disabled:hover:bg-transparent"
+                          title="Hapus Jurnal"
+                          disabled={!record.wfhPlan && !record.wfhReport}
+                        >
+                          <Trash2 className="size-3.5 text-red-600 dark:text-red-400" />
                         </Button>
                       </div>
                     </div>
@@ -286,6 +363,76 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
             </Button>
             <Button onClick={handleSave} disabled={isSubmitting} className="bg-blue-700 hover:bg-blue-800 text-white dark:bg-blue-600 dark:hover:bg-blue-700">
               {isSubmitting ? "Menyimpan..." : "Simpan Perubahan"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Modal Dialog */}
+      <Dialog open={createOpen} onOpenChange={(open) => !open && setCreateOpen(false)}>
+        <DialogContent className="sm:max-w-[500px] border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+          <DialogHeader>
+            <DialogTitle className="text-zinc-900 dark:text-zinc-50">Buat Jurnal Kerja Baru</DialogTitle>
+            <DialogDescription className="text-zinc-500 dark:text-zinc-400">
+              Buat jurnal kerja untuk hari kemarin atau hari tertentu jika Anda lupa mengisi.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="create-date" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Pilih Tanggal</Label>
+              <Input
+                id="create-date"
+                type="date"
+                value={createDate}
+                onChange={(e) => setCreateDate(e.target.value)}
+                className="border-zinc-200 dark:border-zinc-800 focus-visible:ring-blue-500"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="create-mode" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Mode Kerja</Label>
+              <select
+                id="create-mode"
+                value={createMode}
+                onChange={(e) => setCreateMode(e.target.value as "WFO" | "WFH")}
+                className="h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 px-3 text-sm focus:outline-none"
+              >
+                <option value="WFO">WFO (Work From Office)</option>
+                <option value="WFH">WFH (Work From Home)</option>
+              </select>
+            </div>
+            {createMode === "WFH" && (
+              <div className="space-y-2">
+                <Label htmlFor="create-plan" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Rencana Kerja (Pagi)</Label>
+                <Textarea
+                  id="create-plan"
+                  placeholder="Tulis rencana kerja pagi..."
+                  value={createPlan}
+                  onChange={(e) => setCreatePlan(e.target.value)}
+                  rows={3}
+                  className="resize-none border-zinc-200 dark:border-zinc-800 text-zinc-850 dark:text-zinc-200 focus-visible:ring-blue-500"
+                />
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="create-report" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                {createMode === "WFH" ? "Laporan Hasil Kerja (Sore)" : "Jurnal WFO / Hasil Kerja"}
+              </Label>
+              <Textarea
+                id="create-report"
+                placeholder={createMode === "WFH" ? "Tulis laporan hasil kerja sore..." : "Tulis jurnal kegiatan WFO..."}
+                value={createReport}
+                onChange={(e) => setCreateReport(e.target.value)}
+                rows={4}
+                className="resize-none border-zinc-200 dark:border-zinc-800 text-zinc-850 dark:text-zinc-200 focus-visible:ring-blue-500"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setCreateOpen(false)} disabled={isSubmitting} className="border-zinc-200 dark:border-zinc-800">
+              Batal
+            </Button>
+            <Button onClick={handleCreateSubmit} disabled={isSubmitting} className="bg-blue-700 hover:bg-blue-800 text-white dark:bg-blue-600 dark:hover:bg-blue-700">
+              {isSubmitting ? "Menyimpan..." : "Simpan Jurnal"}
             </Button>
           </DialogFooter>
         </DialogContent>
