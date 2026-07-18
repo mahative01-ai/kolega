@@ -1014,20 +1014,27 @@ export function RolesClient({
           
           {viewUser && (
             <div className="grid gap-5 py-2 text-sm">
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-4">
-                <div className="h-24 rounded-xl bg-[radial-gradient(circle_at_20%_20%,#22c55e,transparent_35%),linear-gradient(135deg,#0f766e,#84cc16_55%,#fef3c7)]" />
-                <div className="-mt-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                  <div className="flex items-end gap-4">
-                    <div className={`flex size-20 items-center justify-center rounded-full border-2 border-zinc-950 text-3xl ${getMood(viewUser.currentMood).bgColor} ${getMood(viewUser.currentMood).borderColor}`}>
+              {/* 👤 User Profile Header Card */}
+              <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/60 p-5 shadow-lg">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-4">
+                    {/* Mood Avatar */}
+                    <div className={`flex size-16 shrink-0 items-center justify-center rounded-2xl border-2 shadow-inner text-3xl ${getMood(viewUser.currentMood).bgColor} ${getMood(viewUser.currentMood).borderColor}`}>
                       {getMood(viewUser.currentMood).emoji}
                     </div>
-                    <div className="pb-1">
-                      <h3 className="text-xl font-semibold">{viewUser.name}</h3>
-                      <div className="mt-1 flex flex-wrap gap-3 text-xs text-zinc-400">
-                        <span className="inline-flex items-center gap-1"><Mail className="size-3.5" /> {viewUser.email}</span>
-                        <span className="inline-flex items-center gap-1"><Cake className="size-3.5" /> {formatDate(viewUser.birthDate)}</span>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2.5">
+                        <h3 className="text-xl font-bold text-zinc-50">{viewUser.name}</h3>
+                        <Badge variant="outline" className="border-zinc-800 bg-zinc-950 text-[11px] text-zinc-400 font-normal">
+                          Mood: {getMood(viewUser.currentMood).label}
+                        </Badge>
                       </div>
-                      <div className="mt-2 flex flex-wrap gap-2">
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-400">
+                        <span className="inline-flex items-center gap-1"><Mail className="size-3.5 text-zinc-500" /> {viewUser.email}</span>
+                        <span className="inline-flex items-center gap-1"><Cake className="size-3.5 text-zinc-500" /> {formatDate(viewUser.birthDate)}</span>
+                        <span className="inline-flex items-center gap-1"><Building2 className="size-3.5 text-zinc-500" /> {viewUser.defaultStudio?.name || "No Studio"}</span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
                         <Badge className="border-blue-500/30 bg-blue-500/15 text-blue-300">{ROLE_LABEL[viewUser.role]}</Badge>
                         <Badge className="border-sky-500/30 bg-sky-500/15 text-sky-300">{viewUser.memberStatus}</Badge>
                         <Badge className="border-emerald-500/30 bg-emerald-500/15 text-emerald-300">{accountStatusLabel[viewUser.accountStatus]}</Badge>
@@ -1036,10 +1043,6 @@ export function RolesClient({
                         </Badge>
                       </div>
                     </div>
-                  </div>
-                  <div className="grid gap-1 rounded-xl border border-zinc-800 bg-zinc-950/70 px-4 py-3 text-xs text-zinc-400">
-                    <span>@{viewUser.username || "not_set"}</span>
-                    <span>{viewUser.defaultStudio?.name || "No default studio"}</span>
                   </div>
                 </div>
               </div>
@@ -1056,12 +1059,14 @@ export function RolesClient({
                       </h4>
                       <Badge variant="outline" className="border-blue-500/30 bg-blue-500/10 text-blue-300 text-[11px] px-2 py-0.5">
                         {detailScope === "MONTH" ? (
-                          detailMonth ? new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric" }).format(new Date(Number(detailMonth.split("-")[0]), Number(detailMonth.split("-")[1]) - 1, 1)) : "Per Bulan"
-                        ) : "Semua Waktu"}
+                          detailMonth ? `Akumulasi ${new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric" }).format(new Date(Number(detailMonth.split("-")[0]), Number(detailMonth.split("-")[1]) - 1, 1))}` : "Akumulasi Bulanan"
+                        ) : "Akumulasi Semua Waktu (Awal - Terbaru)"}
                       </Badge>
                     </div>
                     <p className="text-xs text-zinc-400 mt-0.5">
-                      Akumulasi statistik kehadiran dan status presensi staf per bulan.
+                      {detailScope === "MONTH"
+                        ? "Akumulasi statistik kehadiran dan status presensi staf per bulan."
+                        : "Akumulasi statistik kehadiran keseluruhan dari presensi awal hingga saat ini."}
                     </p>
                   </div>
 
@@ -1245,28 +1250,12 @@ export function RolesClient({
                 </div>
               )}
 
+              {/* Attendance History Table Section */}
               <div className="space-y-3 border-t border-zinc-800 pt-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Attendance History</p>
-                    <p className="text-xs text-zinc-500">Latest attendance records for the selected scope.</p>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <div className="flex rounded-lg border border-zinc-800 bg-zinc-900 p-0.5">
-                      <Button type="button" size="sm" variant={detailScope === "MONTH" ? "secondary" : "ghost"} onClick={() => setDetailScope("MONTH")} className="h-7 text-xs">
-                        Month
-                      </Button>
-                      <Button type="button" size="sm" variant={detailScope === "ALL" ? "secondary" : "ghost"} onClick={() => setDetailScope("ALL")} className="h-7 text-xs">
-                        All
-                      </Button>
-                    </div>
-                    {detailScope === "MONTH" && (
-                      <Input type="month" value={detailMonth} onChange={(event) => setDetailMonth(event.target.value)} className="h-8 w-36 border-zinc-800 bg-zinc-950 text-xs text-zinc-100" />
-                    )}
-                    <Button type="button" size="sm" variant="outline" className="h-8 border-zinc-800 bg-zinc-950 text-xs text-zinc-100 hover:bg-zinc-900">
-                      <Plus className="size-3.5" />
-                      Add Missing Day
-                    </Button>
+                    <p className="text-xs text-zinc-500">Daftar rekaman presensi staf untuk filter yang dipilih.</p>
                   </div>
                 </div>
 
@@ -1310,11 +1299,17 @@ export function RolesClient({
               </div>
             </div>
           )}
-          <DialogFooter className="mt-4">
-            <Button type="button" variant="secondary" onClick={() => setViewOpen(false)}>
-              Close
+          
+          <div className="mt-4 flex items-center justify-end border-t border-zinc-800/80 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setViewOpen(false)}
+              className="h-9 px-5 border-zinc-800 bg-zinc-900 text-xs font-semibold text-zinc-300 hover:bg-zinc-800 hover:text-zinc-50 rounded-xl transition-colors"
+            >
+              Tutup Details
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
