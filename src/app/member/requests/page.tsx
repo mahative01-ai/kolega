@@ -30,10 +30,10 @@ import { RequestFormClient } from "./request-form-client";
 export const dynamic = "force-dynamic";
 
 const requestTypeLabel: Record<string, string> = {
-  PERMISSION: "Izin Pribadi",
-  SICK: "Sakit Resmi",
-  DISPENSATION: "Dispensasi",
-  LEAVE: "Ganti Hari",
+  PERMISSION: "Personal Leave",
+  SICK: "Official Sick Leave",
+  DISPENSATION: "Dispensation",
+  LEAVE: "Replacement Leave",
   WFH: "WFH",
 };
 
@@ -46,10 +46,10 @@ const requestTypeColor: Record<string, string> = {
 };
 
 const requestStatusLabel: Record<string, string> = {
-  PENDING: "Menunggu",
-  APPROVED: "Disetujui",
-  REJECTED: "Ditolak",
-  CANCELLED: "Dibatalkan",
+  PENDING: "Pending",
+  APPROVED: "Approved",
+  REJECTED: "Rejected",
+  CANCELLED: "Cancelled",
 };
 
 const requestStatusColor: Record<string, string> = {
@@ -60,7 +60,7 @@ const requestStatusColor: Record<string, string> = {
 };
 
 function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("id-ID", {
+  return new Intl.DateTimeFormat("en-US", {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -69,28 +69,28 @@ function formatDate(date: Date) {
 }
 
 const successMessages: Record<string, string> = {
-  created: "Pengajuan izin berhasil diajukan dan sedang menunggu persetujuan.",
-  cancelled: "Pengajuan izin berhasil dibatalkan.",
+  created: "Your request was successfully submitted and is pending approval.",
+  cancelled: "Request successfully cancelled.",
 };
 
 const errorMessages: Record<string, string> = {
-  "invalid-type": "Tipe pengajuan tidak valid.",
-  "missing-fields": "Mohon isi semua bidang yang wajib diisi.",
-  "invalid-dates": "Format tanggal tidak valid.",
-  "date-range": "Tanggal selesai tidak boleh sebelum tanggal mulai.",
-  "file-size": "Ukuran file lampiran terlalu besar (maksimal 2MB).",
-  "upload-failed": "Gagal memproses lampiran berkas.",
-  "leave-notice": "Pengajuan izin dan ganti hari hanya dapat diajukan minimal H-1.",
-  "replacement-date": "Tanggal ganti hari harus setelah rentang izin.",
-  "sick-notice": "Pengajuan sakit hari ini harus dilakukan maksimal 1 jam sebelum jam masuk (sebelum 07:00 pagi).",
-  "attachment-required": "Dispensasi wajib menyertakan lampiran resmi.",
-  "past-date": "Tanggal mulai pengajuan tidak boleh berada di masa lampau.",
-  "intern-wfh": "Intern tidak diperbolehkan mengajukan WFH. Hanya Anggota Team dan Admin yang dapat mengajukan WFH.",
-  "intern-leave": "Intern tidak memiliki akses pengajuan ganti hari. Gunakan izin atau sakit sesuai kebutuhan.",
-  "overlapping-request": "Anda sudah memiliki pengajuan aktif (Menunggu/Disetujui) pada rentang tanggal tersebut.",
-  "already-processed": "Pengajuan tidak dapat dibatalkan karena sudah ditinjau oleh Admin.",
-  "not-found": "Pengajuan tidak ditemukan.",
-  unauthorized: "Anda tidak memiliki akses untuk membatalkan pengajuan ini.",
+  "invalid-type": "Invalid request type.",
+  "missing-fields": "Please fill in all required fields.",
+  "invalid-dates": "Invalid date format.",
+  "date-range": "End date cannot be before start date.",
+  "file-size": "Attachment file size is too large (maximum 2MB).",
+  "upload-failed": "Failed to process the file attachment.",
+  "leave-notice": "Permits and replacement leaves must be requested at least 1 day in advance.",
+  "replacement-date": "Replacement date must be after the leave date range.",
+  "sick-notice": "Sick leave requests for today must be submitted at least 1 hour before start time (before 07:00 AM).",
+  "attachment-required": "An official attachment is required for dispensation.",
+  "past-date": "The request start date cannot be in the past.",
+  "intern-wfh": "Interns are not allowed to request WFH. Only Team members and Admins can request WFH.",
+  "intern-leave": "Interns are not allowed to request replacement leaves. Use personal or sick leave as needed.",
+  "overlapping-request": "You already have an active request (Pending/Approved) for the selected date range.",
+  "already-processed": "The request cannot be cancelled because it has already been reviewed by an Admin.",
+  "not-found": "Request not found.",
+  unauthorized: "You do not have authorization to cancel this request.",
 };
 
 export default async function MemberRequestsPage({
@@ -128,9 +128,9 @@ export default async function MemberRequestsPage({
     <DashboardShell
       user={currentUser}
       currentPath="/member/requests"
-      badge="Formulir Member"
-      title="Pengajuan Izin / Sakit / Dispensasi / Ganti Hari / WFH"
-      description="Ajukan izin pribadi, sakit resmi, dispensasi, ganti hari, atau WFH di halaman ini."
+      badge="Member Forms"
+      title="Submit Leave, Sick, Dispensation, Replacement, or WFH Request"
+      description="Submit personal leave, official sick leave, dispensation, replacement leave, or WFH requests here."
     >
       {params.success && successMessages[params.success] ? (
         <div className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
@@ -149,10 +149,10 @@ export default async function MemberRequestsPage({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <PlusCircle className="size-5 text-zinc-700" />
-              Buat Pengajuan
+              Create Request
             </CardTitle>
             <CardDescription>
-              Isi data pengajuan dengan lengkap. Status pengajuan default adalah MENUNGGU.
+              Fill in the request details. The default status is PENDING.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -164,24 +164,24 @@ export default async function MemberRequestsPage({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="size-5 text-zinc-700" />
-              Riwayat Pengajuan
+              Request History
             </CardTitle>
             <CardDescription>
-              Daftar izin, sakit, dispensasi, ganti hari, dan WFH yang pernah Anda ajukan beserta status terkininya.
+              List of submitted requests and their current review status.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Tipe</TableHead>
-                  <TableHead>Mulai</TableHead>
-                  <TableHead>Selesai</TableHead>
-                  <TableHead>Alasan / Catatan</TableHead>
-                  <TableHead>Lampiran</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Start</TableHead>
+                  <TableHead>End</TableHead>
+                  <TableHead>Reason / Note</TableHead>
+                  <TableHead>Attachment</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Reviewer</TableHead>
-                  <TableHead className="text-right">Aksi</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -191,7 +191,7 @@ export default async function MemberRequestsPage({
                       colSpan={8}
                       className="h-24 text-center text-sm text-zinc-500"
                     >
-                      Belum ada riwayat pengajuan perizinan.
+                      No requests submitted yet.
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -219,7 +219,7 @@ export default async function MemberRequestsPage({
                             className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline"
                           >
                             <Paperclip className="size-3" />
-                            Lihat File
+                            View File
                           </a>
                         ) : (
                           <span className="text-xs text-zinc-400">-</span>
@@ -233,7 +233,7 @@ export default async function MemberRequestsPage({
                           {requestStatusLabel[req.status] ?? req.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-zinc-600">
+                      <TableCell className="text-zinc-650">
                         {req.reviewer?.name ?? <span className="text-zinc-400">-</span>}
                       </TableCell>
                       <TableCell className="text-right">
@@ -242,7 +242,7 @@ export default async function MemberRequestsPage({
                             <input type="hidden" name="requestId" value={req.id} />
                             <Button type="submit" size="sm" variant="ghost" className="text-red-650 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 h-8 px-2">
                               <Trash2 className="size-4 mr-1" />
-                              Batal
+                              Cancel
                             </Button>
                           </form>
                         ) : (

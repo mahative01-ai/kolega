@@ -39,7 +39,7 @@ export function ScheduleFilterClient({ users, initialUserId, initialMonth, studi
     <div className="grid gap-3 md:grid-cols-2">
       <div className="flex flex-col gap-2">
         <label htmlFor="month-select" className="text-sm font-medium">
-          Bulan
+          Month
         </label>
         <Input
           id="month-select"
@@ -57,8 +57,8 @@ export function ScheduleFilterClient({ users, initialUserId, initialMonth, studi
           options={options}
           value={initialUserId}
           onChange={(val) => updateQuery(initialMonth, val)}
-          placeholder="Cari user..."
-          searchPlaceholder="Cari nama user..."
+          placeholder="Search user..."
+          searchPlaceholder="Search user name..."
         />
       </div>
     </div>

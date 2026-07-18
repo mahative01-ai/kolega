@@ -51,16 +51,16 @@ import { dedupeCalendarEvents, isApiHolidayCoveredByDbEvent } from "@/lib/calend
 export const dynamic = "force-dynamic";
 
 const statusLabel: Record<string, string> = {
-  PRESENT: "Hadir",
-  ON_TIME: "Tepat Waktu",
-  LATE: "Terlambat",
+  PRESENT: "Present",
+  ON_TIME: "On Time",
+  LATE: "Late",
   WFH: "WFH",
-  PERMISSION: "Izin",
-  SICK: "Sakit",
-  LEAVE: "Ganti Hari",
-  ALPHA: "Alpha",
-  HOLIDAY: "Libur",
-  OFF_DAY: "Libur",
+  PERMISSION: "Permission",
+  SICK: "Sick Leave",
+  LEAVE: "Replacement Leave",
+  ALPHA: "Absent",
+  HOLIDAY: "Holiday",
+  OFF_DAY: "Off Day",
 };
 
 const statusColor: Record<string, string> = {

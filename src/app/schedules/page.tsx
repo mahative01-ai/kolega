@@ -265,12 +265,12 @@ export default async function WorkSchedulesPage({
     <DashboardShell
       user={currentUser}
       currentPath="/schedules"
-      badge={canManage ? "Jadwal Bulanan" : "View Only"}
-      title="Jadwal WFO/WFH"
+      badge={canManage ? "Monthly Schedule" : "View Only"}
+      title="WFO/WFH Schedule"
       description={
         canManage
-          ? "Default jadwal adalah WFO. Super Admin dapat mengubah tanggal tertentu menjadi WFH per member."
-          : `Admin hanya melihat jadwal user aktif di studio ${currentUser.defaultStudio?.name ?? "yang sama"}.`
+          ? "The default schedule is WFO. Super Admins can set specific dates to WFH for each member."
+          : `Admins can only view schedules of active users in their assigned studio.`
       }
     >
       <div className="space-y-6">
@@ -297,7 +297,7 @@ export default async function WorkSchedulesPage({
                   : "border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
               }`}
             >
-              Semua
+              All
             </Link>
           </div>
         )}
@@ -306,12 +306,12 @@ export default async function WorkSchedulesPage({
           <CardHeader className="pb-2">
             <CardDescription className="flex items-center gap-2">
               <UsersRound className="size-4 text-emerald-700" />
-              User Terlihat
+              Visible Users
             </CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold text-emerald-700 dark:text-emerald-400">
-              {data.users.length.toLocaleString("id-ID")}
+              {data.users.length.toLocaleString("en-US")}
             </p>
           </CardContent>
         </Card>
@@ -324,7 +324,7 @@ export default async function WorkSchedulesPage({
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold text-zinc-800 dark:text-zinc-100">
-              {wfoCount.toLocaleString("id-ID")}
+              {wfoCount.toLocaleString("en-US")}
             </p>
           </CardContent>
         </Card>
@@ -332,12 +332,12 @@ export default async function WorkSchedulesPage({
           <CardHeader className="pb-2">
             <CardDescription className="flex items-center gap-2">
               <Home className="size-4 text-blue-700" />
-              WFH Bulan Ini
+              WFH This Month
             </CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold text-blue-700 dark:text-blue-400">
-              {data.wfhCount.toLocaleString("id-ID")}
+              {data.wfhCount.toLocaleString("en-US")}
             </p>
           </CardContent>
         </Card>
@@ -345,9 +345,9 @@ export default async function WorkSchedulesPage({
 
       <Card>
         <CardHeader>
-          <CardTitle>Filter Kalender</CardTitle>
+          <CardTitle>Calendar Filter</CardTitle>
           <CardDescription>
-            Pilih bulan dan user untuk melihat kalender kerja personal.
+            Select a month and user to view their personal work calendar.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -365,12 +365,12 @@ export default async function WorkSchedulesPage({
           <CardTitle>{formatMonthLabel(month.year, month.monthIndex)}</CardTitle>
           <CardDescription>
             {data.selectedUser
-              ? `${data.selectedUser.name} - ${data.selectedUser.defaultStudio?.name ?? "Tanpa default studio"}${
+              ? `${data.selectedUser.name} - ${data.selectedUser.defaultStudio?.name ?? "No default studio"}${
                   data.selectedUser.placements[0]?.studio.name
                     ? `, placement ${data.selectedUser.placements[0].studio.name}`
                     : ""
                 }`
-              : "Belum ada user aktif untuk ditampilkan."}
+              : "No active users to display."}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -424,7 +424,7 @@ export default async function WorkSchedulesPage({
                           variant="secondary"
                           className="bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-300 border-red-200 dark:border-red-900 font-semibold"
                         >
-                          Libur
+                          Holiday
                         </Badge>
                       ) : (
                         <Badge
@@ -442,11 +442,11 @@ export default async function WorkSchedulesPage({
 
                     <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
                       {isRealHoliday ? (
-                        "Hari Libur"
+                        "Holiday"
                       ) : isWfh ? (
-                        schedule?.note ?? "WFH dari jadwal bulanan"
+                        schedule?.note ?? "WFH from monthly schedule"
                       ) : hasReplacement ? (
-                        "Hari Pengganti (WFO)"
+                        "Replacement Day (WFO)"
                       ) : (
                         "Default WFO"
                       )}

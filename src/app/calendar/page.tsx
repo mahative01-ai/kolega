@@ -178,9 +178,9 @@ export default async function CalendarPage({
     <DashboardShell
       user={user}
       currentPath="/calendar"
-      badge="Kalender"
-      title="Kalender Studio"
-      description="Lihat dan kelola libur nasional, cuti bersama, hari kerja pengganti, dan kegiatan studio."
+      badge="Calendar"
+      title="Studio Calendar"
+      description="View and manage national holidays, joint leaves, replacement workdays, and studio events."
     >
       <div className="w-full space-y-6">
         {isSuperAdmin && studios.length > 0 && (
@@ -206,7 +206,7 @@ export default async function CalendarPage({
                   : "border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
               }`}
             >
-              Semua
+              All
             </Link>
           </div>
         )}

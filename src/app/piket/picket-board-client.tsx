@@ -31,13 +31,13 @@ type Props = {
 };
 
 const DAYS = [
-  { key: "SENIN", label: "Senin" },
-  { key: "SELASA", label: "Selasa" },
-  { key: "RABU", label: "Rabu" },
-  { key: "KAMIS", label: "Kamis" },
-  { key: "JUMAT", label: "Jumat" },
-  { key: "SABTU", label: "Sabtu" },
-  { key: "MINGGU", label: "Minggu" },
+  { key: "SENIN", label: "Monday" },
+  { key: "SELASA", label: "Tuesday" },
+  { key: "RABU", label: "Wednesday" },
+  { key: "KAMIS", label: "Thursday" },
+  { key: "JUMAT", label: "Friday" },
+  { key: "SABTU", label: "Saturday" },
+  { key: "MINGGU", label: "Sunday" },
 ];
 
 export function PicketBoardClient({ members, isManager }: Props) {
@@ -88,12 +88,12 @@ export function PicketBoardClient({ members, isManager }: Props) {
       try {
         const res = await updateUserPicketDayAction(editingMember.id, newValue);
         if (res.success) {
-          toast.success(`Jadwal piket untuk ${editingMember.name} berhasil diperbarui.`);
+          toast.success(`Picket schedule for ${editingMember.name} updated successfully.`);
           setEditOpen(false);
           setEditingMember(null);
         }
       } catch (err: unknown) {
-        toast.error(err instanceof Error ? err.message : "Gagal memperbarui jadwal piket.");
+        toast.error(err instanceof Error ? err.message : "Failed to update picket schedule.");
       }
     });
   };
@@ -110,7 +110,7 @@ export function PicketBoardClient({ members, isManager }: Props) {
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-sm text-zinc-900 dark:text-zinc-50">{day.label}</span>
                   <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                    {list.length} Orang
+                    {list.length} {list.length === 1 ? "Person" : "People"}
                   </Badge>
                 </div>
               </CardHeader>
@@ -118,7 +118,7 @@ export function PicketBoardClient({ members, isManager }: Props) {
                 {list.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-8 text-center text-zinc-400 dark:text-zinc-600">
                     <HelpCircle className="size-5 mb-1 opacity-50" />
-                    <span className="text-[10px]">Belum ada jadwal</span>
+                    <span className="text-[10px]">No schedule assigned</span>
                   </div>
                 ) : (
                   list.map((m) => (
@@ -128,7 +128,7 @@ export function PicketBoardClient({ members, isManager }: Props) {
                       className={`group rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-2 text-xs transition-all ${
                         isManager ? "cursor-pointer hover:border-zinc-400 dark:hover:border-zinc-700 hover:shadow-sm" : ""
                       }`}
-                      title={isManager ? "Klik untuk ubah hari piket" : undefined}
+                      title={isManager ? "Click to modify picket days" : undefined}
                     >
                       <div className="flex items-center justify-between gap-1">
                         <div className="flex items-center gap-1.5 min-w-0">
@@ -154,9 +154,9 @@ export function PicketBoardClient({ members, isManager }: Props) {
         <CardHeader className="pb-3 flex-row items-center gap-2">
           <CalendarRange className="size-5 text-zinc-500" />
           <div>
-            <CardTitle className="text-sm">Staf Belum Terjadwal</CardTitle>
+            <CardTitle className="text-sm">Unscheduled Staff</CardTitle>
             <CardDescription className="text-xs">
-              Daftar staf aktif yang belum ditugaskan ke jadwal piket mingguan.
+              List of active staff members who are not assigned to any weekly picket days.
             </CardDescription>
           </div>
         </CardHeader>
@@ -164,7 +164,7 @@ export function PicketBoardClient({ members, isManager }: Props) {
           {unscheduled.length === 0 ? (
             <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900/50 rounded-lg p-3 border border-zinc-150 dark:border-zinc-800/80">
               <UserCheck className="size-4 text-emerald-600" />
-              <span>Semua staf aktif telah dijadwalkan piket rutin.</span>
+              <span>All active staff have been scheduled for routine picket duties.</span>
             </div>
           ) : (
             <div className="flex flex-wrap gap-2">
@@ -175,7 +175,7 @@ export function PicketBoardClient({ members, isManager }: Props) {
                   className={`inline-flex items-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-2.5 py-1.5 text-xs transition-colors ${
                     isManager ? "cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900/40" : ""
                   }`}
-                  title={isManager ? "Klik untuk atur hari piket" : undefined}
+                  title={isManager ? "Click to assign picket days" : undefined}
                 >
                   <span className="text-sm select-none" title={getMood(m.currentMood).label}>
                     {getMood(m.currentMood).emoji}
@@ -193,7 +193,7 @@ export function PicketBoardClient({ members, isManager }: Props) {
                         handleOpenEdit(m);
                       }}
                       className="h-5 w-5 rounded bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 ml-1"
-                      title="Atur Hari Piket"
+                      title="Assign Picket Day"
                     >
                       +
                     </Button>
@@ -209,15 +209,15 @@ export function PicketBoardClient({ members, isManager }: Props) {
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Atur Hari Piket Staf</DialogTitle>
+            <DialogTitle>Manage Staff Picket Days</DialogTitle>
             <DialogDescription>
-              Tentukan hari piket untuk <b>{editingMember?.name}</b> (Studio {editingMember?.defaultStudio?.name ?? "-"}).
+              Set picket days for <b>{editingMember?.name}</b> (Studio {editingMember?.defaultStudio?.name ?? "-"}).
             </DialogDescription>
           </DialogHeader>
 
           <div className="py-4 space-y-3">
             <p className="text-xs text-zinc-500 mb-1">
-              Pilih hari piket secara fleksibel sesuai kebutuhan studio.
+              Select picket days as required by the studio.
             </p>
             <div className="grid grid-cols-2 gap-3">
               {DAYS.map((day) => (
@@ -239,14 +239,14 @@ export function PicketBoardClient({ members, isManager }: Props) {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditOpen(false)}>
-              Batal
+              Cancel
             </Button>
             <Button 
               onClick={handleSavePicketDays} 
               disabled={isPending}
               className="bg-blue-700 hover:bg-blue-800 text-white"
             >
-              Simpan Jadwal
+              Save Schedule
             </Button>
           </DialogFooter>
         </DialogContent>

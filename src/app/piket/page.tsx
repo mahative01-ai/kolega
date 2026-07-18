@@ -62,12 +62,12 @@ export default async function PicketPage({
     <DashboardShell
       user={user}
       currentPath="/piket"
-      badge="Piket"
-      title="Papan Piket Studio"
-      description="Lihat dan kelola pembagian tugas piket rutin mingguan."
+      badge="Picket"
+      title="Studio Picket Board"
+      description="View and manage weekly routine picket duty schedules."
     >
       <div className="space-y-6">
-        {/* Tabs Studio (Hanya untuk Super Admin) */}
+        {/* Tabs Studio (Only for Super Admin) */}
         {isSuperAdmin && studios.length > 0 && (
           <div className="flex border-b border-zinc-200 dark:border-zinc-800">
             {studios.map((s) => (
@@ -90,7 +90,7 @@ export default async function PicketPage({
         <div>
           <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50 mb-3 flex items-center gap-2">
             <CalendarRange className="size-5 text-blue-700 dark:text-blue-400" />
-            Jadwal Piket Rutin Mingguan
+            Weekly Routine Picket Schedule
           </h2>
           <PicketBoardClient members={members} isManager={isManager} />
         </div>

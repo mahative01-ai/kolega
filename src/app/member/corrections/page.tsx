@@ -30,16 +30,16 @@ import { CorrectionFormClient } from "./correction-form-client";
 export const dynamic = "force-dynamic";
 
 const statusLabel: Record<string, string> = {
-  PRESENT: "Hadir",
-  ON_TIME: "Tepat Waktu",
-  LATE: "Terlambat",
+  PRESENT: "Present",
+  ON_TIME: "On Time",
+  LATE: "Late",
   WFH: "WFH",
-  PERMISSION: "Izin",
-  SICK: "Sakit",
-  LEAVE: "Ganti Hari",
-  ALPHA: "Alpha",
-  HOLIDAY: "Libur",
-  OFF_DAY: "Libur",
+  PERMISSION: "Permission",
+  SICK: "Sick Leave",
+  LEAVE: "Replacement Leave",
+  ALPHA: "Absent",
+  HOLIDAY: "Holiday",
+  OFF_DAY: "Off Day",
 };
 
 const statusColor: Record<string, string> = {
@@ -56,18 +56,18 @@ const statusColor: Record<string, string> = {
 };
 
 const requestStatusLabel: Record<string, string> = {
-  PENDING: "Menunggu",
-  APPROVED: "Disetujui",
-  REJECTED: "Ditolak",
+  PENDING: "Pending",
+  APPROVED: "Approved",
+  REJECTED: "Rejected",
 };
-const requestStatusColor: Record<string, string> = {
+const requestStatusColor: Record<string, string> = {
   PENDING: "bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-900/50",
   APPROVED: "bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-900/50",
   REJECTED: "bg-red-100 dark:bg-red-950/50 text-red-800 dark:text-red-300 border-red-300 dark:border-red-900/50",
 };
 
 function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("id-ID", {
+  return new Intl.DateTimeFormat("en-US", {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -76,18 +76,18 @@ function formatDate(date: Date) {
 }
 
 const successMessages: Record<string, string> = {
-  created: "Pengajuan koreksi presensi berhasil diajukan dan sedang menunggu persetujuan.",
-  cancelled: "Pengajuan koreksi presensi berhasil dibatalkan.",
+  created: "Attendance correction requested successfully and is pending approval.",
+  cancelled: "Attendance correction request cancelled successfully.",
 };
 
 const errorMessages: Record<string, string> = {
-  "missing-fields": "Mohon lengkapi semua data formulir.",
-  "missing-checkout": "Koreksi lupa absensi untuk hari yang sudah lewat wajib menyertakan jam masuk dan jam pulang.",
-  "not-found": "Catatan presensi tidak ditemukan.",
-  unauthorized: "Anda tidak berwenang mengoreksi data ini.",
-  "already-pending": "Catatan presensi ini sedang dalam proses pengajuan koreksi pending.",
-  "out-of-range": "Pengajuan koreksi hanya dapat diajukan untuk kehadiran antara hari ini hingga 7 hari yang lalu.",
-  "already-processed": "Pengajuan tidak dapat dibatalkan karena sudah ditinjau oleh Admin.",
+  "missing-fields": "Please complete all form fields.",
+  "missing-checkout": "Correction for forgotten checkout for past days requires check-in and check-out times.",
+  "not-found": "Attendance record not found.",
+  unauthorized: "You are not authorized to correct this record.",
+  "already-pending": "This attendance record already has a pending correction request.",
+  "out-of-range": "Correction requests can only be submitted for dates between today and 7 days ago.",
+  "already-processed": "The request cannot be cancelled because it has already been reviewed by an Admin.",
 };
 
 export default async function MemberCorrectionsPage({
@@ -199,16 +199,16 @@ export default async function MemberCorrectionsPage({
     }));
   } catch (error) {
     console.error("Failed to load correction history", error);
-    loadErrors.push("Riwayat koreksi belum bisa dimuat.");
+    loadErrors.push("Failed to load correction history.");
   }
 
   return (
     <DashboardShell
       user={currentUser}
       currentPath="/member/corrections"
-      badge="Koreksi Presensi"
-      title="Pengajuan Koreksi Presensi Lampau"
-      description="Gunakan modul ini untuk memperbaiki status presensi lampau, misalnya lupa absen masuk/pulang."
+      badge="Attendance Correction"
+      title="Submit Past Attendance Correction"
+      description="Use this module to correct past attendance records, such as forgotten check-ins or check-outs."
     >
       {params.success && successMessages[params.success] ? (
         <div className="rounded-md border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/20 px-4 py-3 text-sm text-emerald-800 dark:text-emerald-400">
@@ -224,7 +224,7 @@ export default async function MemberCorrectionsPage({
 
       {loadErrors.length > 0 ? (
         <div className="rounded-md border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/20 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
-          {loadErrors.join(" ")} Silakan reload halaman atau coba lagi beberapa saat.
+          {loadErrors.join(" ")} Please reload the page or try again in a few moments.
         </div>
       ) : null}
 
@@ -233,10 +233,10 @@ export default async function MemberCorrectionsPage({
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
               <PlusCircle className="size-5 text-zinc-700 dark:text-zinc-300" />
-              Ajukan Koreksi
+              Submit Correction
             </CardTitle>
             <CardDescription>
-              Silakan pilih tanggal presensi yang ingin diperbaiki.
+              Select the attendance date you want to correct.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -253,23 +253,23 @@ export default async function MemberCorrectionsPage({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Archive className="size-5 text-zinc-700" />
-              Riwayat Koreksi
+              Correction History
             </CardTitle>
             <CardDescription>
-              Daftar perbaikan data kehadiran yang pernah diajukan.
+              List of submitted attendance correction requests.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Tanggal Presensi</TableHead>
-                  <TableHead>Status Lama</TableHead>
-                  <TableHead>Status Baru</TableHead>
-                  <TableHead>Alasan Member</TableHead>
-                  <TableHead>Status Pengajuan</TableHead>
-                  <TableHead>Pemeriksa (Reviewer)</TableHead>
-                  <TableHead className="text-right">Aksi</TableHead>
+                  <TableHead>Attendance Date</TableHead>
+                  <TableHead>Previous Status</TableHead>
+                  <TableHead>New Status</TableHead>
+                  <TableHead>Member Reason</TableHead>
+                  <TableHead>Request Status</TableHead>
+                  <TableHead>Reviewer</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -279,7 +279,7 @@ export default async function MemberCorrectionsPage({
                       colSpan={7}
                       className="h-24 text-center text-sm text-zinc-500"
                     >
-                      Belum ada riwayat pengajuan koreksi presensi.
+                      No attendance correction requests submitted yet.
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -319,7 +319,7 @@ export default async function MemberCorrectionsPage({
                           {requestStatusLabel[corr.status] ?? corr.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-zinc-600">
+                      <TableCell className="text-zinc-650">
                         {corr.approvedBy?.name ?? <span className="text-zinc-400">-</span>}
                       </TableCell>
                       <TableCell className="text-right">
@@ -328,7 +328,7 @@ export default async function MemberCorrectionsPage({
                             <input type="hidden" name="correctionId" value={corr.id} />
                             <Button type="submit" size="sm" variant="ghost" className="text-red-650 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 h-8 px-2">
                               <Trash2 className="size-4 mr-1" />
-                              Batal
+                              Cancel
                             </Button>
                           </form>
                         ) : (

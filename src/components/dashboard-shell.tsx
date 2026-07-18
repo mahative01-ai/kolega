@@ -48,7 +48,7 @@ const BREADCRUMB_MAP: Record<string, string> = {
   settings: "Settings",
   presensi: "Attendance",
   riwayat: "History",
-  "laporan-wfh": "Jurnal Kerja",
+  "laporan-wfh": "Work Journal",
 };
 
 export async function DashboardShell({

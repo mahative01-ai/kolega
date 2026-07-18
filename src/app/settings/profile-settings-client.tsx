@@ -38,7 +38,7 @@ export function ProfileSettingsClient({ initialUser }: Props) {
     const formData = new FormData(event.currentTarget);
     try {
       await updateProfileAction(formData);
-      toast.success("Profil Anda berhasil diperbarui!");
+      toast.success("Your profile was updated successfully!");
       // Clear password fields
       const form = event.target as HTMLFormElement;
       const newPwdInput = form.elements.namedItem("newPassword") as HTMLInputElement;
@@ -46,7 +46,7 @@ export function ProfileSettingsClient({ initialUser }: Props) {
       if (newPwdInput) newPwdInput.value = "";
       if (confirmPwdInput) confirmPwdInput.value = "";
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Gagal memperbarui profil.");
+      toast.error(error instanceof Error ? error.message : "Failed to update profile.");
     } finally {
       setLoading(false);
     }
@@ -59,9 +59,9 @@ export function ProfileSettingsClient({ initialUser }: Props) {
     const formData = new FormData(event.currentTarget);
     try {
       await updateMoodAction(formData);
-      toast.success("Mood harian berhasil diperbarui.");
+      toast.success("Daily mood updated successfully.");
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Gagal memperbarui mood.");
+      toast.error(error instanceof Error ? error.message : "Failed to update mood.");
     } finally {
       setMoodLoading(false);
     }
@@ -73,17 +73,17 @@ export function ProfileSettingsClient({ initialUser }: Props) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
           <User className="size-5 text-blue-700" />
-          Profil Saya
+          My Profile
         </CardTitle>
         <CardDescription>
-          Perbarui data diri Anda dan ubah kata sandi akun Kolega Anda.
+          Update your personal details and change your Kolega account password.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6 max-w-xl">
           <div className="grid gap-4">
             <div className="grid gap-1.5">
-              <Label htmlFor="profile-name" className="text-zinc-700 dark:text-zinc-300">Nama Lengkap</Label>
+              <Label htmlFor="profile-name" className="text-zinc-700 dark:text-zinc-300">Full Name</Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-400" />
                 <Input
@@ -91,7 +91,7 @@ export function ProfileSettingsClient({ initialUser }: Props) {
                   name="name"
                   defaultValue={initialUser.name}
                   className="pl-9"
-                  placeholder="Nama Lengkap"
+                  placeholder="Full Name"
                   required
                 />
               </div>
@@ -106,16 +106,16 @@ export function ProfileSettingsClient({ initialUser }: Props) {
                   name="username"
                   defaultValue={initialUser.username ?? ""}
                   className="pl-9"
-                  placeholder="username (opsional)"
+                  placeholder="username (optional)"
                 />
               </div>
               <p className="text-[11px] text-zinc-400">
-                Gunakan huruf kecil, angka, titik, atau garis bawah.
+                Use lowercase letters, numbers, periods, or underscores.
               </p>
             </div>
 
             <div className="grid gap-1.5">
-              <Label htmlFor="profile-email" className="text-zinc-700 dark:text-zinc-300">Alamat Email</Label>
+              <Label htmlFor="profile-email" className="text-zinc-700 dark:text-zinc-300">Email Address</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-400" />
                 <Input
@@ -131,7 +131,7 @@ export function ProfileSettingsClient({ initialUser }: Props) {
             </div>
 
             <div className="grid gap-1.5">
-              <Label htmlFor="profile-birthdate" className="text-zinc-700 dark:text-zinc-300">Tanggal Lahir</Label>
+              <Label htmlFor="profile-birthdate" className="text-zinc-700 dark:text-zinc-300">Birth Date</Label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-400" />
                 <Input
@@ -145,14 +145,14 @@ export function ProfileSettingsClient({ initialUser }: Props) {
             </div>
 
             <div className="grid gap-1.5">
-              <Label htmlFor="profile-phone" className="text-zinc-700 dark:text-zinc-300">Nomor Telepon</Label>
+              <Label htmlFor="profile-phone" className="text-zinc-700 dark:text-zinc-300">Phone Number</Label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-400" />
                 <Input
                   id="profile-phone"
                   name="phoneNumber"
                   type="tel"
-                  placeholder="Contoh: 08123456789"
+                  placeholder="Example: 08123456789"
                   defaultValue={initialUser.phoneNumber ?? ""}
                   className="pl-9"
                 />
@@ -160,13 +160,13 @@ export function ProfileSettingsClient({ initialUser }: Props) {
             </div>
 
             <div className="grid gap-1.5">
-              <Label htmlFor="profile-address" className="text-zinc-700 dark:text-zinc-300">Alamat Tinggal</Label>
+              <Label htmlFor="profile-address" className="text-zinc-700 dark:text-zinc-300">Residential Address</Label>
               <div className="relative">
                 <Home className="absolute left-3 top-3 size-4 text-zinc-400" />
                 <Textarea
                   id="profile-address"
                   name="address"
-                  placeholder="Alamat lengkap tinggal saat ini"
+                  placeholder="Current residential address"
                   defaultValue={initialUser.address ?? ""}
                   className="pl-9 pt-2.5"
                   rows={3}
@@ -177,23 +177,23 @@ export function ProfileSettingsClient({ initialUser }: Props) {
             <hr className="border-zinc-100 dark:border-zinc-800 my-2" />
 
             <div className="grid gap-1.5">
-              <Label htmlFor="profile-new-password" className="text-zinc-700 dark:text-zinc-300">Kata Sandi Baru</Label>
+              <Label htmlFor="profile-new-password" className="text-zinc-700 dark:text-zinc-300">New Password</Label>
               <div className="relative">
                 <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-400" />
                 <Input
                   id="profile-new-password"
                   name="newPassword"
                   type="password"
-                  placeholder="Kosongkan jika tidak ingin mengubah"
+                  placeholder="Leave blank if you do not want to change"
                   className="pl-9"
                   minLength={6}
                 />
               </div>
-              <p className="text-[11px] text-zinc-400">Minimal 6 karakter.</p>
+              <p className="text-[11px] text-zinc-400">Minimum 6 characters.</p>
             </div>
 
             <div className="grid gap-1.5">
-              <Label htmlFor="profile-confirm-password" className="text-zinc-700 dark:text-zinc-300">Konfirmasi Kata Sandi Baru</Label>
+              <Label htmlFor="profile-confirm-password" className="text-zinc-700 dark:text-zinc-300">Confirm New Password</Label>
               <div className="relative">
                 <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-400" />
                 <Input
@@ -201,7 +201,7 @@ export function ProfileSettingsClient({ initialUser }: Props) {
                   name="confirmNewPassword"
                   type="password"
                   className="pl-9"
-                  placeholder="Ketik ulang kata sandi baru"
+                  placeholder="Re-type your new password"
                 />
               </div>
             </div>
@@ -211,12 +211,12 @@ export function ProfileSettingsClient({ initialUser }: Props) {
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Menyimpan...
+                Saving...
               </>
             ) : (
               <>
                 <Save className="mr-2 h-4 w-4" />
-                Simpan Perubahan
+                Save Changes
               </>
             )}
           </Button>
@@ -227,16 +227,16 @@ export function ProfileSettingsClient({ initialUser }: Props) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
           <User className="size-5 text-emerald-700" />
-          Mood Harian
+          Daily Mood
         </CardTitle>
         <CardDescription>
-          Perbarui suasana hati dan catatan singkat tanpa mengubah data profil.
+          Update your mood and a short note without changing your profile data.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleMoodSubmit} className="space-y-5 max-w-xl">
           <div className="grid gap-2 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 bg-zinc-50/30 dark:bg-zinc-900/10">
-            <Label className="text-zinc-800 dark:text-zinc-200 font-semibold">Suasana Hati Anda Hari Ini</Label>
+            <Label className="text-zinc-800 dark:text-zinc-200 font-semibold">Your Mood Today</Label>
             <input type="hidden" name="currentMood" value={selectedMood} />
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
               {MOODS.map((m) => {
@@ -261,11 +261,11 @@ export function ProfileSettingsClient({ initialUser }: Props) {
           </div>
 
           <div className="grid gap-1.5">
-            <Label htmlFor="profile-mood-note" className="text-zinc-700 dark:text-zinc-300">Catatan Mood</Label>
+            <Label htmlFor="profile-mood-note" className="text-zinc-700 dark:text-zinc-300">Mood Note</Label>
             <Input
               id="profile-mood-note"
               name="moodNote"
-              placeholder="Tulis singkat apa yang sedang Anda lakukan atau rasakan..."
+              placeholder="Write a brief description of what you are doing or feeling..."
               defaultValue={initialUser.moodNote ?? ""}
             />
           </div>
@@ -274,12 +274,12 @@ export function ProfileSettingsClient({ initialUser }: Props) {
             {moodLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Menyimpan...
+                Saving...
               </>
             ) : (
               <>
                 <Save className="mr-2 h-4 w-4" />
-                Simpan Mood
+                Save Mood
               </>
             )}
           </Button>

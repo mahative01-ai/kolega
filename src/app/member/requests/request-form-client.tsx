@@ -13,28 +13,28 @@ type Props = {
 
 const SYARAT_KETERANGAN: Record<string, { title: string; desc: string; variant: "blue" | "emerald" | "violet" | "amber" | "rose" }> = {
   PERMISSION: {
-    title: "Ketentuan Izin Pribadi",
-    desc: "Wajib diajukan minimal H-1 sebelum jadwal kerja dimulai. Tanpa surat pendukung.",
+    title: "Personal Leave Terms",
+    desc: "Must be requested at least 1 day in advance before the work day begins. No supporting document required.",
     variant: "amber",
   },
   SICK: {
-    title: "Ketentuan Izin Sakit",
-    desc: "Wajib melampirkan bukti Surat Sakit resmi. Dapat diajukan paling lambat H+1 (sebelum pukul 07:00 pagi). Tanpa lampiran, status akan dialihkan ke Izin Pribadi.",
+    title: "Sick Leave Terms",
+    desc: "Requires uploading a valid official doctor's note. Can be submitted at latest on H+1 (before 07:00 AM). Without an attachment, status defaults to Personal Leave.",
     variant: "violet",
   },
   DISPENSATION: {
-    title: "Ketentuan Dispensasi",
-    desc: "Wajib menyertakan bukti lampiran resmi (surat tugas, undangan, dll.). Status absensi ini tidak menambah hutang ganti hari.",
+    title: "Dispensation Terms",
+    desc: "Requires uploading an official support document (assignment letter, invitation, etc.). This status does not affect workday balance.",
     variant: "emerald",
   },
   LEAVE: {
-    title: "Ketentuan Ganti Hari",
-    desc: "Wajib diajukan minimal H-1. Setelah disetujui, sistem akan mencatat hutang ganti hari kerja.",
+    title: "Replacement Leave Terms",
+    desc: "Must be requested at least 1 day in advance. Once approved, the system logs a workday debt.",
     variant: "rose",
   },
   WFH: {
-    title: "Ketentuan Work From Home",
-    desc: "Hanya berlaku untuk anggota berstatus Team (staf Intern/Magang tidak diperbolehkan). Wajib mengisi rencana kerja WFH pada hari H.",
+    title: "Work From Home Terms",
+    desc: "Only available to Team members (Interns are not allowed). You must write your morning WFH work plan on the day.",
     variant: "blue",
   },
 };
@@ -64,7 +64,7 @@ export function RequestFormClient({ canRequestReplacementDay }: Props) {
     >
       <div className="flex flex-col gap-1.5">
         <label htmlFor="request-type" className="text-sm font-medium">
-          Tipe Pengajuan <span className="text-red-500">*</span>
+          Request Type <span className="text-red-500">*</span>
         </label>
         <select
           id="request-type"
@@ -74,13 +74,13 @@ export function RequestFormClient({ canRequestReplacementDay }: Props) {
           className="h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-3 text-sm outline-none focus:border-zinc-950 dark:focus:border-zinc-300 focus:ring-1 focus:ring-zinc-950 dark:focus:ring-zinc-300"
           required
         >
-          <option value="PERMISSION">Izin Pribadi / Tanpa Surat (Min H-1)</option>
-          <option value="SICK">Sakit Resmi (Surat Dokter; tanpa surat menjadi Izin)</option>
-          <option value="DISPENSATION">Dispensasi Resmi (Wajib Lampiran)</option>
+          <option value="PERMISSION">Personal Leave / Private (Min H-1)</option>
+          <option value="SICK">Official Sick Leave (Doctor note required)</option>
+          <option value="DISPENSATION">Official Dispensation (Attachment required)</option>
           {canRequestReplacementDay && (
-            <option value="LEAVE">Ganti Hari (Min H-1)</option>
+            <option value="LEAVE">Replacement Leave (Min H-1)</option>
           )}
-          <option value="WFH">Pengajuan WFH</option>
+          <option value="WFH">Work From Home (WFH)</option>
         </select>
       </div>
 
@@ -108,13 +108,13 @@ export function RequestFormClient({ canRequestReplacementDay }: Props) {
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="start-date" className="text-sm font-medium">
-            Mulai Tanggal <span className="text-red-500">*</span>
+            Start Date <span className="text-red-500">*</span>
           </label>
           <Input id="start-date" name="startDate" type="date" required />
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="end-date" className="text-sm font-medium">
-            Selesai Tanggal <span className="text-red-500">*</span>
+            End Date <span className="text-red-500">*</span>
           </label>
           <Input id="end-date" name="endDate" type="date" required />
         </div>
@@ -122,12 +122,12 @@ export function RequestFormClient({ canRequestReplacementDay }: Props) {
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="reason" className="text-sm font-medium">
-          Alasan / Keterangan <span className="text-red-500">*</span>
+          Reason / Description <span className="text-red-500">*</span>
         </label>
         <Textarea
           id="reason"
           name="reason"
-          placeholder="Jelaskan alasan izin secara ringkas dan jelas..."
+          placeholder="Briefly explain the reason for your request..."
           required
           rows={4}
         />
@@ -135,9 +135,9 @@ export function RequestFormClient({ canRequestReplacementDay }: Props) {
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="attachment" className="text-sm font-medium">
-          Lampiran Berkas{" "}
+          File Attachment{" "}
           <span className="text-xs font-normal text-zinc-500">
-            ({selectedType === "DISPENSATION" ? "wajib" : "opsional"}, maks 2MB)
+            ({selectedType === "DISPENSATION" ? "required" : "optional"}, max 2MB)
           </span>
         </label>
         <Input
@@ -151,7 +151,7 @@ export function RequestFormClient({ canRequestReplacementDay }: Props) {
 
       <Button type="submit" disabled={loading} className="w-full mt-2">
         <CalendarDays className="size-4 mr-2" />
-        {loading ? "Mengirim..." : "Kirim Pengajuan"}
+        {loading ? "Submitting..." : "Submit Request"}
       </Button>
     </form>
   );

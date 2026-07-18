@@ -33,7 +33,7 @@ export function CorrectionFormClient({
   const [selectedRecordId, setSelectedRecordId] = useState(preselectedRecord?.id ?? "");
 
   function formatDate(date: Date) {
-    return new Intl.DateTimeFormat("id-ID", {
+    return new Intl.DateTimeFormat("en-US", {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -53,7 +53,7 @@ export function CorrectionFormClient({
     <form action={action} method="POST" className="grid gap-4">
       <div className="flex flex-col gap-1.5">
         <label htmlFor="record-select" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-          Pilih Catatan Presensi / Tanggal <span className="text-red-500">*</span>
+          Select Attendance Record / Date <span className="text-red-500">*</span>
         </label>
         {preselectedRecord ? (
           <>
@@ -68,7 +68,7 @@ export function CorrectionFormClient({
               href="/member/corrections"
               className="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-1 self-start"
             >
-              Batal pilih & cari tanggal lain
+              Cancel selection & search another date
             </Link>
           </>
         ) : (
@@ -80,7 +80,7 @@ export function CorrectionFormClient({
             className="h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-3 text-sm outline-none focus:border-zinc-950 dark:focus:border-zinc-300 focus:ring-1 focus:ring-zinc-950 dark:focus:ring-zinc-300"
             required
           >
-            <option value="">-- Pilih Tanggal --</option>
+            <option value="">-- Select Date --</option>
             {recentRecords.map((r) => (
               <option key={r.id} value={r.id}>
                 {formatDate(r.attendanceDate)} ({statusLabel[r.status] ?? r.status})
@@ -92,7 +92,7 @@ export function CorrectionFormClient({
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="new-status" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-          Usulan Status Baru <span className="text-red-500">*</span>
+          Proposed New Status <span className="text-red-500">*</span>
         </label>
         <select
           id="new-status"
@@ -102,12 +102,12 @@ export function CorrectionFormClient({
           className="h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-3 text-sm outline-none focus:border-zinc-950 dark:focus:border-zinc-300 focus:ring-1 focus:ring-zinc-950 dark:focus:ring-zinc-300"
           required
         >
-          <option value="ON_TIME">Tepat Waktu (WFO)</option>
-          <option value="LATE">Terlambat (WFO)</option>
-          <option value="WFH">WFH (Penuh)</option>
-          <option value="PERMISSION">Izin</option>
-          <option value="SICK">Sakit</option>
-          <option value="LEAVE">Ganti Hari</option>
+          <option value="ON_TIME">On Time (WFO)</option>
+          <option value="LATE">Late (WFO)</option>
+          <option value="WFH">WFH (Full Day)</option>
+          <option value="PERMISSION">Permission</option>
+          <option value="SICK">Sick Leave</option>
+          <option value="LEAVE">Replacement Leave</option>
         </select>
       </div>
 
@@ -115,7 +115,7 @@ export function CorrectionFormClient({
         <div className="grid gap-3 animate-in fade-in slide-in-from-top-1 duration-150 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5">
             <label htmlFor="proposed-check-in-time" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-              Usulan Jam Masuk (WIB) <span className="text-red-500">*</span>
+              Proposed Check-In Time (WIB) <span className="text-red-500">*</span>
             </label>
             <Input
               id="proposed-check-in-time"
@@ -125,24 +125,24 @@ export function CorrectionFormClient({
               defaultValue="08:00"
               className="w-full h-9 bg-white dark:bg-zinc-950"
             />
-            <p className="text-[10px] text-zinc-500">Isi perkiraan jam hadir di studio.</p>
+            <p className="text-[10px] text-zinc-500">Enter estimated arrival time at the studio.</p>
           </div>
           <div className="flex flex-col gap-1.5">
             <label htmlFor="proposed-check-out-time" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-              Usulan Jam Pulang (WIB) {isPastRecord ? <span className="text-red-500">*</span> : <span className="text-zinc-400">(opsional)</span>}
+              Proposed Check-Out Time (WIB) {isPastRecord ? <span className="text-red-500">*</span> : <span className="text-zinc-400">(optional)</span>}
             </label>
             <Input
               id="proposed-check-out-time"
               name="proposedCheckOutTime"
               type="time"
               required={isPastRecord}
-              defaultValue={isPastRecord ? "16:00" : undefined}
+              defaultValue={isPastRecord ? "17:00" : undefined}
               className="w-full h-9 bg-white dark:bg-zinc-950"
             />
             <p className="text-[10px] text-zinc-500">
               {isPastRecord
-                ? "Tanggal terlewat wajib menyertakan jam pulang agar presensi tidak menggantung."
-                : "Untuk hari ini boleh dikosongkan jika belum pulang."}
+                ? "Past dates must include check-out time to complete the record."
+                : "Can be left blank for today if not checked out yet."}
             </p>
           </div>
         </div>
@@ -150,12 +150,12 @@ export function CorrectionFormClient({
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="reason" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-          Alasan Koreksi <span className="text-red-500">*</span>
+          Reason for Correction <span className="text-red-500">*</span>
         </label>
         <Textarea
           id="reason"
           name="reason"
-          placeholder="Contoh: Lupa scan QR saat check-in pagi karena buru-buru, namun saya hadir tepat waktu..."
+          placeholder="Example: Forgot to scan the QR check-in in the morning due to rush, but I arrived on time..."
           required
           rows={4}
           className="bg-white dark:bg-zinc-950"
@@ -164,7 +164,7 @@ export function CorrectionFormClient({
 
       <Button type="submit" className="w-full mt-2">
         <PlusCircle className="size-4 mr-2" />
-        Kirim Koreksi
+        Submit Correction
       </Button>
     </form>
   );

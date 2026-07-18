@@ -52,15 +52,15 @@ export function HolidaySwapFormClient({ studios, monthKey }: Props) {
 
   function handleSubmit() {
     if (!holidayName.trim()) {
-      setError("Nama libur wajib diisi.");
+      setError("Holiday name is required.");
       return;
     }
     if (!originalDate || !newDate) {
-      setError("Kedua tanggal wajib diisi.");
+      setError("Both dates are required.");
       return;
     }
     if (originalDate === newDate) {
-      setError("Tanggal asal dan tanggal baru tidak boleh sama.");
+      setError("Original and new dates cannot be the same.");
       return;
     }
 
@@ -72,13 +72,13 @@ export function HolidaySwapFormClient({ studios, monthKey }: Props) {
           originalDate,
           newDate,
         });
-        setSuccess("Libur berhasil dialihkan/ditukar!");
+        setSuccess("Holiday successfully swapped/transferred!");
         setTimeout(() => {
           setOpen(false);
           resetForm();
         }, 1500);
       } catch (error: unknown) {
-        setError(error instanceof Error ? error.message : "Terjadi kesalahan saat memproses penukaran libur.");
+        setError(error instanceof Error ? error.message : "An error occurred while processing the holiday swap.");
       }
     });
   }
@@ -87,15 +87,15 @@ export function HolidaySwapFormClient({ studios, monthKey }: Props) {
     <>
       <Button variant="outline" size="sm" className="w-full" onClick={() => setOpen(true)}>
         <ArrowLeftRight className="size-4" />
-        Tukar Libur
+        Swap Holiday
       </Button>
 
       <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Tukar / Alihkan Hari Libur</DialogTitle>
+            <DialogTitle>Swap / Transfer Holiday</DialogTitle>
             <DialogDescription>
-              Alihkan hari libur nasional ke tanggal lain khusus untuk studio terpilih.
+              Transfer a national holiday to another date for the selected studio.
             </DialogDescription>
           </DialogHeader>
 
@@ -105,12 +105,12 @@ export function HolidaySwapFormClient({ studios, monthKey }: Props) {
               <Label>Studio</Label>
               <Select value={studioId || "__global__"} onValueChange={(v) => setStudioId(v === "__global__" || !v ? "" : v)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Pilih studio atau biarkan global">
-                    {(val) => val === "__global__" || !val ? "🌐 Semua Studio (Global)" : (studios.find((s) => s.id === val)?.name || val)}
+                  <SelectValue placeholder="Select studio or leave global">
+                    {(val) => val === "__global__" || !val ? "🌐 All Studios (Global)" : (studios.find((s) => s.id === val)?.name || val)}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__global__">🌐 Semua Studio (Global)</SelectItem>
+                  <SelectItem value="__global__">🌐 All Studios (Global)</SelectItem>
                   {studios.map((s) => (
                     <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                   ))}
@@ -120,10 +120,10 @@ export function HolidaySwapFormClient({ studios, monthKey }: Props) {
 
             {/* Nama Libur */}
             <div className="grid gap-1.5">
-              <Label htmlFor="swap-name">Nama Libur Asal</Label>
+              <Label htmlFor="swap-name">Original Holiday Name</Label>
               <Input
                 id="swap-name"
-                placeholder="Contoh: Tahun Baru Islam"
+                placeholder="Example: Islamic New Year"
                 value={holidayName}
                 onChange={(e) => setHolidayName(e.target.value)}
               />
@@ -132,7 +132,7 @@ export function HolidaySwapFormClient({ studios, monthKey }: Props) {
             {/* Dates */}
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
-                <Label htmlFor="swap-orig">Tanggal Libur Asal</Label>
+                <Label htmlFor="swap-orig">Original Holiday Date</Label>
                 <Input
                   id="swap-orig"
                   type="date"
@@ -141,7 +141,7 @@ export function HolidaySwapFormClient({ studios, monthKey }: Props) {
                 />
               </div>
               <div className="grid gap-1.5">
-                <Label htmlFor="swap-new">Tanggal Libur Baru</Label>
+                <Label htmlFor="swap-new">New Holiday Date</Label>
                 <Input
                   id="swap-new"
                   type="date"
@@ -151,11 +151,11 @@ export function HolidaySwapFormClient({ studios, monthKey }: Props) {
               </div>
             </div>
 
-            <div className="rounded-lg bg-zinc-50 border border-zinc-200 p-3 text-xs text-zinc-600 leading-relaxed">
-              💡 **Apa yang terjadi?**
+            <div className="rounded-lg bg-zinc-50 border border-zinc-200 p-3 text-xs text-zinc-650 leading-relaxed">
+              💡 **What happens?**
               <ul className="list-disc pl-4 mt-1 space-y-1">
-                <li>Tanggal Libur Asal akan diubah menjadi **Hari Kerja Pengganti** (Wajib Masuk).</li>
-                <li>Tanggal Libur Baru akan diubah menjadi **Hari Libur Cuti Bersama** (Libur/Off).</li>
+                <li>Original Holiday Date will become a **Replacement Workday** (Required attendance).</li>
+                <li>New Holiday Date will become a **Company Joint Leave** (Holiday/Off).</li>
               </ul>
             </div>
 
@@ -165,10 +165,10 @@ export function HolidaySwapFormClient({ studios, monthKey }: Props) {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)} disabled={isPending}>
-              Batal
+              Cancel
             </Button>
             <Button onClick={handleSubmit} disabled={isPending}>
-              {isPending ? <Loader2 className="size-4 animate-spin" /> : "Proses Swap"}
+              {isPending ? <Loader2 className="size-4 animate-spin" /> : "Process Swap"}
             </Button>
           </DialogFooter>
         </DialogContent>

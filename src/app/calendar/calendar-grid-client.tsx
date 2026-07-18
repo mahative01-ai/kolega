@@ -412,25 +412,25 @@ export function CalendarGridClient({
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <ArrowLeftRight className="size-5 text-blue-600" />
-                Tukar / Alihkan Hari Libur
+                Swap / Transfer Holiday
               </DialogTitle>
               <DialogDescription>
-                Alihkan hari libur nasional atau cuti bersama ke tanggal lain. Tanggal asal akan diubah menjadi **Hari Kerja Pengganti**, dan tanggal baru akan menjadi **Hari Libur Cuti Bersama**.
+                Transfer a national holiday or joint leave to another date. The original date will become a **Replacement Workday**, and the new date will become a **Company Joint Leave**.
               </DialogDescription>
             </DialogHeader>
 
             <div className="grid gap-4 py-2">
               {/* Studio */}
               <div className="grid gap-1.5">
-                <Label>Studio Cabang</Label>
+                <Label>Branch Studio</Label>
                 <Select value={studioId || "__global__"} onValueChange={(v) => setStudioId(v === "__global__" || !v ? "" : v)}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Pilih studio atau biarkan global">
-                      {(val) => val === "__global__" || !val ? "🌐 Semua Studio (Global)" : (studios.find((s) => s.id === val)?.name || val)}
+                    <SelectValue placeholder="Select studio or leave global">
+                      {(val) => val === "__global__" || !val ? "🌐 All Studios (Global)" : (studios.find((s) => s.id === val)?.name || val)}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__global__">🌐 Semua Studio (Global)</SelectItem>
+                    <SelectItem value="__global__">🌐 All Studios (Global)</SelectItem>
                     {studios.map((s) => (
                       <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                     ))}
@@ -440,10 +440,10 @@ export function CalendarGridClient({
 
               {/* Nama Libur */}
               <div className="grid gap-1.5">
-                <Label htmlFor="swap-name">Nama Libur Asal</Label>
+                <Label htmlFor="swap-name">Original Holiday Name</Label>
                 <Input
                   id="swap-name"
-                  placeholder="Contoh: Tahun Baru Islam"
+                  placeholder="Example: Islamic New Year"
                   value={holidayName}
                   onChange={(e) => setHolidayName(e.target.value)}
                 />
@@ -452,7 +452,7 @@ export function CalendarGridClient({
               {/* Dates */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="grid gap-1.5">
-                  <Label htmlFor="swap-orig">Tanggal Libur Asal</Label>
+                  <Label htmlFor="swap-orig">Original Holiday Date</Label>
                   <Input
                     id="swap-orig"
                     type="date"
@@ -461,7 +461,7 @@ export function CalendarGridClient({
                   />
                 </div>
                 <div className="grid gap-1.5">
-                  <Label htmlFor="swap-new">Tanggal Libur Baru</Label>
+                  <Label htmlFor="swap-new">New Holiday Date</Label>
                   <Input
                     id="swap-new"
                     type="date"
@@ -485,8 +485,8 @@ export function CalendarGridClient({
               {/* Active Swaps on this Day */}
               {activeSwaps.length > 0 && (
                 <div className="space-y-2 border-t border-zinc-200 dark:border-zinc-800 pt-4 mt-2">
-                  <Label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
-                    Daftar Hari Libur / Agenda Aktif di Hari Ini
+                  <Label className="text-xs font-semibold text-zinc-550 uppercase tracking-wider">
+                    Active Holidays / Events on this Day
                   </Label>
                   <div className="space-y-1.5">
                     {activeSwaps.map((ev) => (
@@ -499,18 +499,18 @@ export function CalendarGridClient({
                             {ev.title}
                           </p>
                           <p className="text-[10px] text-zinc-500 truncate">
-                            {ev.studio ? `Studio: ${ev.studio.name}` : "Semua Studio (Global)"}
+                            {ev.studio ? `Studio: ${ev.studio.name}` : "All Studios (Global)"}
                           </p>
                         </div>
                         <Button
                           type="button"
                           size="icon"
                           variant="ghost"
-                          className="h-7 w-7 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 shrink-0"
+                          className="h-7 w-7 text-red-650 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 shrink-0"
                           title={
                             ev.type === "REPLACEMENT_WORKDAY" || ev.type === "COMPANY_LEAVE"
-                              ? "Hapus Pengalihan Libur"
-                              : "Hapus Hari Libur/Agenda"
+                              ? "Delete Holiday Transfer"
+                              : "Delete Holiday / Event"
                           }
                           onClick={() =>
                             ev.type === "REPLACEMENT_WORKDAY" || ev.type === "COMPANY_LEAVE"
@@ -530,16 +530,16 @@ export function CalendarGridClient({
 
             <DialogFooter className="gap-2 sm:gap-0">
               <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={isPending}>
-                Batal
+                Cancel
               </Button>
               <Button onClick={handleSubmit} disabled={isPending} className="bg-blue-700 hover:bg-blue-800 text-white dark:bg-blue-600 dark:hover:bg-blue-700">
                 {isPending ? (
                   <>
                     <Loader2 className="size-4 animate-spin mr-1.5" />
-                    Memproses...
+                    Processing...
                   </>
                 ) : (
-                  "Proses Alihkan"
+                  "Transfer"
                 )}
               </Button>
             </DialogFooter>

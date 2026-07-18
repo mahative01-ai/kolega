@@ -58,11 +58,11 @@ type Props = {
 };
 
 const EVENT_TYPES = [
-  { value: "NATIONAL_HOLIDAY", label: "🔴 Libur Nasional" },
-  { value: "COMPANY_LEAVE", label: "🟠 Cuti Bersama" },
-  { value: "REGULAR_OFF_DAY", label: "⚫ Libur Final" },
-  { value: "REPLACEMENT_WORKDAY", label: "🟢 Hari Kerja Pengganti" },
-  { value: "STUDIO_EVENT", label: "🔵 Kegiatan Studio" },
+  { value: "NATIONAL_HOLIDAY", label: "🔴 National Holiday" },
+  { value: "COMPANY_LEAVE", label: "🟠 Company Joint Leave" },
+  { value: "REGULAR_OFF_DAY", label: "⚫ Regular Off Day" },
+  { value: "REPLACEMENT_WORKDAY", label: "🟢 Replacement Workday" },
+  { value: "STUDIO_EVENT", label: "🔵 Studio Event" },
 ];
 
 export function CalendarEventFormClient({ studios, monthKey, existingEvent, mode = "add" }: Props) {
@@ -156,26 +156,26 @@ export function CalendarEventFormClient({ studios, monthKey, existingEvent, mode
         </button>
       ) : (
         <Button size="sm" className="w-full" onClick={() => setOpen(true)}>
-          <Plus className="size-4" />
-          Tambah Event
+          <Plus className="size-4 mr-1" />
+          Add Event
         </Button>
       )}
 
       <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
         <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{mode === "edit" ? "Edit Event Kalender" : "Tambah Event Kalender"}</DialogTitle>
+          <DialogTitle>{mode === "edit" ? "Edit Calendar Event" : "Add Calendar Event"}</DialogTitle>
           <DialogDescription>
             {mode === "edit"
-              ? "Ubah detail event yang sudah ada."
-              : "Tambahkan libur nasional, cuti bersama, atau kegiatan studio."}
+              ? "Modify the details of this event."
+              : "Add a national holiday, joint leave, or studio event."}
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 py-2">
           {/* Type */}
           <div className="grid gap-1.5">
-            <Label>Tipe Event</Label>
+            <Label>Event Type</Label>
             <Select value={type} onValueChange={(val) => setType((val ?? "NATIONAL_HOLIDAY") as CalendarEventType)}>
               <SelectTrigger>
                 <SelectValue />
@@ -190,10 +190,10 @@ export function CalendarEventFormClient({ studios, monthKey, existingEvent, mode
 
           {/* Title */}
           <div className="grid gap-1.5">
-            <Label htmlFor="ev-title">Judul</Label>
+            <Label htmlFor="ev-title">Title</Label>
             <Input
               id="ev-title"
-              placeholder="Contoh: Hari Raya Idul Fitri"
+              placeholder="Example: Eid al-Fitr Holiday"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
@@ -202,7 +202,7 @@ export function CalendarEventFormClient({ studios, monthKey, existingEvent, mode
           {/* Dates */}
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-1.5">
-              <Label htmlFor="ev-start">Tanggal Mulai</Label>
+              <Label htmlFor="ev-start">Start Date</Label>
               <Input
                 id="ev-start"
                 type="date"
@@ -211,7 +211,7 @@ export function CalendarEventFormClient({ studios, monthKey, existingEvent, mode
               />
             </div>
             <div className="grid gap-1.5">
-              <Label htmlFor="ev-end">Tanggal Selesai</Label>
+              <Label htmlFor="ev-end">End Date</Label>
               <Input
                 id="ev-end"
                 type="date"
@@ -227,12 +227,12 @@ export function CalendarEventFormClient({ studios, monthKey, existingEvent, mode
               <Label>Studio</Label>
               <Select value={studioId || "__global__"} onValueChange={(v) => setStudioId(v === "__global__" || !v ? "" : v)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Pilih studio atau biarkan global">
-                    {(val) => val === "__global__" || !val ? "🌐 Semua Studio (Global)" : (studios.find((s) => s.id === val)?.name || val)}
+                  <SelectValue placeholder="Select studio or leave global">
+                    {(val) => val === "__global__" || !val ? "🌐 All Studios (Global)" : (studios.find((s) => s.id === val)?.name || val)}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__global__">🌐 Semua Studio (Global)</SelectItem>
+                  <SelectItem value="__global__">🌐 All Studios (Global)</SelectItem>
                   {studios.map((s) => (
                     <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                   ))}
@@ -253,11 +253,11 @@ export function CalendarEventFormClient({ studios, monthKey, existingEvent, mode
                     if (v) setIsFinalHoliday(false);
                   }}
                 />
-                <Label htmlFor="ev-replacement" className="cursor-pointer">Ada hari kerja pengganti</Label>
+                <Label htmlFor="ev-replacement" className="cursor-pointer">Requires replacement workday</Label>
               </div>
               {isReplacementRequired && (
                 <div className="grid gap-1.5">
-                  <Label htmlFor="ev-repdate">Tanggal Pengganti</Label>
+                  <Label htmlFor="ev-repdate">Replacement Date</Label>
                   <Input
                     id="ev-repdate"
                     type="date"
@@ -280,16 +280,16 @@ export function CalendarEventFormClient({ studios, monthKey, existingEvent, mode
                   if (v) setIsReplacementRequired(false);
                 }}
               />
-              <Label htmlFor="ev-final" className="cursor-pointer">Libur final (tidak perlu diganti)</Label>
+              <Label htmlFor="ev-final" className="cursor-pointer">Final holiday (no replacement required)</Label>
             </div>
           )}
 
           {/* Note */}
           <div className="grid gap-1.5">
-            <Label htmlFor="ev-note">Catatan (opsional)</Label>
+            <Label htmlFor="ev-note">Notes (optional)</Label>
             <Textarea
               id="ev-note"
-              placeholder="Keterangan tambahan..."
+              placeholder="Additional details..."
               value={note}
               onChange={(e) => setNote(e.target.value)}
               className="resize-none"
@@ -307,31 +307,31 @@ export function CalendarEventFormClient({ studios, monthKey, existingEvent, mode
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50 mr-auto"
+                  className="text-red-650 hover:text-red-700 hover:bg-red-50 mr-auto"
                   onClick={() => setDeleteConfirm(true)}
                   disabled={isPending}
                 >
                   <Trash2 className="size-3.5" />
-                  Hapus
+                  Delete
                 </Button>
               ) : (
                 <div className="flex items-center gap-2 mr-auto">
-                  <span className="text-xs text-red-600 font-medium">Yakin hapus?</span>
+                  <span className="text-xs text-red-650 font-medium">Are you sure?</span>
                   <Button variant="destructive" size="sm" onClick={handleDelete} disabled={isPending}>
-                    {isPending ? <Loader2 className="size-3.5 animate-spin" /> : "Hapus"}
+                    {isPending ? <Loader2 className="size-3.5 animate-spin" /> : "Delete"}
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => setDeleteConfirm(false)}>
-                    Batal
+                    Cancel
                   </Button>
                 </div>
               )}
             </>
           )}
           <Button variant="outline" onClick={() => setOpen(false)} disabled={isPending}>
-            Batal
+            Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={isPending}>
-            {isPending ? <Loader2 className="size-4 animate-spin" /> : mode === "edit" ? "Simpan" : "Tambah"}
+            {isPending ? <Loader2 className="size-4 animate-spin" /> : mode === "edit" ? "Save" : "Add"}
           </Button>
         </DialogFooter>
       </DialogContent>
