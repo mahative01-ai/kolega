@@ -1004,10 +1004,10 @@ export function RolesClient({
       </Dialog>
       {/* Member Details Dialog */}
       <Dialog open={viewOpen} onOpenChange={setViewOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto border-zinc-800 bg-zinc-950 text-zinc-50 sm:max-w-3xl">
+        <DialogContent className="max-h-[90vh] overflow-y-auto border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle>Member Details</DialogTitle>
-            <DialogDescription className="text-zinc-400">
+            <DialogDescription className="text-zinc-500 dark:text-zinc-400">
               Profile and attendance history.
             </DialogDescription>
           </DialogHeader>
@@ -1015,7 +1015,7 @@ export function RolesClient({
           {viewUser && (
             <div className="grid gap-5 py-2 text-sm">
               {/* 👤 User Profile Header Card */}
-              <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/60 p-5 shadow-lg">
+              <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/80 dark:bg-zinc-900/60 p-5 shadow-sm dark:shadow-lg">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-4">
                     {/* Mood Avatar */}
@@ -1024,20 +1024,20 @@ export function RolesClient({
                     </div>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2.5">
-                        <h3 className="text-xl font-bold text-zinc-50">{viewUser.name}</h3>
-                        <Badge variant="outline" className="border-zinc-800 bg-zinc-950 text-[11px] text-zinc-400 font-normal">
+                        <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">{viewUser.name}</h3>
+                        <Badge variant="outline" className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-[11px] text-zinc-500 dark:text-zinc-400 font-normal">
                           Mood: {getMood(viewUser.currentMood).label}
                         </Badge>
                       </div>
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-400">
-                        <span className="inline-flex items-center gap-1"><Mail className="size-3.5 text-zinc-500" /> {viewUser.email}</span>
-                        <span className="inline-flex items-center gap-1"><Cake className="size-3.5 text-zinc-500" /> {formatDate(viewUser.birthDate)}</span>
-                        <span className="inline-flex items-center gap-1"><Building2 className="size-3.5 text-zinc-500" /> {viewUser.defaultStudio?.name || "No Studio"}</span>
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-600 dark:text-zinc-400">
+                        <span className="inline-flex items-center gap-1"><Mail className="size-3.5 text-zinc-400 dark:text-zinc-500" /> {viewUser.email}</span>
+                        <span className="inline-flex items-center gap-1"><Cake className="size-3.5 text-zinc-400 dark:text-zinc-500" /> {formatDate(viewUser.birthDate)}</span>
+                        <span className="inline-flex items-center gap-1"><Building2 className="size-3.5 text-zinc-400 dark:text-zinc-500" /> {viewUser.defaultStudio?.name || "No Studio"}</span>
                       </div>
                       <div className="flex flex-wrap items-center gap-2 pt-1">
-                        <Badge className="border-blue-500/30 bg-blue-500/15 text-blue-300">{ROLE_LABEL[viewUser.role]}</Badge>
-                        <Badge className="border-sky-500/30 bg-sky-500/15 text-sky-300">{viewUser.memberStatus}</Badge>
-                        <Badge className="border-emerald-500/30 bg-emerald-500/15 text-emerald-300">{accountStatusLabel[viewUser.accountStatus]}</Badge>
+                        <Badge className="border-blue-500/30 bg-blue-500/15 text-blue-700 dark:text-blue-300">{ROLE_LABEL[viewUser.role]}</Badge>
+                        <Badge className="border-sky-500/30 bg-sky-500/15 text-sky-700 dark:text-sky-300">{viewUser.memberStatus}</Badge>
+                        <Badge className="border-emerald-500/30 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">{accountStatusLabel[viewUser.accountStatus]}</Badge>
                         <Badge variant="outline" className={workDayBalanceClass(viewUser.workDayBalance)}>
                           {workDayBalanceText(viewUser.workDayBalance)}
                         </Badge>
@@ -1048,31 +1048,31 @@ export function RolesClient({
               </div>
 
               {/* 📊 Horizontal Stacked Bar Chart & Monthly Accumulation */}
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 space-y-4 shadow-xl">
+              <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 p-4 space-y-4 shadow-sm dark:shadow-xl">
                 {/* Header & Month Filter */}
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-zinc-800/80 pb-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-zinc-200 dark:border-zinc-800/80 pb-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
-                        <BarChart3 className="size-4 text-blue-400" />
+                      <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                        <BarChart3 className="size-4 text-blue-500 dark:text-blue-400" />
                         Distribusi Presensi Member
                       </h4>
-                      <Badge variant="outline" className="border-blue-500/30 bg-blue-500/10 text-blue-300 text-[11px] px-2 py-0.5">
+                      <Badge variant="outline" className="border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300 text-[11px] px-2 py-0.5">
                         {detailScope === "MONTH" ? (
-                          detailMonth ? `Akumulasi ${new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric" }).format(new Date(Number(detailMonth.split("-")[0]), Number(detailMonth.split("-")[1]) - 1, 1))}` : "Akumulasi Bulanan"
-                        ) : "Akumulasi Semua Waktu (Awal - Terbaru)"}
+                          detailMonth ? `${new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric" }).format(new Date(Number(detailMonth.split("-")[0]), Number(detailMonth.split("-")[1]) - 1, 1))}` : "Per Bulan"
+                        ) : "Semua Waktu"}
                       </Badge>
                     </div>
-                    <p className="text-xs text-zinc-400 mt-0.5">
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 min-h-[18px]">
                       {detailScope === "MONTH"
                         ? "Akumulasi statistik kehadiran dan status presensi staf per bulan."
                         : "Akumulasi statistik kehadiran keseluruhan dari presensi awal hingga saat ini."}
                     </p>
                   </div>
 
-                  {/* Month / Scope Filter */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <div className="flex rounded-lg border border-zinc-800 bg-zinc-950 p-0.5">
+                  {/* Month / Scope Filter (Fixed layout width to prevent UI shift) */}
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    <div className="flex rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-950 p-0.5">
                       <Button
                         type="button"
                         size="sm"
@@ -1092,51 +1092,57 @@ export function RolesClient({
                         Semua
                       </Button>
                     </div>
-                    {detailScope === "MONTH" && (
-                      <Input
-                        type="month"
-                        value={detailMonth}
-                        onChange={(e) => setDetailMonth(e.target.value)}
-                        className="h-8 w-36 border-zinc-800 bg-zinc-950 text-xs text-zinc-100 font-mono"
-                      />
-                    )}
+                    <div className="w-36 h-8 flex items-center shrink-0">
+                      {detailScope === "MONTH" ? (
+                        <Input
+                          type="month"
+                          value={detailMonth}
+                          onChange={(e) => setDetailMonth(e.target.value)}
+                          className="h-8 w-36 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-xs text-zinc-900 dark:text-zinc-100 font-mono"
+                        />
+                      ) : (
+                        <div className="h-8 w-36 rounded-md border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-100/50 dark:bg-zinc-950/40 flex items-center justify-center text-[11px] text-zinc-400 dark:text-zinc-500 font-medium">
+                          Semua Waktu
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
                 {/* Top KPI Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-3 flex items-center justify-between">
+                  <div className="rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/70 dark:bg-zinc-950/50 p-3 flex items-center justify-between">
                     <div>
-                      <p className="text-[11px] font-medium text-zinc-400">Total Presensi</p>
-                      <p className="text-2xl font-bold text-zinc-50 mt-0.5">
-                        {detailStats.total} <span className="text-xs font-normal text-zinc-500">hari</span>
+                      <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">Total Presensi</p>
+                      <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 mt-0.5">
+                        {detailStats.total} <span className="text-xs font-normal text-zinc-400 dark:text-zinc-500">hari</span>
                       </p>
                     </div>
-                    <div className="flex size-9 items-center justify-center rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400">
+                    <div className="flex size-9 items-center justify-center rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400">
                       <Calendar className="size-4" />
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-3 flex items-center justify-between">
+                  <div className="rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/70 dark:bg-zinc-950/50 p-3 flex items-center justify-between">
                     <div>
-                      <p className="text-[11px] font-medium text-zinc-400">Tepat Waktu (On Time)</p>
-                      <p className="text-2xl font-bold text-emerald-400 mt-0.5">
-                        {detailStats.onTime} <span className="text-xs font-normal text-zinc-500">({detailStats.total > 0 ? ((detailStats.onTime / detailStats.total) * 100).toFixed(0) : 0}%)</span>
+                      <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">Tepat Waktu (On Time)</p>
+                      <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                        {detailStats.onTime} <span className="text-xs font-normal text-zinc-400 dark:text-zinc-500">({detailStats.total > 0 ? ((detailStats.onTime / detailStats.total) * 100).toFixed(0) : 0}%)</span>
                       </p>
                     </div>
-                    <div className="flex size-9 items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                    <div className="flex size-9 items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
                       <CheckCircle2 className="size-4" />
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-3 flex items-center justify-between">
+                  <div className="rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/70 dark:bg-zinc-950/50 p-3 flex items-center justify-between">
                     <div>
-                      <p className="text-[11px] font-medium text-zinc-400">Kerja Dari Rumah (WFH)</p>
-                      <p className="text-2xl font-bold text-sky-400 mt-0.5">
-                        {detailStats.wfh} <span className="text-xs font-normal text-zinc-500">hari</span>
+                      <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">Kerja Dari Rumah (WFH)</p>
+                      <p className="text-2xl font-bold text-sky-600 dark:text-sky-400 mt-0.5">
+                        {detailStats.wfh} <span className="text-xs font-normal text-zinc-400 dark:text-zinc-500">hari</span>
                       </p>
                     </div>
-                    <div className="flex size-9 items-center justify-center rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-400">
+                    <div className="flex size-9 items-center justify-center rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-600 dark:text-sky-400">
                       <Home className="size-4" />
                     </div>
                   </div>
@@ -1144,14 +1150,14 @@ export function RolesClient({
 
                 {/* Horizontal Stacked Bar Chart */}
                 <div className="space-y-2 pt-1">
-                  <div className="flex items-center justify-between text-xs text-zinc-400">
-                    <span className="font-semibold text-zinc-300">Grafik Akumulasi Proporsi Status</span>
+                  <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
+                    <span className="font-semibold text-zinc-700 dark:text-zinc-300">Grafik Akumulasi Proporsi Status</span>
                     <span>{detailStats.total} Total Record</span>
                   </div>
 
-                  <div className="h-7 w-full rounded-full bg-zinc-950 p-1 border border-zinc-800/90 flex overflow-hidden shadow-inner gap-0.5">
+                  <div className="h-7 w-full rounded-full bg-zinc-100 dark:bg-zinc-950 p-1 border border-zinc-200 dark:border-zinc-800/90 flex overflow-hidden shadow-inner gap-0.5">
                     {detailStats.total === 0 ? (
-                      <div className="w-full h-full rounded-full bg-zinc-800/40 flex items-center justify-center text-[11px] text-zinc-500 font-medium italic">
+                      <div className="w-full h-full rounded-full bg-zinc-200/50 dark:bg-zinc-800/40 flex items-center justify-center text-[11px] text-zinc-400 dark:text-zinc-500 font-medium italic">
                         Belum ada akumulasi presensi untuk periode ini
                       </div>
                     ) : (
@@ -1207,27 +1213,27 @@ export function RolesClient({
                 <div className="pt-1">
                   <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
                     {[
-                      { label: "Total", count: detailStats.total, colorBg: "bg-blue-500", textColor: "text-blue-400" },
-                      { label: "On Time", count: detailStats.onTime, colorBg: "bg-emerald-500", textColor: "text-emerald-400" },
-                      { label: "Late", count: detailStats.late, colorBg: "bg-orange-500", textColor: "text-orange-400" },
-                      { label: "Sick", count: detailStats.sick, colorBg: "bg-purple-500", textColor: "text-purple-400" },
-                      { label: "Permission", count: detailStats.permission, colorBg: "bg-amber-400", textColor: "text-amber-400" },
-                      { label: "Alpha", count: detailStats.alpha, colorBg: "bg-red-500", textColor: "text-red-400" },
-                      { label: "WFH", count: detailStats.wfh, colorBg: "bg-sky-500", textColor: "text-sky-400" },
+                      { label: "Total", count: detailStats.total, colorBg: "bg-blue-500", textColor: "text-blue-600 dark:text-blue-400" },
+                      { label: "On Time", count: detailStats.onTime, colorBg: "bg-emerald-500", textColor: "text-emerald-600 dark:text-emerald-400" },
+                      { label: "Late", count: detailStats.late, colorBg: "bg-orange-500", textColor: "text-orange-600 dark:text-orange-400" },
+                      { label: "Sick", count: detailStats.sick, colorBg: "bg-purple-500", textColor: "text-purple-600 dark:text-purple-400" },
+                      { label: "Permission", count: detailStats.permission, colorBg: "bg-amber-400", textColor: "text-amber-600 dark:text-amber-400" },
+                      { label: "Alpha", count: detailStats.alpha, colorBg: "bg-red-500", textColor: "text-red-600 dark:text-red-400" },
+                      { label: "WFH", count: detailStats.wfh, colorBg: "bg-sky-500", textColor: "text-sky-600 dark:text-sky-400" },
                     ].map((item) => {
                       const pct = detailStats.total > 0 && item.label !== "Total" ? ((item.count / detailStats.total) * 100).toFixed(0) : null;
                       return (
                         <div
                           key={item.label}
-                          className="flex items-center gap-2 rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-2 transition-all hover:bg-zinc-950"
+                          className="flex items-center gap-2 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/70 dark:bg-zinc-950/60 p-2 transition-all hover:bg-zinc-100 dark:hover:bg-zinc-950"
                         >
                           <span className={`size-2.5 rounded-full ${item.colorBg} shrink-0 shadow-sm`} />
                           <div className="min-w-0 flex-1">
-                            <p className="text-[10px] font-medium text-zinc-400 truncate">{item.label}</p>
+                            <p className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 truncate">{item.label}</p>
                             <div className="flex items-baseline gap-1 mt-0.5">
                               <span className={`text-xs font-bold ${item.textColor}`}>{item.count}</span>
                               {pct !== null && (
-                                <span className="text-[9px] text-zinc-500 font-medium">({pct}%)</span>
+                                <span className="text-[9px] text-zinc-400 dark:text-zinc-500 font-medium">({pct}%)</span>
                               )}
                             </div>
                           </div>
@@ -1239,49 +1245,49 @@ export function RolesClient({
               </div>
 
               {viewUser.memberStatus === "INTERN" && viewUser.internProfile && (
-                <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
-                  <h4 className="text-xs font-bold uppercase tracking-wide text-zinc-400">Intern Profile</h4>
+                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-900/50 p-4">
+                  <h4 className="text-xs font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Intern Profile</h4>
                   <div className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
-                    <span>Program: <b className="text-zinc-100">{viewUser.internProfile.program}</b></span>
-                    <span>Institution: <b className="text-zinc-100">{viewUser.internProfile.institution}</b></span>
-                    <span>Period: <b className="text-zinc-100">{formatDate(viewUser.internProfile.startDate)} - {formatDate(viewUser.internProfile.endDate)}</b></span>
-                    <span>Mentor: <b className="text-zinc-100">{mentors.find((m) => m.id === viewUser.internProfile?.mentorId)?.name || "Not assigned"}</b></span>
+                    <span>Program: <b className="text-zinc-900 dark:text-zinc-100">{viewUser.internProfile.program}</b></span>
+                    <span>Institution: <b className="text-zinc-900 dark:text-zinc-100">{viewUser.internProfile.institution}</b></span>
+                    <span>Period: <b className="text-zinc-900 dark:text-zinc-100">{formatDate(viewUser.internProfile.startDate)} - {formatDate(viewUser.internProfile.endDate)}</b></span>
+                    <span>Mentor: <b className="text-zinc-900 dark:text-zinc-100">{mentors.find((m) => m.id === viewUser.internProfile?.mentorId)?.name || "Not assigned"}</b></span>
                   </div>
                 </div>
               )}
 
               {/* Attendance History Table Section */}
-              <div className="space-y-3 border-t border-zinc-800 pt-4">
+              <div className="space-y-3 border-t border-zinc-200 dark:border-zinc-800 pt-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Attendance History</p>
-                    <p className="text-xs text-zinc-500">Daftar rekaman presensi staf untuk filter yang dipilih.</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Attendance History</p>
+                    <p className="text-xs text-zinc-400 dark:text-zinc-500">Daftar rekaman presensi staf untuk filter yang dipilih.</p>
                   </div>
                 </div>
 
-                <div className="overflow-hidden rounded-xl border border-zinc-800">
+                <div className="overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800">
                   <Table>
                     <TableHeader>
-                      <TableRow className="border-zinc-800 hover:bg-transparent">
-                        <TableHead className="text-zinc-400">Date</TableHead>
-                        <TableHead className="text-zinc-400">Times</TableHead>
-                        <TableHead className="text-zinc-400">Status</TableHead>
-                        <TableHead className="text-right text-zinc-400">Actions</TableHead>
+                      <TableRow className="border-zinc-200 dark:border-zinc-800 hover:bg-transparent">
+                        <TableHead className="text-zinc-500 dark:text-zinc-400">Date</TableHead>
+                        <TableHead className="text-zinc-500 dark:text-zinc-400">Times</TableHead>
+                        <TableHead className="text-zinc-500 dark:text-zinc-400">Status</TableHead>
+                        <TableHead className="text-right text-zinc-500 dark:text-zinc-400">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {detailRecords.length === 0 ? (
-                        <TableRow className="border-zinc-800">
-                          <TableCell colSpan={4} className="h-20 text-center text-zinc-500">No attendance records found.</TableCell>
+                        <TableRow className="border-zinc-200 dark:border-zinc-800">
+                          <TableCell colSpan={4} className="h-20 text-center text-zinc-400 dark:text-zinc-500">No attendance records found.</TableCell>
                         </TableRow>
                       ) : detailRecords.slice(0, 20).map((record) => (
-                        <TableRow key={record.id} className="border-zinc-800 hover:bg-zinc-900/60">
+                        <TableRow key={record.id} className="border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900/60">
                           <TableCell>{formatDate(record.attendanceDate)}</TableCell>
-                          <TableCell className="font-mono text-xs text-zinc-300">
+                          <TableCell className="font-mono text-xs text-zinc-700 dark:text-zinc-300">
                             {formatTime(record.checkInAt)} - {formatTime(record.checkOutAt)}
                           </TableCell>
                           <TableCell>
-                            <Badge className="border-indigo-500/30 bg-indigo-500/15 text-indigo-300">
+                            <Badge className="border-indigo-500/30 bg-indigo-500/15 text-indigo-700 dark:text-indigo-300">
                               {record.status.replace("_", " ")}
                             </Badge>
                           </TableCell>
@@ -1300,14 +1306,14 @@ export function RolesClient({
             </div>
           )}
           
-          <div className="mt-4 flex items-center justify-end border-t border-zinc-800/80 pt-4">
+          <div className="mt-4 flex items-center justify-end border-t border-zinc-200 dark:border-zinc-800/80 pt-4">
             <Button
               type="button"
               variant="outline"
               onClick={() => setViewOpen(false)}
-              className="h-9 px-5 border-zinc-800 bg-zinc-900 text-xs font-semibold text-zinc-300 hover:bg-zinc-800 hover:text-zinc-50 rounded-xl transition-colors"
+              className="h-9 px-5 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-50 rounded-xl transition-colors"
             >
-              Tutup Details
+              Close
             </Button>
           </div>
         </DialogContent>
