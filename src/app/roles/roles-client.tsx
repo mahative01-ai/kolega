@@ -1055,18 +1055,18 @@ export function RolesClient({
                     <div className="flex items-center gap-2">
                       <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                         <BarChart3 className="size-4 text-blue-500 dark:text-blue-400" />
-                        Distribusi Presensi Member
+                        Member Attendance Distribution
                       </h4>
                       <Badge variant="outline" className="border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300 text-[11px] px-2 py-0.5">
                         {detailScope === "MONTH" ? (
-                          detailMonth ? `${new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric" }).format(new Date(Number(detailMonth.split("-")[0]), Number(detailMonth.split("-")[1]) - 1, 1))}` : "Per Bulan"
-                        ) : "Semua Waktu"}
+                          detailMonth ? `${new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(new Date(Number(detailMonth.split("-")[0]), Number(detailMonth.split("-")[1]) - 1, 1))}` : "Monthly"
+                        ) : "All Time"}
                       </Badge>
                     </div>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 min-h-[18px]">
                       {detailScope === "MONTH"
-                        ? "Akumulasi statistik kehadiran dan status presensi staf per bulan."
-                        : "Akumulasi statistik kehadiran keseluruhan dari presensi awal hingga saat ini."}
+                        ? "Monthly accumulation of member attendance statistics."
+                        : "All-time accumulation of member attendance statistics from initial record."}
                     </p>
                   </div>
 
@@ -1080,7 +1080,7 @@ export function RolesClient({
                         onClick={() => setDetailScope("MONTH")}
                         className="h-7 text-xs px-2.5 font-medium"
                       >
-                        Per Bulan
+                        Monthly
                       </Button>
                       <Button
                         type="button"
@@ -1089,7 +1089,7 @@ export function RolesClient({
                         onClick={() => setDetailScope("ALL")}
                         className="h-7 text-xs px-2.5 font-medium"
                       >
-                        Semua
+                        All
                       </Button>
                     </div>
                     <div className="w-36 h-8 flex items-center shrink-0">
@@ -1102,7 +1102,7 @@ export function RolesClient({
                         />
                       ) : (
                         <div className="h-8 w-36 rounded-md border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-100/50 dark:bg-zinc-950/40 flex items-center justify-center text-[11px] text-zinc-400 dark:text-zinc-500 font-medium">
-                          Semua Waktu
+                          All Time
                         </div>
                       )}
                     </div>
@@ -1113,9 +1113,9 @@ export function RolesClient({
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/70 dark:bg-zinc-950/50 p-3 flex items-center justify-between">
                     <div>
-                      <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">Total Presensi</p>
+                      <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">Total Attendance</p>
                       <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 mt-0.5">
-                        {detailStats.total} <span className="text-xs font-normal text-zinc-400 dark:text-zinc-500">hari</span>
+                        {detailStats.total} <span className="text-xs font-normal text-zinc-400 dark:text-zinc-500">days</span>
                       </p>
                     </div>
                     <div className="flex size-9 items-center justify-center rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400">
@@ -1125,7 +1125,7 @@ export function RolesClient({
 
                   <div className="rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/70 dark:bg-zinc-950/50 p-3 flex items-center justify-between">
                     <div>
-                      <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">Tepat Waktu (On Time)</p>
+                      <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">On Time</p>
                       <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
                         {detailStats.onTime} <span className="text-xs font-normal text-zinc-400 dark:text-zinc-500">({detailStats.total > 0 ? ((detailStats.onTime / detailStats.total) * 100).toFixed(0) : 0}%)</span>
                       </p>
@@ -1137,9 +1137,9 @@ export function RolesClient({
 
                   <div className="rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/70 dark:bg-zinc-950/50 p-3 flex items-center justify-between">
                     <div>
-                      <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">Kerja Dari Rumah (WFH)</p>
+                      <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">Work From Home (WFH)</p>
                       <p className="text-2xl font-bold text-sky-600 dark:text-sky-400 mt-0.5">
-                        {detailStats.wfh} <span className="text-xs font-normal text-zinc-400 dark:text-zinc-500">hari</span>
+                        {detailStats.wfh} <span className="text-xs font-normal text-zinc-400 dark:text-zinc-500">days</span>
                       </p>
                     </div>
                     <div className="flex size-9 items-center justify-center rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-600 dark:text-sky-400">
@@ -1151,14 +1151,14 @@ export function RolesClient({
                 {/* Horizontal Stacked Bar Chart */}
                 <div className="space-y-2 pt-1">
                   <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
-                    <span className="font-semibold text-zinc-700 dark:text-zinc-300">Grafik Akumulasi Proporsi Status</span>
-                    <span>{detailStats.total} Total Record</span>
+                    <span className="font-semibold text-zinc-700 dark:text-zinc-300">Attendance Status Ratio</span>
+                    <span>{detailStats.total} Total Records</span>
                   </div>
 
                   <div className="h-7 w-full rounded-full bg-zinc-100 dark:bg-zinc-950 p-1 border border-zinc-200 dark:border-zinc-800/90 flex overflow-hidden shadow-inner gap-0.5">
                     {detailStats.total === 0 ? (
                       <div className="w-full h-full rounded-full bg-zinc-200/50 dark:bg-zinc-800/40 flex items-center justify-center text-[11px] text-zinc-400 dark:text-zinc-500 font-medium italic">
-                        Belum ada akumulasi presensi untuk periode ini
+                        No attendance data accumulated for this period
                       </div>
                     ) : (
                       <>
@@ -1166,42 +1166,42 @@ export function RolesClient({
                           <div
                             style={{ width: `${(detailStats.onTime / detailStats.total) * 100}%` }}
                             className="h-full bg-emerald-500 hover:bg-emerald-400 transition-all duration-200 rounded-l-full first:rounded-l-full last:rounded-r-full relative group cursor-pointer"
-                            title={`On Time: ${detailStats.onTime} hari (${((detailStats.onTime / detailStats.total) * 100).toFixed(1)}%)`}
+                            title={`On Time: ${detailStats.onTime} days (${((detailStats.onTime / detailStats.total) * 100).toFixed(1)}%)`}
                           />
                         )}
                         {detailStats.late > 0 && (
                           <div
                             style={{ width: `${(detailStats.late / detailStats.total) * 100}%` }}
                             className="h-full bg-orange-500 hover:bg-orange-400 transition-all duration-200 first:rounded-l-full last:rounded-r-full relative group cursor-pointer"
-                            title={`Late: ${detailStats.late} hari (${((detailStats.late / detailStats.total) * 100).toFixed(1)}%)`}
+                            title={`Late: ${detailStats.late} days (${((detailStats.late / detailStats.total) * 100).toFixed(1)}%)`}
                           />
                         )}
                         {detailStats.sick > 0 && (
                           <div
                             style={{ width: `${(detailStats.sick / detailStats.total) * 100}%` }}
                             className="h-full bg-purple-500 hover:bg-purple-400 transition-all duration-200 first:rounded-l-full last:rounded-r-full relative group cursor-pointer"
-                            title={`Sick: ${detailStats.sick} hari (${((detailStats.sick / detailStats.total) * 100).toFixed(1)}%)`}
+                            title={`Sick: ${detailStats.sick} days (${((detailStats.sick / detailStats.total) * 100).toFixed(1)}%)`}
                           />
                         )}
                         {detailStats.permission > 0 && (
                           <div
                             style={{ width: `${(detailStats.permission / detailStats.total) * 100}%` }}
                             className="h-full bg-amber-400 hover:bg-amber-300 transition-all duration-200 first:rounded-l-full last:rounded-r-full relative group cursor-pointer"
-                            title={`Permission: ${detailStats.permission} hari (${((detailStats.permission / detailStats.total) * 100).toFixed(1)}%)`}
+                            title={`Permission: ${detailStats.permission} days (${((detailStats.permission / detailStats.total) * 100).toFixed(1)}%)`}
                           />
                         )}
                         {detailStats.alpha > 0 && (
                           <div
                             style={{ width: `${(detailStats.alpha / detailStats.total) * 100}%` }}
                             className="h-full bg-red-500 hover:bg-red-400 transition-all duration-200 first:rounded-l-full last:rounded-r-full relative group cursor-pointer"
-                            title={`Alpha: ${detailStats.alpha} hari (${((detailStats.alpha / detailStats.total) * 100).toFixed(1)}%)`}
+                            title={`Alpha: ${detailStats.alpha} days (${((detailStats.alpha / detailStats.total) * 100).toFixed(1)}%)`}
                           />
                         )}
                         {detailStats.wfh > 0 && (
                           <div
                             style={{ width: `${(detailStats.wfh / detailStats.total) * 100}%` }}
                             className="h-full bg-sky-500 hover:bg-sky-400 transition-all duration-200 rounded-r-full first:rounded-l-full last:rounded-r-full relative group cursor-pointer"
-                            title={`WFH: ${detailStats.wfh} hari (${((detailStats.wfh / detailStats.total) * 100).toFixed(1)}%)`}
+                            title={`WFH: ${detailStats.wfh} days (${((detailStats.wfh / detailStats.total) * 100).toFixed(1)}%)`}
                           />
                         )}
                       </>
@@ -1261,7 +1261,7 @@ export function RolesClient({
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Attendance History</p>
-                    <p className="text-xs text-zinc-400 dark:text-zinc-500">Daftar rekaman presensi staf untuk filter yang dipilih.</p>
+                    <p className="text-xs text-zinc-400 dark:text-zinc-500">Latest attendance records for the selected filter.</p>
                   </div>
                 </div>
 
