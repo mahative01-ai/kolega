@@ -49,6 +49,43 @@ function formatDate(dateStr: string) {
   }).format(new Date(dateStr));
 }
 
+const STATUS_LABELS: Record<string, string> = {
+  PRESENT: "Present",
+  ON_TIME: "Present",
+  LATE: "Late",
+  WFH: "WFH",
+  PERMISSION: "Permission",
+  SICK: "Sick Leave",
+  DISPENSATION: "Dispensation",
+  LEAVE: "On Leave",
+  ALPHA: "Absent",
+  HOLIDAY: "Holiday",
+  OFF_DAY: "Off Day",
+};
+
+const STATUS_COLORS: Record<string, string> = {
+  PRESENT: "bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900",
+  ON_TIME: "bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900",
+  LATE: "bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-900",
+  WFH: "bg-blue-100 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-900",
+  PERMISSION: "bg-yellow-100 dark:bg-yellow-950/50 text-yellow-800 dark:text-yellow-300 border-yellow-200 dark:border-yellow-900",
+  SICK: "bg-violet-100 dark:bg-violet-950/50 text-violet-800 dark:text-violet-300 border-violet-200 dark:border-violet-900",
+  LEAVE: "bg-sky-100 dark:bg-sky-950/50 text-sky-800 dark:text-sky-300 border-sky-200 dark:border-sky-900",
+  ALPHA: "bg-red-100 dark:bg-red-950/50 text-red-800 dark:text-red-300 border-red-200 dark:border-red-900",
+  HOLIDAY: "bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700",
+  OFF_DAY: "bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700",
+};
+
+function getNonWorkingText(status: string) {
+  switch (status) {
+    case "ALPHA": return "Absent (Alpha) - Journal is locked.";
+    case "SICK": return "Sick Leave - Journal is locked.";
+    case "LEAVE": return "On Leave - Journal is locked.";
+    case "PERMISSION": return "Permission - Journal is locked.";
+    default: return "Journal is locked for non-working day.";
+  }
+}
+
 export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, monthLabel }: Props) {
   const [records, setRecords] = useState<SerializedRecord[]>(initialRecords);
   const [editingRecord, setEditingRecord] = useState<SerializedRecord | null>(null);
@@ -65,12 +102,22 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
   const [createPlan, setCreatePlan] = useState("");
   const [createReport, setCreateReport] = useState("");
 
-  const resolvedCreateMode = useMemo(() => {
-    const existing = records.find(
+  const existingRecordForCreateDate = useMemo(() => {
+    return records.find(
       (r) => r.attendanceDate.split("T")[0] === createDate
     );
-    return existing ? existing.workMode : null;
   }, [records, createDate]);
+
+  const resolvedCreateMode = useMemo(() => {
+    return existingRecordForCreateDate ? existingRecordForCreateDate.workMode : null;
+  }, [existingRecordForCreateDate]);
+
+  const createDateStatus = existingRecordForCreateDate?.status || null;
+
+  const isCreateDateNonWorking = useMemo(() => {
+    if (!createDateStatus) return false;
+    return ["ALPHA", "SICK", "LEAVE", "PERMISSION"].includes(createDateStatus);
+  }, [createDateStatus]);
 
   const handleCreateSubmit = async () => {
     if (!createDate) {
@@ -220,6 +267,7 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
               {records.map((record) => {
                 const isWfh = record.workMode === "WFH";
                 const hasCheckOut = !!record.checkOutAt;
+                const isNonWorking = ["ALPHA", "SICK", "LEAVE", "PERMISSION"].includes(record.status);
 
                 return (
                   <div key={record.id} className="p-5 space-y-4 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/20 transition-colors">
@@ -239,6 +287,14 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
                         >
                           {record.workMode}
                         </Badge>
+                        <Badge
+                          variant="outline"
+                          className={`text-xs ${
+                            STATUS_COLORS[record.status] || "bg-zinc-100 text-zinc-800 border-zinc-200"
+                          }`}
+                        >
+                          {STATUS_LABELS[record.status] || record.status}
+                        </Badge>
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400 mr-2">
@@ -255,8 +311,9 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
                           variant="ghost"
                           size="icon"
                           onClick={() => openEditModal(record)}
-                          className="size-8 rounded border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                          title="Write/Edit Journal"
+                          className="size-8 rounded border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:hover:bg-transparent"
+                          title={isNonWorking ? "Cannot edit journal on non-working days" : "Write/Edit Journal"}
+                          disabled={isNonWorking}
                         >
                           <Edit2 className="size-3.5 text-blue-600 dark:text-blue-400" />
                         </Button>
@@ -265,8 +322,8 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
                           size="icon"
                           onClick={() => handleDelete(record.id)}
                           className="size-8 rounded border border-zinc-200 dark:border-zinc-800 hover:bg-red-50 hover:border-red-200 dark:hover:bg-red-950/20 disabled:opacity-30 disabled:hover:bg-transparent"
-                          title="Delete Journal"
-                          disabled={!record.wfhPlan && !record.wfhReport}
+                          title={isNonWorking ? "Cannot delete journal on non-working days" : "Delete Journal"}
+                          disabled={isNonWorking || (!record.wfhPlan && !record.wfhReport)}
                         >
                           <Trash2 className="size-3.5 text-red-600 dark:text-red-400" />
                         </Button>
@@ -283,9 +340,26 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
                               <BookOpen className="size-3 text-zinc-400" />
                               MORNING WORK PLAN
                             </h4>
-                            <p className="text-sm text-zinc-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed">
-                              {record.wfhPlan || "No work plan submitted."}
-                            </p>
+                            {isNonWorking ? (
+                              record.wfhPlan ? (
+                                <div className="space-y-2">
+                                  <p className="text-sm text-zinc-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed">
+                                    {record.wfhPlan}
+                                  </p>
+                                  <span className="inline-flex items-center gap-1 text-xs text-zinc-400 italic">
+                                    <AlertCircle className="size-3" /> Locked (Non-working day)
+                                  </span>
+                                </div>
+                              ) : (
+                                <p className="text-sm text-zinc-400 dark:text-zinc-500 italic">
+                                  No work plan required.
+                                </p>
+                              )
+                            ) : (
+                              <p className="text-sm text-zinc-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed">
+                                {record.wfhPlan || "No work plan submitted."}
+                              </p>
+                            )}
                           </>
                         ) : (
                           <>
@@ -306,7 +380,22 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
                           <CheckCircle className="size-3 text-zinc-400" />
                           {isWfh ? "END-OF-DAY REPORT" : "WFO JOURNAL / REPORT"}
                         </h4>
-                        {isWfh && !hasCheckOut ? (
+                        {isNonWorking ? (
+                          record.wfhReport ? (
+                            <div className="space-y-2">
+                              <p className="text-sm text-zinc-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed">
+                                {record.wfhReport}
+                              </p>
+                              <span className="inline-flex items-center gap-1 text-xs text-zinc-400 italic">
+                                <AlertCircle className="size-3" /> Locked (Non-working day)
+                              </span>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-zinc-400 dark:text-zinc-500 italic">
+                              {getNonWorkingText(record.status)}
+                            </p>
+                          )
+                        ) : isWfh && !hasCheckOut ? (
                           <div className="flex items-center gap-1.5 py-1 text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/20 rounded px-2.5 w-fit">
                             <AlertCircle className="size-3.5" />
                             In Progress / Not Checked Out
@@ -394,6 +483,18 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
                 className="border-zinc-200 dark:border-zinc-800 focus-visible:ring-blue-500"
               />
             </div>
+            {isCreateDateNonWorking && (
+              <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50/50 p-3 text-xs text-red-800 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300">
+                <AlertCircle className="size-4 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-red-800 dark:text-red-300">Cannot Create Journal</p>
+                  <p className="mt-0.5 leading-relaxed text-red-650 dark:text-red-400">
+                    You are recorded as <strong>{STATUS_LABELS[createDateStatus!] || createDateStatus}</strong> on this date.
+                    You cannot submit a work journal for non-working days. Please request an attendance correction first if you actually worked.
+                  </p>
+                </div>
+              </div>
+            )}
             {(resolvedCreateMode === "WFH" || resolvedCreateMode === null) && (
               <div className="space-y-2">
                 <Label htmlFor="create-plan" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">
@@ -406,6 +507,7 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
                   onChange={(e) => setCreatePlan(e.target.value)}
                   rows={3}
                   className="resize-none border-zinc-200 dark:border-zinc-800 text-zinc-850 dark:text-zinc-200 focus-visible:ring-blue-500"
+                  disabled={isCreateDateNonWorking}
                 />
               </div>
             )}
@@ -420,6 +522,7 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
                 onChange={(e) => setCreateReport(e.target.value)}
                 rows={4}
                 className="resize-none border-zinc-200 dark:border-zinc-800 text-zinc-850 dark:text-zinc-200 focus-visible:ring-blue-500"
+                disabled={isCreateDateNonWorking}
               />
             </div>
           </div>
@@ -427,7 +530,11 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
             <Button variant="outline" onClick={() => setCreateOpen(false)} disabled={isSubmitting} className="border-zinc-200 dark:border-zinc-800">
               Cancel
             </Button>
-            <Button onClick={handleCreateSubmit} disabled={isSubmitting} className="bg-blue-700 hover:bg-blue-800 text-white dark:bg-blue-600 dark:hover:bg-blue-700">
+            <Button 
+              onClick={handleCreateSubmit} 
+              disabled={isSubmitting || isCreateDateNonWorking} 
+              className="bg-blue-700 hover:bg-blue-800 text-white dark:bg-blue-600 dark:hover:bg-blue-700"
+            >
               {isSubmitting ? "Saving..." : "Save Journal"}
             </Button>
           </DialogFooter>

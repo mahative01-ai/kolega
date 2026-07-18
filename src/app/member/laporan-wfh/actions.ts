@@ -17,7 +17,7 @@ export async function updateOwnJournalAction(
   // Fetch the attendance record
   const record = await prisma.attendanceRecord.findUnique({
     where: { id: recordId },
-    select: { id: true, userId: true },
+    select: { id: true, userId: true, status: true },
   });
 
   if (!record) {
@@ -27,6 +27,11 @@ export async function updateOwnJournalAction(
   // Check if it belongs to the logged-in user
   if (record.userId !== currentUser.id) {
     throw new Error("Anda hanya diperbolehkan mengedit jurnal Anda sendiri.");
+  }
+
+  // Prevent journal edit if status is non-working
+  if (["ALPHA", "SICK", "LEAVE", "PERMISSION"].includes(record.status)) {
+    throw new Error("Anda tidak dapat mengedit jurnal pada hari ketika Anda tercatat tidak masuk kerja (Alpa/Sakit/Cuti/Izin).");
   }
 
   // Update the journal fields
@@ -65,6 +70,11 @@ export async function createOwnJournalAction(
   });
 
   if (existingRecord) {
+    // Prevent journal edit if status is non-working
+    if (["ALPHA", "SICK", "LEAVE", "PERMISSION"].includes(existingRecord.status)) {
+      throw new Error("Anda tidak dapat mengedit/membuat jurnal pada hari ketika Anda tercatat tidak masuk kerja (Alpa/Sakit/Cuti/Izin).");
+    }
+
     // If it exists, update it using its existing workMode
     await prisma.attendanceRecord.update({
       where: { id: existingRecord.id },
