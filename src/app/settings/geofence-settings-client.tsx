@@ -58,7 +58,7 @@ export function GeofenceSettingsClient({ studios }: Props) {
   // Get current device GPS location
   function handleDetectLocation() {
     if (!navigator.geolocation) {
-      setError("Browser Anda tidak mendukung deteksi lokasi GPS.");
+      setError("Your browser does not support GPS location detection.");
       return;
     }
 
@@ -74,11 +74,11 @@ export function GeofenceSettingsClient({ studios }: Props) {
       (err) => {
         setGpsLoading(false);
         if (err.code === 1) {
-          setError("Izin akses lokasi ditolak oleh browser.");
+          setError("Location access permission denied by browser.");
         } else if (err.code === 2) {
-          setError("Lokasi tidak dapat dideteksi. Pastikan GPS perangkat aktif.");
+          setError("Location could not be detected. Make sure device GPS is active.");
         } else {
-          setError("Gagal mendeteksi lokasi.");
+          setError("Failed to detect location.");
         }
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -94,15 +94,15 @@ export function GeofenceSettingsClient({ studios }: Props) {
         const lng = currentGeofence.longitude.trim() === "" ? null : Number(currentGeofence.longitude);
 
         if (lat !== null && (isNaN(lat) || lat < -90 || lat > 90)) {
-          throw new Error("Latitude harus bernilai angka antara -90 hingga 90.");
+          throw new Error("Latitude must be a number between -90 and 90.");
         }
         if (lng !== null && (isNaN(lng) || lng < -180 || lng > 180)) {
-          throw new Error("Longitude harus bernilai angka antara -180 hingga 180.");
+          throw new Error("Longitude must be a number between -180 and 180.");
         }
 
         const radius = Number(currentGeofence.radiusMeters);
         if (isNaN(radius) || radius <= 0) {
-          throw new Error("Radius geofence harus bernilai angka positif.");
+          throw new Error("Geofence radius must be a positive number.");
         }
 
         await updateStudioGeofenceAction(selectedStudioId, {
@@ -111,10 +111,10 @@ export function GeofenceSettingsClient({ studios }: Props) {
           radiusMeters: radius,
         });
 
-        setSavedMsg("Semua konfigurasi geofence berhasil disimpan.");
+        setSavedMsg("All geofence configurations successfully saved.");
         setTimeout(() => setSavedMsg(""), 3000);
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Gagal menyimpan.");
+        setError(err instanceof Error ? err.message : "Failed to save.");
       }
     });
   }
@@ -148,21 +148,21 @@ export function GeofenceSettingsClient({ studios }: Props) {
       <div className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="grid gap-1.5">
-            <Label htmlFor="geo-latitude" className="text-zinc-700 dark:text-zinc-300">Latitude Koordinat</Label>
+            <Label htmlFor="geo-latitude" className="text-zinc-700 dark:text-zinc-300">Latitude Coordinate</Label>
             <Input
               id="geo-latitude"
               type="text"
-              placeholder="cth. -6.2088"
+              placeholder="e.g. -6.2088"
               value={currentGeofence.latitude}
               onChange={(e) => updateField("latitude", e.target.value)}
             />
           </div>
           <div className="grid gap-1.5">
-            <Label htmlFor="geo-longitude" className="text-zinc-700 dark:text-zinc-300">Longitude Koordinat</Label>
+            <Label htmlFor="geo-longitude" className="text-zinc-700 dark:text-zinc-300">Longitude Coordinate</Label>
             <Input
               id="geo-longitude"
               type="text"
-              placeholder="cth. 106.8456"
+              placeholder="e.g. 106.8456"
               value={currentGeofence.longitude}
               onChange={(e) => updateField("longitude", e.target.value)}
             />
@@ -170,16 +170,16 @@ export function GeofenceSettingsClient({ studios }: Props) {
         </div>
 
         <div className="grid gap-1.5">
-          <Label htmlFor="geo-radius" className="text-zinc-700 dark:text-zinc-300">Radius Geofence (Meter)</Label>
+          <Label htmlFor="geo-radius" className="text-zinc-700 dark:text-zinc-300">Geofence Radius (Meters)</Label>
           <Input
             id="geo-radius"
             type="number"
-            placeholder="cth. 100"
+            placeholder="e.g. 100"
             value={currentGeofence.radiusMeters}
             onChange={(e) => updateField("radiusMeters", Number(e.target.value))}
           />
           <p className="text-[10px] text-zinc-400">
-            Jarak toleransi maksimal (dalam meter) bagi staf untuk dapat melakukan presensi kehadiran di kantor.
+            Maximum tolerance distance (in meters) for staff to perform attendance presences.
           </p>
         </div>
 
@@ -196,12 +196,12 @@ export function GeofenceSettingsClient({ studios }: Props) {
             ) : (
               <Navigation className="size-4" />
             )}
-            Gunakan Lokasi Saat Ini (GPS)
+            Use Current Location (GPS)
           </Button>
 
           <Button onClick={handleSave} disabled={isPending}>
             {isPending && <Loader2 className="size-4 mr-2 animate-spin" />}
-            Simpan Geofence
+            Save Geofence
           </Button>
         </div>
 
@@ -215,7 +215,7 @@ export function GeofenceSettingsClient({ studios }: Props) {
           return (
             <div className="mt-4 rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-sm bg-zinc-50 dark:bg-zinc-950/40 p-2">
               <p className="text-xs font-semibold mb-2 text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5 px-1">
-                Visualisasi Lokasi Studio (Google Maps)
+                Studio Location Visualization (Google Maps)
               </p>
               <iframe
                 src={`https://maps.google.com/maps?q=${latNum},${lngNum}&t=&z=16&ie=UTF8&iwloc=&output=embed`}

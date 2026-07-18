@@ -182,13 +182,13 @@ function LeafletMapPicker({
 }
 
 const WEEKDAYS = [
-  { value: 1, label: "Senin" },
-  { value: 2, label: "Selasa" },
-  { value: 3, label: "Rabu" },
-  { value: 4, label: "Kamis" },
-  { value: 5, label: "Jumat" },
-  { value: 6, label: "Sabtu" },
-  { value: 7, label: "Minggu" },
+  { value: 1, label: "Monday" },
+  { value: 2, label: "Tuesday" },
+  { value: 3, label: "Wednesday" },
+  { value: 4, label: "Thursday" },
+  { value: 5, label: "Friday" },
+  { value: 6, label: "Saturday" },
+  { value: 7, label: "Sunday" },
 ];
 
 export function StudiosClient({ initialStudios }: Props) {
@@ -224,7 +224,7 @@ export function StudiosClient({ initialStudios }: Props) {
 
   function handleDetectAddLocation() {
     if (!navigator.geolocation) {
-      alert("Browser Anda tidak mendukung deteksi lokasi GPS.");
+      alert("Your browser does not support GPS location detection.");
       return;
     }
     setAddGpsLoading(true);
@@ -236,7 +236,7 @@ export function StudiosClient({ initialStudios }: Props) {
       },
       () => {
         setAddGpsLoading(false);
-        alert("Gagal mendeteksi lokasi. Pastikan izin lokasi diberikan dan GPS aktif.");
+        alert("Failed to detect location. Make sure location permissions are granted and GPS is active.");
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
@@ -244,7 +244,7 @@ export function StudiosClient({ initialStudios }: Props) {
 
   function handleDetectEditLocation() {
     if (!navigator.geolocation) {
-      alert("Browser Anda tidak mendukung deteksi lokasi GPS.");
+      alert("Your browser does not support GPS location detection.");
       return;
     }
     setEditGpsLoading(true);
@@ -256,7 +256,7 @@ export function StudiosClient({ initialStudios }: Props) {
       },
       () => {
         setEditGpsLoading(false);
-        alert("Gagal mendeteksi lokasi. Pastikan izin lokasi diberikan dan GPS aktif.");
+        alert("Failed to detect location. Make sure location permissions are granted and GPS is active.");
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
@@ -364,7 +364,7 @@ export function StudiosClient({ initialStudios }: Props) {
           setAddWeekStart("1");
         }
       } catch (err: unknown) {
-        setAddError(err instanceof Error ? err.message : "Gagal menyimpan studio.");
+        setAddError(err instanceof Error ? err.message : "Failed to save studio.");
       }
     });
   };
@@ -407,7 +407,7 @@ export function StudiosClient({ initialStudios }: Props) {
           setEditingStudio(null);
         }
       } catch (err: unknown) {
-        setEditError(err instanceof Error ? err.message : "Gagal memperbarui studio.");
+        setEditError(err instanceof Error ? err.message : "Failed to update studio.");
       }
     });
   };
@@ -420,13 +420,13 @@ export function StudiosClient({ initialStudios }: Props) {
           setStudios(studios.map((s) => (s.id === id ? res.studio : s)));
         }
       } catch (err: unknown) {
-        alert(err instanceof Error ? err.message : "Gagal mengubah status aktif studio.");
+        alert(err instanceof Error ? err.message : "Failed to change studio active status.");
       }
     });
   };
 
   const handleDeleteStudio = (studio: Studio) => {
-    if (!confirm(`Hapus studio "${studio.name}" secara permanen? Studio yang masih dipakai data lain akan otomatis ditolak sistem.`)) {
+    if (!confirm(`Permanently delete studio "${studio.name}"? Studios still referenced by other data will be automatically rejected by the system.`)) {
       return;
     }
 
@@ -437,7 +437,7 @@ export function StudiosClient({ initialStudios }: Props) {
           setStudios(studios.filter((s) => s.id !== res.deletedId));
         }
       } catch (err: unknown) {
-        alert(err instanceof Error ? err.message : "Gagal menghapus studio.");
+        alert(err instanceof Error ? err.message : "Failed to delete studio.");
       }
     });
   };
@@ -450,13 +450,13 @@ export function StudiosClient({ initialStudios }: Props) {
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari nama, slug, atau alamat studio..."
+            placeholder="Search studio name, slug, or address..."
             className="pl-9"
           />
         </div>
         <Button onClick={() => setAddOpen(true)} className="w-full sm:w-auto">
           <Plus className="size-4 mr-1.5" />
-          Tambah Cabang Studio
+          Add Branch Studio
         </Button>
       </div>
 
@@ -464,9 +464,9 @@ export function StudiosClient({ initialStudios }: Props) {
         <CardHeader>
           <CardTitle className="text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
             <Building2 className="size-5 text-blue-700 dark:text-blue-400" />
-            Daftar Cabang Studio
+            Branch Studio List
           </CardTitle>
-          <CardDescription>Cabang fisik studio aktif untuk validasi Geofence GPS presensi.</CardDescription>
+          <CardDescription>Active physical branch studios for GPS geofence presence validation.</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -475,7 +475,7 @@ export function StudiosClient({ initialStudios }: Props) {
                 <TableRow>
                   <TableHead onClick={() => handleSort("name")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                     <div className="flex items-center gap-1">
-                      Nama Studio <ArrowUpDown className="size-3 text-zinc-400" />
+                      Studio Name <ArrowUpDown className="size-3 text-zinc-400" />
                     </div>
                   </TableHead>
                   <TableHead onClick={() => handleSort("slug")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
@@ -485,12 +485,12 @@ export function StudiosClient({ initialStudios }: Props) {
                   </TableHead>
                   <TableHead onClick={() => handleSort("address")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                     <div className="flex items-center gap-1">
-                      Alamat & Lokasi <ArrowUpDown className="size-3 text-zinc-400" />
+                      Address & Location <ArrowUpDown className="size-3 text-zinc-400" />
                     </div>
                   </TableHead>
                   <TableHead onClick={() => handleSort("geofence")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                     <div className="flex items-center gap-1">
-                      Koordinat Geofence <ArrowUpDown className="size-3 text-zinc-400" />
+                      Geofence Coordinates <ArrowUpDown className="size-3 text-zinc-400" />
                     </div>
                   </TableHead>
                   <TableHead onClick={() => handleSort("radius")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
@@ -500,7 +500,7 @@ export function StudiosClient({ initialStudios }: Props) {
                   </TableHead>
                   <TableHead onClick={() => handleSort("weekStart")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                     <div className="flex items-center gap-1">
-                      Hari Mulai <ArrowUpDown className="size-3 text-zinc-400" />
+                      Start Day <ArrowUpDown className="size-3 text-zinc-400" />
                     </div>
                   </TableHead>
                   <TableHead onClick={() => handleSort("isActive")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
@@ -508,14 +508,14 @@ export function StudiosClient({ initialStudios }: Props) {
                       Status <ArrowUpDown className="size-3 text-zinc-400" />
                     </div>
                   </TableHead>
-                  <TableHead className="text-right">Aksi</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {sortedAndFilteredStudios.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-8 text-zinc-500 text-sm">
-                      Tidak ada data studio ditemukan.
+                      No studio data found.
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -535,13 +535,13 @@ export function StudiosClient({ initialStudios }: Props) {
                           </span>
                         ) : (
                           <Badge variant="outline" className="text-zinc-500 font-normal">
-                            Belum Disetel
+                            Not Set
                           </Badge>
                         )}
                       </TableCell>
-                      <TableCell className="text-xs font-mono">{s.radiusMeters} meter</TableCell>
+                      <TableCell className="text-xs font-mono">{s.radiusMeters} meters</TableCell>
                       <TableCell className="text-xs">
-                        {WEEKDAYS.find((wd) => wd.value === s.weekStartDay)?.label || "Senin"}
+                        {WEEKDAYS.find((wd) => wd.value === s.weekStartDay)?.label || "Monday"}
                       </TableCell>
                       <TableCell>
                         <Button
@@ -556,7 +556,7 @@ export function StudiosClient({ initialStudios }: Props) {
                               : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 border-zinc-200 dark:border-zinc-800"
                           )}
                         >
-                          {s.isActive ? "Aktif" : "Nonaktif"}
+                          {s.isActive ? "Active" : "Inactive"}
                         </Button>
                       </TableCell>
                       <TableCell className="text-right">
@@ -575,8 +575,8 @@ export function StudiosClient({ initialStudios }: Props) {
                             size="sm"
                             disabled={isPending}
                             onClick={() => handleDeleteStudio(s)}
-                            className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/20"
-                            title="Hapus studio"
+                            className="h-8 w-8 p-0 text-red-650 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/20"
+                            title="Delete studio"
                           >
                             <Trash2 className="size-3.5" />
                           </Button>
@@ -595,36 +595,36 @@ export function StudiosClient({ initialStudios }: Props) {
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Tambah Cabang Studio</DialogTitle>
-            <DialogDescription>Daftarkan entitas studio cabang baru ke sistem.</DialogDescription>
+            <DialogTitle>Add Branch Studio</DialogTitle>
+            <DialogDescription>Register a new branch studio entity to the system.</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleAddSubmit} className="space-y-4">
             <div className="grid gap-1.5">
-              <Label htmlFor="add-name">Nama Studio *</Label>
+              <Label htmlFor="add-name">Studio Name *</Label>
               <Input
                 id="add-name"
-                placeholder="misal: Studio Kipa"
+                placeholder="e.g. Studio Kipa"
                 value={addName}
                 onChange={(e) => handleNameChange(e.target.value, false)}
                 required
               />
             </div>
             <div className="grid gap-1.5">
-              <Label htmlFor="add-slug">Slug Studio *</Label>
+              <Label htmlFor="add-slug">Studio Slug *</Label>
               <Input
                 id="add-slug"
-                placeholder="misal: studio-kipa"
+                placeholder="e.g. studio-kipa"
                 value={addSlug}
                 onChange={(e) => setAddSlug(e.target.value)}
                 required
               />
-              <p className="text-[10px] text-zinc-500">Gunakan huruf kecil, angka, dan tanda hubung (-).</p>
+              <p className="text-[10px] text-zinc-500">Use lowercase letters, numbers, and hyphens (-).</p>
             </div>
             <div className="grid gap-1.5">
-              <Label htmlFor="add-address">Alamat Fisik</Label>
+              <Label htmlFor="add-address">Physical Address</Label>
               <Input
                 id="add-address"
-                placeholder="Alamat lengkap studio"
+                placeholder="Full studio address"
                 value={addAddress}
                 onChange={(e) => setAddAddress(e.target.value)}
               />
@@ -667,11 +667,11 @@ export function StudiosClient({ initialStudios }: Props) {
               ) : (
                 <Navigation className="size-3.5 text-blue-600 dark:text-blue-400" />
               )}
-              Gunakan Lokasi Saat Ini
+              Use Current Location
             </Button>
 
             <div className="grid gap-1.5">
-              <Label>Peta Lokasi (Klik / Geser Pin untuk Mengatur Koordinat)</Label>
+              <Label>Location Map (Click / Drag Pin to Set Coordinates)</Label>
               <LeafletMapPicker
                 lat={parseFloat(addLat) || -6.200000}
                 lng={parseFloat(addLng) || 106.816666}
@@ -683,7 +683,7 @@ export function StudiosClient({ initialStudios }: Props) {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
-                <Label htmlFor="add-radius">Radius Absen (Meter)</Label>
+                <Label htmlFor="add-radius">Presence Radius (Meters)</Label>
                 <Input
                   id="add-radius"
                   type="number"
@@ -693,7 +693,7 @@ export function StudiosClient({ initialStudios }: Props) {
                 />
               </div>
               <div className="grid gap-1.5">
-                <Label htmlFor="add-week">Hari Mulai Kerja Mingguan</Label>
+                <Label htmlFor="add-week">Weekly Work Start Day</Label>
                 <select
                   id="add-week"
                   className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2.5 text-sm outline-none"
@@ -717,10 +717,10 @@ export function StudiosClient({ initialStudios }: Props) {
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setAddOpen(false)} disabled={isPending}>
-                Batal
+                Cancel
               </Button>
               <Button type="submit" disabled={isPending}>
-                {isPending ? "Menyimpan..." : "Simpan Studio"}
+                {isPending ? "Saving..." : "Save Studio"}
               </Button>
             </DialogFooter>
           </form>
@@ -731,36 +731,36 @@ export function StudiosClient({ initialStudios }: Props) {
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Edit Cabang Studio</DialogTitle>
-            <DialogDescription>Perbarui informasi cabang studio terpilih.</DialogDescription>
+            <DialogTitle>Edit Branch Studio</DialogTitle>
+            <DialogDescription>Update selected branch studio information.</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleEditSubmit} className="space-y-4">
             <div className="grid gap-1.5">
-              <Label htmlFor="edit-name">Nama Studio *</Label>
+              <Label htmlFor="edit-name">Studio Name *</Label>
               <Input
                 id="edit-name"
-                placeholder="misal: Studio Kipa"
+                placeholder="e.g. Studio Kipa"
                 value={editName}
                 onChange={(e) => handleNameChange(e.target.value, true)}
                 required
               />
             </div>
             <div className="grid gap-1.5">
-              <Label htmlFor="edit-slug">Slug Studio *</Label>
+              <Label htmlFor="edit-slug">Studio Slug *</Label>
               <Input
                 id="edit-slug"
-                placeholder="misal: studio-kipa"
+                placeholder="e.g. studio-kipa"
                 value={editSlug}
                 onChange={(e) => setEditSlug(e.target.value)}
                 required
               />
-              <p className="text-[10px] text-zinc-500">Gunakan huruf kecil, angka, dan tanda hubung (-).</p>
+              <p className="text-[10px] text-zinc-500">Use lowercase letters, numbers, and hyphens (-).</p>
             </div>
             <div className="grid gap-1.5">
-              <Label htmlFor="edit-address">Alamat Fisik</Label>
+              <Label htmlFor="edit-address">Physical Address</Label>
               <Input
                 id="edit-address"
-                placeholder="Alamat lengkap studio"
+                placeholder="Full studio address"
                 value={editAddress}
                 onChange={(e) => setEditAddress(e.target.value)}
               />
@@ -803,11 +803,11 @@ export function StudiosClient({ initialStudios }: Props) {
               ) : (
                 <Navigation className="size-3.5 text-blue-600 dark:text-blue-400" />
               )}
-              Gunakan Lokasi Saat Ini
+              Use Current Location
             </Button>
 
             <div className="grid gap-1.5">
-              <Label>Peta Lokasi (Klik / Geser Pin untuk Mengatur Koordinat)</Label>
+              <Label>Location Map (Click / Drag Pin to Set Coordinates)</Label>
               <LeafletMapPicker
                 lat={parseFloat(editLat) || -6.200000}
                 lng={parseFloat(editLng) || 106.816666}
@@ -819,7 +819,7 @@ export function StudiosClient({ initialStudios }: Props) {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
-                <Label htmlFor="edit-radius">Radius Absen (Meter)</Label>
+                <Label htmlFor="edit-radius">Presence Radius (Meters)</Label>
                 <Input
                   id="edit-radius"
                   type="number"
@@ -829,7 +829,7 @@ export function StudiosClient({ initialStudios }: Props) {
                 />
               </div>
               <div className="grid gap-1.5">
-                <Label htmlFor="edit-week">Hari Mulai Kerja Mingguan</Label>
+                <Label htmlFor="edit-week">Weekly Work Start Day</Label>
                 <select
                   id="edit-week"
                   className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2.5 text-sm outline-none"
@@ -846,17 +846,17 @@ export function StudiosClient({ initialStudios }: Props) {
             </div>
 
             {editError && (
-              <p className="text-xs text-red-600 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded p-2">
+              <p className="text-xs text-red-650 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded p-2">
                 {editError}
               </p>
             )}
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setEditOpen(false)} disabled={isPending}>
-                Batal
+                Cancel
               </Button>
               <Button type="submit" disabled={isPending}>
-                {isPending ? "Menyimpan..." : "Simpan Perubahan"}
+                {isPending ? "Saving..." : "Save Changes"}
               </Button>
             </DialogFooter>
           </form>

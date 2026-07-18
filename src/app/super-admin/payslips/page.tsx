@@ -30,9 +30,9 @@ export default async function PayslipsPage() {
     <DashboardShell
       user={dashboardUser}
       currentPath="/super-admin/payslips"
-      title="Slip Gaji"
-      description="Manajemen rincian dan distribusi slip gaji tim."
-      badge="Manajemen"
+      title="Payslips"
+      description="Management of monthly team payslip details and distribution."
+      badge="Management"
     >
       <div className="p-6">
         <PayslipClient

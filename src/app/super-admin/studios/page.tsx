@@ -17,8 +17,8 @@ export default async function StudiosPage() {
       user={currentUser}
       currentPath="/super-admin/studios"
       badge="Super Admin"
-      title="Manajemen Studio & Lokasi"
-      description="Daftarkan cabang studio baru, ubah koordinat geofence, radius, dan status aktifnya secara global."
+      title="Studio & Location Management"
+      description="Register new branch studios, modify geofence coordinates, radius, and active status globally."
     >
       <StudiosClient initialStudios={studios} />
     </DashboardShell>

@@ -41,13 +41,13 @@ type Props = {
 
 // Display order: Mon(1), Tue(2), Wed(3), Thu(4), Fri(5), Sat(6), Sun(0)
 const DISPLAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
-const DAY_LABELS_DISPLAY = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
+const DAY_LABELS_DISPLAY = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const WEEK_START_OPTIONS = [
-  { label: "Senin", value: 1 },
-  { label: "Selasa", value: 2 },
-  { label: "Minggu", value: 0 },
-  { label: "Sabtu", value: 6 },
+  { label: "Monday", value: 1 },
+  { label: "Tuesday", value: 2 },
+  { label: "Sunday", value: 0 },
+  { label: "Saturday", value: 6 },
 ];
 
 function defaultRules(): DayRule[] {
@@ -153,7 +153,7 @@ export function WorkdaySettingsClient({ studios }: Props) {
     if (rule?.isWorkday && !rule.isOptional) requiredDays++;
   }
 
-  const monthLabel = new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric" }).format(now);
+  const monthLabel = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(now);
 
   function handleSave() {
     setSavedMsg("");
@@ -168,10 +168,10 @@ export function WorkdaySettingsClient({ studios }: Props) {
           graceMinutes: Number(currentPolicy.graceMinutes),
           alphaCutoffTime: currentPolicy.alphaCutoffTime,
         });
-        setSavedMsg("Semua pengaturan berhasil disimpan.");
+        setSavedMsg("All configurations successfully saved.");
         setTimeout(() => setSavedMsg(""), 3000);
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Gagal menyimpan.");
+        setError(err instanceof Error ? err.message : "Failed to save.");
       }
     });
   }
@@ -200,14 +200,14 @@ export function WorkdaySettingsClient({ studios }: Props) {
       {/* 1. Grace Period & Presence Time Policy Form */}
       <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-none">
         <div className="mb-4">
-          <p className="text-base font-semibold text-zinc-900 dark:text-zinc-50">Kebijakan Jam & Toleransi Presensi (Grace Period)</p>
+          <p className="text-base font-semibold text-zinc-900 dark:text-zinc-50">Presence Time & Tolerance Policy (Grace Period)</p>
           <p className="text-sm text-zinc-500">
-            Sesuaikan aturan keterlambatan dan jam kerja untuk anggota studio.
+            Adjust lateness rules and working hours for studio members.
           </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
           <div className="grid gap-1.5">
-            <Label htmlFor="policy-in" className="text-zinc-700 dark:text-zinc-300">Jam Masuk (Check-in)</Label>
+            <Label htmlFor="policy-in" className="text-zinc-700 dark:text-zinc-300">Check-in Time</Label>
             <div className="relative">
               <Clock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-400" />
               <Input
@@ -220,7 +220,7 @@ export function WorkdaySettingsClient({ studios }: Props) {
             </div>
           </div>
           <div className="grid gap-1.5">
-            <Label htmlFor="policy-out" className="text-zinc-700 dark:text-zinc-300">Jam Pulang (Check-out)</Label>
+            <Label htmlFor="policy-out" className="text-zinc-700 dark:text-zinc-300">Check-out Time</Label>
             <div className="relative">
               <Clock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-400" />
               <Input
@@ -233,7 +233,7 @@ export function WorkdaySettingsClient({ studios }: Props) {
             </div>
           </div>
           <div className="grid gap-1.5">
-            <Label htmlFor="policy-grace" className="text-zinc-700 dark:text-zinc-300">Toleransi Terlambat (Menit)</Label>
+            <Label htmlFor="policy-grace" className="text-zinc-700 dark:text-zinc-300">Late Tolerance (Minutes)</Label>
             <div className="relative">
               <ShieldAlert className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-400" />
               <Input
@@ -248,7 +248,7 @@ export function WorkdaySettingsClient({ studios }: Props) {
             </div>
           </div>
           <div className="grid gap-1.5">
-            <Label htmlFor="policy-cutoff" className="text-zinc-700 dark:text-zinc-300">Batas Absen (Alpha Cutoff)</Label>
+            <Label htmlFor="policy-cutoff" className="text-zinc-700 dark:text-zinc-300">Alpha Cutoff Time</Label>
             <div className="relative">
               <Clock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-400" />
               <Input
@@ -267,12 +267,12 @@ export function WorkdaySettingsClient({ studios }: Props) {
       <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-none">
         <div className="mb-4">
           <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-base font-semibold text-zinc-900 dark:text-zinc-50">Hari Kerja Mingguan</span>
+            <span className="text-base font-semibold text-zinc-900 dark:text-zinc-50">Weekly Workdays</span>
           </div>
           <p className="text-sm text-zinc-500">
-            Klik untuk cycling: <span className="font-medium text-zinc-700 dark:text-zinc-300">Off</span> →{" "}
-            <span className="font-medium text-zinc-900 dark:text-zinc-50">Wajib</span> →{" "}
-            <span className="font-medium text-amber-600">Opsional</span> → Off
+            Click to cycle: <span className="font-medium text-zinc-700 dark:text-zinc-300">Off</span> →{" "}
+            <span className="font-medium text-zinc-900 dark:text-zinc-50">Required</span> →{" "}
+            <span className="font-medium text-amber-600">Optional</span> → Off
           </p>
         </div>
         <div className="flex flex-wrap gap-2 mb-4">
@@ -292,7 +292,7 @@ export function WorkdaySettingsClient({ studios }: Props) {
                     ? "border-amber-400 bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-300"
                     : "border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 text-zinc-400"
                 }`}
-                title={isRequired ? "Hari Wajib" : isOptional ? "Opsional" : "Libur"}
+                title={isRequired ? "Required" : isOptional ? "Optional" : "Off"}
               >
                 {label}
                 {isOptional && (
@@ -307,7 +307,7 @@ export function WorkdaySettingsClient({ studios }: Props) {
         <div className="flex flex-wrap gap-4 text-xs text-zinc-500">
           <span className="flex items-center gap-1.5">
             <span className="inline-block size-2.5 rounded-full bg-zinc-900 dark:bg-zinc-100" />
-            Wajib:{" "}
+            Required:{" "}
             {currentRules
               .filter((r) => r.isWorkday && !r.isOptional)
               .map((r) => DAY_LABELS_DISPLAY[DISPLAY_ORDER.indexOf(r.dayOfWeek)])
@@ -315,7 +315,7 @@ export function WorkdaySettingsClient({ studios }: Props) {
           </span>
           <span className="flex items-center gap-1.5">
             <span className="inline-block size-2.5 rounded-full bg-amber-400" />
-            Opsional:{" "}
+            Optional:{" "}
             {currentRules
               .filter((r) => r.isWorkday && r.isOptional)
               .map((r) => DAY_LABELS_DISPLAY[DISPLAY_ORDER.indexOf(r.dayOfWeek)])
@@ -324,7 +324,7 @@ export function WorkdaySettingsClient({ studios }: Props) {
         </div>
         {currentRules.some((r) => r.isOptional) && (
           <p className="mt-3 text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-lg px-3 py-2">
-            💡 Hari opsional dihitung hadir jika masuk, tapi tidak dihitung alpha jika tidak masuk.
+            💡 Optional days count as present if attended, but are not marked as absent (alpha) if missed.
           </p>
         )}
       </div>
@@ -334,8 +334,8 @@ export function WorkdaySettingsClient({ studios }: Props) {
         {/* Week Starts On */}
         <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-none">
           <div className="mb-4">
-            <p className="text-base font-semibold text-zinc-900 dark:text-zinc-50">Minggu Dimulai</p>
-            <p className="text-sm text-zinc-500">Digunakan untuk laporan mingguan</p>
+            <p className="text-base font-semibold text-zinc-900 dark:text-zinc-50">Week Starts On</p>
+            <p className="text-sm text-zinc-500">Used for weekly reports</p>
           </div>
           <div className="grid grid-cols-2 gap-2">
             {WEEK_START_OPTIONS.map((opt) => (
@@ -359,19 +359,19 @@ export function WorkdaySettingsClient({ studios }: Props) {
         {/* Monthly Count */}
         <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-none">
           <div className="mb-4">
-            <p className="text-base font-semibold text-zinc-900 dark:text-zinc-50">Jumlah Hari Kerja Bulanan</p>
-            <p className="text-sm text-zinc-500">Cara hitung total hari kerja per bulan</p>
+            <p className="text-base font-semibold text-zinc-900 dark:text-zinc-50">Monthly Workday Count</p>
+            <p className="text-sm text-zinc-500">How to calculate total workdays per month</p>
           </div>
           <div
             className="rounded-lg border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 p-3 cursor-default"
           >
             <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-semibold text-emerald-900 dark:text-emerald-300">Berbasis Kalender</span>
-              <Badge className="text-[10px] bg-emerald-500 text-white border-0">Aktif</Badge>
+              <span className="text-sm font-semibold text-emerald-900 dark:text-emerald-300">Calendar-based</span>
+              <Badge className="text-[10px] bg-emerald-500 text-white border-0">Active</Badge>
             </div>
-            <p className="text-xs text-emerald-700 dark:text-emerald-400">Hitung hari wajib di tiap bulan secara dinamis</p>
+            <p className="text-xs text-emerald-700 dark:text-emerald-400">Dinamically calculate required days in each month</p>
             <p className="mt-2 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
-              {monthLabel}: {requiredDays} hari wajib
+              {monthLabel}: {requiredDays} required days
             </p>
           </div>
         </div>
@@ -383,7 +383,7 @@ export function WorkdaySettingsClient({ studios }: Props) {
         {error && <p className="text-sm text-red-600">{error}</p>}
         <Button onClick={handleSave} disabled={isPending}>
           {isPending ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
-          Simpan Pengaturan Studio
+          Save Studio Settings
         </Button>
       </div>
     </div>

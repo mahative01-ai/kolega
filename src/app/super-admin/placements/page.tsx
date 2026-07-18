@@ -36,8 +36,8 @@ export default async function PlacementsPage() {
       user={currentUser}
       currentPath="/super-admin/placements"
       badge="Super Admin"
-      title="Manajemen Placement (Penempatan)"
-      description="Tempatkan staf atau anak magang ke studio penugasan cabang tertentu untuk memvalidasi lokasi check-in WFO mereka."
+      title="Placement Management"
+      description="Assign staff or interns to a specific branch studio to validate their WFO check-in location."
     >
       <PlacementsClient
         initialPlacements={placements}

@@ -73,12 +73,12 @@ export default async function SettingsPage({
     <DashboardShell
       user={user}
       currentPath="/settings"
-      badge="Pengaturan"
-      title="Pengaturan"
+      badge="Settings"
+      title="Settings"
       description={
         isSuperAdmin
-          ? "Kelola kata sandi profil dan hari kerja studio."
-          : "Kelola profil pribadi dan kata sandi akun Kolega Anda."
+          ? "Manage profile password and studio workdays."
+          : "Manage your personal profile and Kolega account password."
       }
     >
       <Tabs value={activeTab}>
@@ -89,7 +89,7 @@ export default async function SettingsPage({
               render={
                 <Link href="/settings?tab=profile">
                   <UserIcon className="size-4 mr-1.5" />
-                  Profil Saya
+                  My Profile
                 </Link>
               }
             />
@@ -98,7 +98,7 @@ export default async function SettingsPage({
               render={
                 <Link href="/settings?tab=workday">
                   <Clock className="size-4 mr-1.5" />
-                  Hari Kerja
+                  Workdays
                 </Link>
               }
             />
@@ -116,10 +116,10 @@ export default async function SettingsPage({
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
                     <Clock className="size-5 text-blue-700" />
-                    Pengaturan Hari Kerja
+                    Workday Settings
                   </CardTitle>
                   <CardDescription>
-                    Konfigurasikan hari yang dihitung sebagai hari kerja dan batas jam masuk/pulang.
+                    Configure the days counted as workdays and check-in/out limits.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

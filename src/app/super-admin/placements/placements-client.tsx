@@ -53,9 +53,9 @@ type Props = {
 };
 
 const statusLabel: Record<string, string> = {
-  ACTIVE: "Aktif",
-  COMPLETED: "Selesai",
-  CANCELLED: "Batal",
+  ACTIVE: "Active",
+  COMPLETED: "Completed",
+  CANCELLED: "Cancelled",
 };
 
 const statusColor: Record<string, string> = {
@@ -135,7 +135,7 @@ export function PlacementsClient({ initialPlacements, users, studios }: Props) {
   function formatDate(dVal: Date | string | null) {
     if (!dVal) return "-";
     const d = new Date(dVal);
-    return new Intl.DateTimeFormat("id-ID", {
+    return new Intl.DateTimeFormat("en-US", {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -146,7 +146,7 @@ export function PlacementsClient({ initialPlacements, users, studios }: Props) {
   const handleAddSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!addUserId || !addStudioId || !addStartDate) {
-      setAddError("Harap lengkapi semua bidang wajib.");
+      setAddError("Please fill in all required fields.");
       return;
     }
     setAddError("");
@@ -180,13 +180,13 @@ export function PlacementsClient({ initialPlacements, users, studios }: Props) {
           setAddReason("");
         }
       } catch (err: unknown) {
-        setAddError(err instanceof Error ? err.message : "Gagal membuat penempatan.");
+        setAddError(err instanceof Error ? err.message : "Failed to create placement.");
       }
     });
   };
 
   const handleUpdateStatus = (id: string, status: "COMPLETED" | "CANCELLED") => {
-    if (!confirm(`Apakah Anda yakin ingin menandai penempatan ini sebagai ${statusLabel[status]}?`)) {
+    if (!confirm(`Are you sure you want to mark this placement as ${statusLabel[status]}?`)) {
       return;
     }
 
@@ -204,7 +204,7 @@ export function PlacementsClient({ initialPlacements, users, studios }: Props) {
           setPlacements(placements.map((p) => (p.id === id ? updated : p)));
         }
       } catch (err: unknown) {
-        alert(err instanceof Error ? err.message : "Gagal memperbarui status penempatan.");
+        alert(err instanceof Error ? err.message : "Failed to update placement status.");
       }
     });
   };
@@ -217,13 +217,13 @@ export function PlacementsClient({ initialPlacements, users, studios }: Props) {
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari nama lengkap anggota..."
+            placeholder="Search member's full name..."
             className="pl-9"
           />
         </div>
         <Button onClick={() => setAddOpen(true)} className="w-full sm:w-auto">
           <Plus className="size-4 mr-1.5" />
-          Tambah Penempatan
+          Add Placement
         </Button>
       </div>
 
@@ -231,10 +231,10 @@ export function PlacementsClient({ initialPlacements, users, studios }: Props) {
         <CardHeader>
           <CardTitle className="text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
             <Milestone className="size-5 text-blue-700 dark:text-blue-400" />
-            Daftar Penempatan Staf/Magang
+            Staff/Intern Placement List
           </CardTitle>
           <CardDescription>
-            Riwayat penugasan studio fisik sementara untuk validasi GPS WFO presensi harian anggota.
+            Temporary physical studio assignment history for member WFO GPS presence validation.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -244,38 +244,38 @@ export function PlacementsClient({ initialPlacements, users, studios }: Props) {
                 <TableRow>
                   <TableHead onClick={() => handleSort("userName")} className="cursor-pointer select-none hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50">
                     <div className="flex items-center gap-1.5">
-                      Anggota <ArrowUpDown className="size-3.5 text-zinc-400" />
+                      Member <ArrowUpDown className="size-3.5 text-zinc-400" />
                     </div>
                   </TableHead>
                   <TableHead onClick={() => handleSort("studio")} className="cursor-pointer select-none hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50">
                     <div className="flex items-center gap-1.5">
-                      Studio Penugasan <ArrowUpDown className="size-3.5 text-zinc-400" />
+                      Assigned Studio <ArrowUpDown className="size-3.5 text-zinc-400" />
                     </div>
                   </TableHead>
                   <TableHead onClick={() => handleSort("startDate")} className="cursor-pointer select-none hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50">
                     <div className="flex items-center gap-1.5">
-                      Tanggal Mulai <ArrowUpDown className="size-3.5 text-zinc-400" />
+                      Start Date <ArrowUpDown className="size-3.5 text-zinc-400" />
                     </div>
                   </TableHead>
                   <TableHead onClick={() => handleSort("endDate")} className="cursor-pointer select-none hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50">
                     <div className="flex items-center gap-1.5">
-                      Tanggal Selesai <ArrowUpDown className="size-3.5 text-zinc-400" />
+                      End Date <ArrowUpDown className="size-3.5 text-zinc-400" />
                     </div>
                   </TableHead>
-                  <TableHead>Keterangan / Alasan</TableHead>
+                  <TableHead>Notes / Reason</TableHead>
                   <TableHead onClick={() => handleSort("status")} className="cursor-pointer select-none hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50">
                     <div className="flex items-center gap-1.5">
                       Status <ArrowUpDown className="size-3.5 text-zinc-400" />
                     </div>
                   </TableHead>
-                  <TableHead className="text-right">Aksi</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {sortedAndFilteredPlacements.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8 text-zinc-500 text-sm">
-                      Tidak ada data penempatan ditemukan.
+                      No placement data found.
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -293,7 +293,7 @@ export function PlacementsClient({ initialPlacements, users, studios }: Props) {
                       <TableCell className="text-xs font-mono">{formatDate(p.startDate)}</TableCell>
                       <TableCell className="text-xs font-mono">
                         {p.endDate ? formatDate(p.endDate) : (
-                          <span className="text-zinc-400 italic text-[11px]">Seterusnya</span>
+                          <span className="text-zinc-400 italic text-[11px]">Ongoing</span>
                         )}
                       </TableCell>
                       <TableCell className="max-w-[200px] truncate text-xs" title={p.reason || "-"}>
@@ -315,21 +315,21 @@ export function PlacementsClient({ initialPlacements, users, studios }: Props) {
                               className="text-[10px] h-7 px-2 border-zinc-200 dark:border-zinc-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 hover:text-emerald-600 shadow-none"
                             >
                               <Check className="size-3 mr-1" />
-                              Selesaikan
+                              Complete
                             </Button>
                             <Button
                               variant="outline"
                               size="sm"
                               disabled={isPending}
                               onClick={() => handleUpdateStatus(p.id, "CANCELLED")}
-                              className="text-[10px] h-7 px-2 border-zinc-200 dark:border-zinc-800 hover:bg-red-50 dark:hover:bg-red-950/20 hover:text-red-600 shadow-none"
+                              className="text-[10px] h-7 px-2 border-zinc-200 dark:border-zinc-800 hover:bg-red-50 dark:hover:bg-red-950/20 hover:text-red-650 shadow-none"
                             >
                               <X className="size-3 mr-1" />
-                              Batalkan
+                              Cancel
                             </Button>
                           </div>
                         ) : (
-                          <span className="text-xs text-zinc-400 italic">Selesai</span>
+                          <span className="text-xs text-zinc-400 italic">Completed</span>
                         )}
                       </TableCell>
                     </TableRow>
@@ -345,23 +345,23 @@ export function PlacementsClient({ initialPlacements, users, studios }: Props) {
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Tambah Penempatan (Placement)</DialogTitle>
-            <DialogDescription>Tugaskan anggota ke studio cabang lain dalam masa penugasan tertentu.</DialogDescription>
+            <DialogTitle>Add Placement</DialogTitle>
+            <DialogDescription>Assign a member to another branch studio for a specific period.</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleAddSubmit} className="space-y-4">
             <div className="grid gap-1.5">
-              <Label>Anggota *</Label>
+              <Label>Member *</Label>
               <Combobox
                 options={userOptions}
                 value={addUserId}
                 onChange={setAddUserId}
-                placeholder="Pilih Anggota"
-                searchPlaceholder="Cari anggota..."
+                placeholder="Select Member"
+                searchPlaceholder="Search member..."
               />
             </div>
 
             <div className="grid gap-1.5">
-              <Label htmlFor="add-studio">Studio Tujuan *</Label>
+              <Label htmlFor="add-studio">Target Studio *</Label>
               <select
                 id="add-studio"
                 className="h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-2.5 text-sm outline-none"
@@ -369,7 +369,7 @@ export function PlacementsClient({ initialPlacements, users, studios }: Props) {
                 onChange={(e) => setAddStudioId(e.target.value)}
                 required
               >
-                <option value="">Pilih Studio Cabang</option>
+                <option value="">Select Branch Studio</option>
                 {studios.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name}
@@ -380,7 +380,7 @@ export function PlacementsClient({ initialPlacements, users, studios }: Props) {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
-                <Label htmlFor="add-start">Tanggal Mulai *</Label>
+                <Label htmlFor="add-start">Start Date *</Label>
                 <Input
                   id="add-start"
                   type="date"
@@ -390,7 +390,7 @@ export function PlacementsClient({ initialPlacements, users, studios }: Props) {
                 />
               </div>
               <div className="grid gap-1.5">
-                <Label htmlFor="add-end">Tanggal Selesai (Opsional)</Label>
+                <Label htmlFor="add-end">End Date (Optional)</Label>
                 <Input
                   id="add-end"
                   type="date"
@@ -401,27 +401,27 @@ export function PlacementsClient({ initialPlacements, users, studios }: Props) {
             </div>
 
             <div className="grid gap-1.5">
-              <Label htmlFor="add-reason">Keterangan / Alasan Penempatan</Label>
+              <Label htmlFor="add-reason">Notes / Reason for Placement</Label>
               <Input
                 id="add-reason"
-                placeholder="misal: Diperbantukan untuk project X di cabang Bandung"
+                placeholder="e.g. Assigned to help project X in Bandung branch"
                 value={addReason}
                 onChange={(e) => setAddReason(e.target.value)}
               />
             </div>
 
             {addError && (
-              <p className="text-xs text-red-600 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded p-2">
+              <p className="text-xs text-red-650 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded p-2">
                 {addError}
               </p>
             )}
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setAddOpen(false)} disabled={isPending}>
-                Batal
+                Cancel
               </Button>
               <Button type="submit" disabled={isPending}>
-                {isPending ? "Menyimpan..." : "Simpan Penempatan"}
+                {isPending ? "Saving..." : "Save Placement"}
               </Button>
             </DialogFooter>
           </form>

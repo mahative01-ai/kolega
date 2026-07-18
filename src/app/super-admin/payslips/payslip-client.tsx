@@ -61,8 +61,8 @@ type Payslip = {
 };
 
 const MONTH_NAMES = [
-  "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-  "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
 ];
 
 export function PayslipClient({
@@ -110,10 +110,10 @@ export function PayslipClient({
         const res = await deleteAllPayslipsAction(activeStudioId);
         if (res.success) {
           setPayslips(payslips.filter((p) => p.user.defaultStudioId !== activeStudioId));
-          toast.success(`Semua slip gaji untuk studio ${activeStudioName} berhasil dihapus.`);
+          toast.success(`All payslips for studio ${activeStudioName} successfully deleted.`);
         }
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Gagal menghapus slip gaji.");
+        toast.error(err instanceof Error ? err.message : "Failed to delete payslip.");
       }
     });
   };
@@ -127,19 +127,19 @@ export function PayslipClient({
 
   const handleBulkGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const activeStudioName = studios.find((s) => s.id === activeStudioId)?.name ?? "Studio Terpilih";
-    if (!confirm(`Apakah Anda yakin ingin menggenerasi slip gaji default untuk semua staf TEAM di studio ${activeStudioName} pada periode ${MONTH_NAMES[bulkMonth - 1]} ${bulkYear}?`)) {
+    const activeStudioName = studios.find((s) => s.id === activeStudioId)?.name ?? "Selected Studio";
+    if (!confirm(`Are you sure you want to generate default payslips for all TEAM staff in studio ${activeStudioName} for ${MONTH_NAMES[bulkMonth - 1]} ${bulkYear}?`)) {
       return;
     }
 
     startBulkTransition(async () => {
       try {
         const res = await bulkGeneratePayslipsAction(bulkMonth, bulkYear, activeStudioId);
-        toast.success(`Berhasil! ${res.generatedCount} slip gaji baru berhasil digenerasi.`);
+        toast.success(`Success! ${res.generatedCount} new payslips successfully generated.`);
         setIsBulkOpen(false);
         window.location.reload();
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Gagal menggenerasi slip gaji masal.");
+        toast.error(err instanceof Error ? err.message : "Failed to generate bulk payslips.");
       }
     });
   };
@@ -160,17 +160,17 @@ export function PayslipClient({
         let pdfData: { name: string; type: string; dataUrl: string } | null = null;
         if (editPdfFile) {
           if (editPdfFile.type !== "application/pdf") {
-            toast.error("File slip gaji harus berupa PDF.");
+            toast.error("Payslip file must be a PDF.");
             return;
           }
           if (editPdfFile.size > 2 * 1024 * 1024) {
-            toast.error("Ukuran PDF maksimal 2MB.");
+            toast.error("Maximum PDF size is 2MB.");
             return;
           }
           const dataUrl = await new Promise<string>((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = () => resolve(String(reader.result));
-            reader.onerror = () => reject(new Error("Gagal membaca file PDF."));
+            reader.onerror = () => reject(new Error("Failed to read PDF file."));
             reader.readAsDataURL(editPdfFile);
           });
           pdfData = {
@@ -206,10 +206,10 @@ export function PayslipClient({
           })
         );
 
-        toast.success("Slip gaji berhasil diperbarui.");
+        toast.success("Payslip successfully updated.");
         setIsEditOpen(false);
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Gagal memperbarui slip gaji.");
+        toast.error(err instanceof Error ? err.message : "Failed to update payslip.");
       }
     });
   };
@@ -224,19 +224,19 @@ export function PayslipClient({
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedMemberId) {
-      toast.error("Silakan pilih member terlebih dahulu.");
+      toast.error("Please select a member first.");
       return;
     }
     if (!pdfFile) {
-      toast.error("PDF slip gaji wajib diupload.");
+      toast.error("PDF payslip must be uploaded.");
       return;
     }
     if (pdfFile.type !== "application/pdf") {
-      toast.error("File slip gaji harus berupa PDF.");
+      toast.error("Payslip file must be a PDF.");
       return;
     }
     if (pdfFile.size > 2 * 1024 * 1024) {
-      toast.error("Ukuran PDF maksimal 2MB.");
+      toast.error("Maximum PDF size is 2MB.");
       return;
     }
 
@@ -245,7 +245,7 @@ export function PayslipClient({
         const dataUrl = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = () => resolve(String(reader.result));
-          reader.onerror = () => reject(new Error("Gagal membaca file PDF."));
+          reader.onerror = () => reject(new Error("Failed to read PDF file."));
           reader.readAsDataURL(pdfFile);
         });
 
@@ -275,28 +275,28 @@ export function PayslipClient({
         };
 
         setPayslips([addedPayslip, ...payslips]);
-        toast.success("Slip gaji berhasil dikirim ke member.");
+        toast.success("Payslip successfully sent to member.");
         setIsOpen(false);
         // Reset form
         setSelectedMemberId("");
         setNotes("");
         setPdfFile(null);
       } catch (err) {
-        const errMsg = err instanceof Error ? err.message : "Gagal membuat slip gaji.";
+        const errMsg = err instanceof Error ? err.message : "Failed to create payslip.";
         toast.error(errMsg);
       }
     });
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Apakah Anda yakin ingin menghapus slip gaji ini?")) return;
+    if (!confirm("Are you sure you want to delete this payslip?")) return;
 
     try {
       await deletePayslip(id);
       setPayslips(payslips.filter((p) => p.id !== id));
-      toast.success("Slip gaji berhasil dihapus.");
+      toast.success("Payslip successfully deleted.");
     } catch (err) {
-      const errMsg = err instanceof Error ? err.message : "Gagal menghapus slip gaji.";
+      const errMsg = err instanceof Error ? err.message : "Failed to delete payslip.";
       toast.error(errMsg);
     }
   };
@@ -313,9 +313,9 @@ export function PayslipClient({
     <div className="space-y-6 font-sans">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Daftar Slip Gaji</h2>
+          <h2 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Payslips List</h2>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Kelola dan kirim rincian slip gaji tim bulanan.
+            Manage and send monthly team payslip details.
           </p>
         </div>
       </div>
@@ -343,7 +343,7 @@ export function PayslipClient({
                 ) : (
                   <Trash2 className="size-4" />
                 )}
-                Hapus Semua
+                Delete All
               </Button>
             )}
 
@@ -355,19 +355,19 @@ export function PayslipClient({
                 className="flex items-center gap-2 border-zinc-200 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
               >
                 <RefreshCw className="size-4" />
-                Generate Massal
+                Bulk Generate
               </Button>
               <DialogContent className="max-w-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 font-sans">
                 <DialogHeader>
-                  <DialogTitle>Generate Slip Gaji Massal</DialogTitle>
+                  <DialogTitle>Bulk Generate Payslips</DialogTitle>
                   <DialogDescription>
-                    Buat slip gaji kosong periode tertentu untuk semua staf aktif berstatus TEAM di studio ini secara massal.
+                    Create bulk empty payslips for a specific period for all active TEAM staff in this studio.
                   </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleBulkGenerate} className="space-y-4 py-2">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="bulkMonth">Bulan</Label>
+                      <Label htmlFor="bulkMonth">Month</Label>
                       <select
                         id="bulkMonth"
                         className="w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-zinc-100"
@@ -423,30 +423,30 @@ export function PayslipClient({
                 onClick={() => setIsOpen(true)}
               >
                 <Plus className="size-4" />
-                Buat Slip Gaji
+                Create Payslip
               </Button>
               <DialogContent className="max-w-md bg-white dark:bg-zinc-950 font-sans border border-zinc-200 dark:border-zinc-800">
                 <DialogHeader>
-                  <DialogTitle>Buat Slip Gaji Baru</DialogTitle>
+                  <DialogTitle>Create New Payslip</DialogTitle>
                   <DialogDescription>
-                    Masukkan rincian gaji untuk member tim di studio ini. Member akan menerima notifikasi otomatis.
+                    Enter payslip details for the team member in this studio. The member will receive an automatic notification.
                   </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleCreate} className="space-y-4 py-2">
                   <div className="space-y-2">
-                    <Label>Pilih Member</Label>
+                    <Label>Select Member</Label>
                     <Combobox
                       options={memberOptions}
                       value={selectedMemberId}
                       onChange={setSelectedMemberId}
-                      placeholder="Pilih Anggota..."
-                      searchPlaceholder="Cari anggota..."
+                      placeholder="Select Member..."
+                      searchPlaceholder="Search member..."
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="month">Bulan</Label>
+                      <Label htmlFor="month">Month</Label>
                       <select
                         id="month"
                         className="w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-zinc-100"
@@ -461,7 +461,7 @@ export function PayslipClient({
                       </select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="year">Tahun</Label>
+                      <Label htmlFor="year">Year</Label>
                       <select
                         id="year"
                         className="w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-zinc-100"
@@ -478,10 +478,10 @@ export function PayslipClient({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="notes">Catatan (Opsional)</Label>
+                    <Label htmlFor="notes">Notes (Optional)</Label>
                     <Textarea
                       id="notes"
-                      placeholder="Misal: Bonus performa, keterlambatan 3x"
+                      placeholder="e.g. Performance bonus, lateness 3x"
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       rows={2}
@@ -489,14 +489,14 @@ export function PayslipClient({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="pdfFile">Upload PDF Slip Gaji</Label>
+                    <Label htmlFor="pdfFile">Upload Payslip PDF</Label>
                     <Input
                       id="pdfFile"
                       type="file"
                       accept="application/pdf"
                       onChange={(e) => setPdfFile(e.target.files?.[0] ?? null)}
                     />
-                    <p className="text-xs text-zinc-500">PDF maksimal 2MB. File akan tampil di halaman Slip Gaji Saya.</p>
+                    <p className="text-xs text-zinc-500">PDF max 2MB. File will appear on My Payslip page.</p>
                   </div>
 
                   <DialogFooter className="pt-2">
@@ -506,7 +506,7 @@ export function PayslipClient({
                       onClick={() => setIsOpen(false)}
                       disabled={isPending}
                     >
-                      Batal
+                      Cancel
                     </Button>
                     <Button
                       type="submit"
@@ -516,10 +516,10 @@ export function PayslipClient({
                       {isPending ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Mengirim...
+                          Sending...
                         </>
                       ) : (
-                        "Kirim Slip"
+                        "Send Payslip"
                       )}
                     </Button>
                   </DialogFooter>
@@ -552,7 +552,7 @@ export function PayslipClient({
           return (
             <TabsContent key={studio.id} value={studio.id}>
               <div className="mb-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/30 dark:text-zinc-300">
-                {studioMembers.length} Team aktif di {studio.name}. {sortedStudioPayslips.length} slip sudah diterbitkan.
+                {studioMembers.length} active Team in {studio.name}. {sortedStudioPayslips.length} payslips have been published.
               </div>
               <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-950">
         <Table>
@@ -560,22 +560,22 @@ export function PayslipClient({
             <TableRow>
               <TableHead onClick={() => handleSort("name")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                 <div className="flex items-center gap-1">
-                  Nama Anggota <ArrowUpDown className="size-3 text-zinc-400" />
+                  Member Name <ArrowUpDown className="size-3 text-zinc-400" />
                 </div>
               </TableHead>
               <TableHead onClick={() => handleSort("period")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                 <div className="flex items-center gap-1">
-                  Periode <ArrowUpDown className="size-3 text-zinc-400" />
+                  Period <ArrowUpDown className="size-3 text-zinc-400" />
                 </div>
               </TableHead>
-              <TableHead className="text-right">Aksi</TableHead>
+              <TableHead className="text-right">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {sortedStudioPayslips.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={3} className="text-center py-8 text-zinc-500">
-                  Belum ada data slip gaji yang diterbitkan.
+                  No payslips have been published yet.
                 </TableCell>
               </TableRow>
             ) : (
@@ -593,7 +593,7 @@ export function PayslipClient({
                         <Button
                           size="icon"
                           variant="outline"
-                          title="Lihat PDF"
+                          title="View PDF"
                           onClick={() => window.open(`/payslip/${p.id}`, "_blank")}
                         >
                           <FileText className="size-4" />
@@ -602,7 +602,7 @@ export function PayslipClient({
                       <Button
                         size="icon"
                         variant="outline"
-                        title="Edit Slip Gaji"
+                        title="Edit Payslip"
                         onClick={() => handleOpenEdit(p)}
                       >
                         <Pencil className="size-4" />
@@ -610,7 +610,7 @@ export function PayslipClient({
                       <Button
                         size="icon"
                         variant="outline"
-                        title="Cetak Slip Gaji"
+                        title="Print Payslip"
                         onClick={() => window.open(`/payslip/${p.id}`, "_blank")}
                       >
                         <Printer className="size-4" />
@@ -619,7 +619,7 @@ export function PayslipClient({
                         size="icon"
                         variant="outline"
                         className="text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
-                        title="Hapus Slip"
+                        title="Delete Payslip"
                         onClick={() => handleDelete(p.id)}
                       >
                         <Trash2 className="size-4" />
@@ -641,29 +641,29 @@ export function PayslipClient({
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="max-w-md bg-white dark:bg-zinc-950 font-sans border border-zinc-200 dark:border-zinc-800">
           <DialogHeader>
-            <DialogTitle>Edit Slip Gaji</DialogTitle>
+            <DialogTitle>Edit Payslip</DialogTitle>
             <DialogDescription>
-              Ubah rincian gaji, catatan, atau lampiran PDF slip gaji untuk member tim.
+              Modify salary details, notes, or payslip PDF attachment for the team member.
             </DialogDescription>
           </DialogHeader>
           {editingPayslip && (
             <form onSubmit={handleEdit} className="space-y-4 py-2">
               <div className="space-y-1">
-                <p className="text-xs font-semibold text-zinc-500">Nama Anggota</p>
+                <p className="text-xs font-semibold text-zinc-500">Member Name</p>
                 <p className="text-sm font-bold text-zinc-900 dark:text-zinc-50">{editingPayslip.user.name}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-xs font-semibold text-zinc-500">Periode</p>
+                <p className="text-xs font-semibold text-zinc-500">Period</p>
                 <p className="text-sm font-medium text-zinc-850 dark:text-zinc-200">
                   {MONTH_NAMES[editingPayslip.month - 1]} {editingPayslip.year}
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="editNotes">Catatan (Opsional)</Label>
+                <Label htmlFor="editNotes">Notes (Optional)</Label>
                 <Textarea
                   id="editNotes"
-                  placeholder="Catatan slip gaji"
+                  placeholder="Payslip notes"
                   value={editNotes}
                   onChange={(e) => setEditNotes(e.target.value)}
                   rows={2}
@@ -671,7 +671,7 @@ export function PayslipClient({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="editPdfFile">Upload/Ganti PDF Slip Gaji</Label>
+                <Label htmlFor="editPdfFile">Upload/Replace Payslip PDF</Label>
                 <Input
                   id="editPdfFile"
                   type="file"
@@ -680,27 +680,27 @@ export function PayslipClient({
                 />
                 {editingPayslip.pdfFileName ? (
                   <p className="text-[10px] text-zinc-500">
-                    File saat ini: <span className="font-semibold">{editingPayslip.pdfFileName}</span>
+                    Current file: <span className="font-semibold">{editingPayslip.pdfFileName}</span>
                   </p>
                 ) : (
                   <p className="text-[10px] text-amber-600 dark:text-amber-500 font-semibold">
-                    Belum ada lampiran PDF slip gaji (status: Draft).
+                    No payslip PDF attached yet (status: Draft).
                   </p>
                 )}
               </div>
 
               <DialogFooter className="pt-2">
                 <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)} disabled={isEditPending}>
-                  Batal
+                  Cancel
                 </Button>
                 <Button type="submit" disabled={isEditPending} className="bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950">
                   {isEditPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Menyimpan...
+                      Saving...
                     </>
                   ) : (
-                    "Simpan"
+                    "Save"
                   )}
                 </Button>
               </DialogFooter>
