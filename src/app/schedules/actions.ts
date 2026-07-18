@@ -64,7 +64,7 @@ export async function setWfhScheduleAction(userId: string, workDateKey: string) 
       update: {
         workMode: "WFH",
         studioId,
-        note: "WFH diatur oleh Super Admin",
+        note: "WFH set by Super Admin",
         createdById: actor.id,
       },
       create: {
@@ -72,7 +72,7 @@ export async function setWfhScheduleAction(userId: string, workDateKey: string) 
         workDate,
         workMode: "WFH",
         studioId,
-        note: "WFH diatur oleh Super Admin",
+        note: "WFH set by Super Admin",
         createdById: actor.id,
       },
     }),

@@ -33,9 +33,9 @@ export function DashboardCharts({ summary, dailyTrend }: Props) {
   const composition = useMemo(() => {
     if (totalSummary === 0) return [];
     const items = [
-      { label: "Tepat Waktu", count: summary.onTime, color: "bg-emerald-500", textColor: "text-emerald-500" },
-      { label: "Terlambat", count: summary.late, color: "bg-orange-500", textColor: "text-orange-500" },
-      { label: "Sakit / Izin / Cuti", count: summary.sick + summary.permission + summary.leave, color: "bg-blue-500", textColor: "text-blue-500" },
+      { label: "On Time", count: summary.onTime, color: "bg-emerald-500", textColor: "text-emerald-500" },
+      { label: "Late", count: summary.late, color: "bg-orange-500", textColor: "text-orange-500" },
+      { label: "Sick / Permission / Leave", count: summary.sick + summary.permission + summary.leave, color: "bg-blue-500", textColor: "text-blue-500" },
       { label: "Alpha", count: summary.alpha, color: "bg-red-500", textColor: "text-red-500" },
     ];
     return items.map(item => ({
@@ -73,14 +73,14 @@ export function DashboardCharts({ summary, dailyTrend }: Props) {
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-semibold flex items-center gap-1.5 text-zinc-900 dark:text-zinc-50">
             <ClipboardList className="size-4 text-violet-700 dark:text-violet-400" />
-            Komposisi Status Kehadiran
+            Attendance Status Breakdown
           </CardTitle>
-          <CardDescription>Persentase status dari total {totalSummary} catatan</CardDescription>
+          <CardDescription>Status percentage out of {totalSummary} total records</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 py-4 flex-1 flex flex-col justify-center">
           {totalSummary === 0 ? (
             <div className="text-center py-8 text-zinc-400 dark:text-zinc-600 text-xs">
-              Belum ada data status presensi
+              No attendance status data yet
             </div>
           ) : (
             <div className="space-y-3.5 w-full">
@@ -108,14 +108,14 @@ export function DashboardCharts({ summary, dailyTrend }: Props) {
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-semibold flex items-center gap-1.5 text-zinc-900 dark:text-zinc-50">
             <TrendingUp className="size-4 text-emerald-700 dark:text-emerald-400" />
-            Tren Kehadiran
+            Attendance Trend
           </CardTitle>
-          <CardDescription>Grafik tren kehadiran 7 hari terakhir</CardDescription>
+          <CardDescription>Attendance trend chart for the last 7 days</CardDescription>
         </CardHeader>
         <CardContent className="py-4 flex-1 flex flex-col justify-center items-center">
           {!trendPoints ? (
             <div className="text-center py-8 text-zinc-400 dark:text-zinc-600 text-xs">
-              Data tren harian belum memadai
+              Daily trend data is insufficient
             </div>
           ) : (
             <div className="w-full">

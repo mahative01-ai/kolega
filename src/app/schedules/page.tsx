@@ -444,7 +444,7 @@ export default async function WorkSchedulesPage({
                       {isRealHoliday ? (
                         "Holiday"
                       ) : isWfh ? (
-                        schedule?.note ?? "WFH from monthly schedule"
+                        (schedule?.note ?? "WFH from monthly schedule").replace("WFH diatur oleh Super Admin", "WFH set by Super Admin")
                       ) : hasReplacement ? (
                         "Replacement Day (WFO)"
                       ) : (

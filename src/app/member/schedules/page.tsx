@@ -79,7 +79,7 @@ export default async function MemberSchedulesPage() {
               {todaySchedule?.workMode ?? "Default WFO"}
             </Badge>
             {todaySchedule?.note ? (
-              <p className="mt-2 text-sm text-zinc-500">{todaySchedule.note}</p>
+              <p className="mt-2 text-sm text-zinc-500">{todaySchedule.note.replace("WFH diatur oleh Super Admin", "WFH set by Super Admin")}</p>
             ) : null}
           </CardContent>
         </Card>
@@ -118,7 +118,7 @@ export default async function MemberSchedulesPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>{schedule.studio?.name ?? currentUser.defaultStudio?.name ?? "-"}</TableCell>
-                      <TableCell>{schedule.note ?? "-"}</TableCell>
+                      <TableCell>{schedule.note?.replace("WFH diatur oleh Super Admin", "WFH set by Super Admin") ?? "-"}</TableCell>
                     </TableRow>
                   ))
                 )}
