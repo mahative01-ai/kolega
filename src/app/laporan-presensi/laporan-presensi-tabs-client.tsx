@@ -4,9 +4,17 @@ import { useMemo, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AttendanceTableBodyClient } from "./attendance-table-body-client";
-import { FileText, Home, ArrowUpDown } from "lucide-react";
+import { FileText, Home, ArrowUpDown, Edit2 } from "lucide-react";
 import { getMood } from "@/lib/moods";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { updateJournalAction } from "./actions";
+import { toast } from "sonner";
+
 
 type SerializedRecord = {
   id: string;
@@ -40,6 +48,8 @@ type Props = {
   records: SerializedRecord[];
   statusColor: Record<string, string>;
   statusLabel: Record<string, string>;
+  studios?: { id: string; name: string }[];
+  isSuperAdmin?: boolean;
 };
 
 function formatDate(dateStr: string) {
@@ -60,12 +70,58 @@ function formatTime(timeStr: string | null) {
   }).format(new Date(timeStr));
 }
 
-export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }: Props) {
+export function LaporanPresensiTabsClient({
+  records,
+  statusColor,
+  statusLabel,
+  studios = [],
+  isSuperAdmin = false,
+}: Props) {
   const [sortField, setSortField] = useState<string>("date");
   const [sortAsc, setSortAsc] = useState<boolean>(false);
   const [studioFilter, setStudioFilter] = useState("ALL");
   const [attendancePage, setAttendancePage] = useState(1);
   const attendancePageSize = 25;
+
+  const [editingRecord, setEditingRecord] = useState<SerializedRecord | null>(null);
+  const [planVal, setPlanVal] = useState("");
+  const [reportVal, setReportVal] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const openEditModal = (record: SerializedRecord) => {
+    setEditingRecord(record);
+    setPlanVal(record.wfhPlan || "");
+    setReportVal(record.wfhReport || "");
+  };
+
+  const closeEditModal = () => {
+    setEditingRecord(null);
+    setPlanVal("");
+    setReportVal("");
+  };
+
+  const handleSave = async () => {
+    if (!editingRecord) return;
+    setIsSubmitting(true);
+    try {
+      const res = await updateJournalAction(editingRecord.id, planVal, reportVal);
+      if (res.success) {
+        toast.success(res.message);
+        
+        // Update local object properties directly for instant local feedback
+        editingRecord.wfhPlan = planVal.trim() || null;
+        editingRecord.wfhReport = reportVal.trim() || null;
+
+        closeEditModal();
+      } else {
+        toast.error("Gagal memperbarui jurnal.");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Terjadi kesalahan.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -77,21 +133,11 @@ export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }:
   };
 
   const studioTabs = useMemo(() => {
-    const names = Array.from(new Set(records.map((record) => record.ownerStudio.name)));
-    if (!names.includes("Kipa")) names.push("Kipa");
-    if (!names.includes("Mahative")) names.push("Mahative");
-
-    const preferred = ["Kipa", "Mahative"];
-    const ordered = [
-      ...preferred.filter((name) => names.includes(name)),
-      ...names.filter((name) => !preferred.includes(name)),
-    ];
-
     return [
       { value: "ALL", label: "All" },
-      ...ordered.map((name) => ({ value: name, label: name.replace(" Studio", "") })),
+      ...studios.map((s) => ({ value: s.name, label: s.name.replace(" Studio", "") })),
     ];
-  }, [records]);
+  }, [studios]);
 
   const sortedRecords = useMemo(() => {
     const scopedRecords =
@@ -151,38 +197,41 @@ export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }:
   );
 
   // WFH-only records
-  const wfhRecords = sortedRecords.filter((r) => r.workMode === "WFH");
+  const journalRecords = sortedRecords.filter((r) => r.workMode === "WFH" || r.workMode === "WFO");
 
   return (
+    <>
     <Tabs defaultValue="attendance-log" className="w-full space-y-3">
-      <div className="flex w-fit max-w-full flex-wrap rounded-lg bg-zinc-100 p-1 dark:bg-zinc-900">
-        {studioTabs.map((studio) => (
-          <button
-            key={studio.value}
-            onClick={() => {
-              setStudioFilter(studio.value);
-              setAttendancePage(1);
-            }}
-            type="button"
-            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-              studioFilter === studio.value
-                ? "bg-white text-zinc-950 shadow-sm dark:bg-zinc-800 dark:text-zinc-50"
-                : "text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
-            }`}
-          >
-            {studio.label}
-          </button>
-        ))}
-      </div>
+      {isSuperAdmin && (
+        <div className="flex w-fit max-w-full flex-wrap rounded-lg bg-zinc-100 p-1 dark:bg-zinc-900">
+          {studioTabs.map((studio) => (
+            <button
+              key={studio.value}
+              onClick={() => {
+                setStudioFilter(studio.value);
+                setAttendancePage(1);
+              }}
+              type="button"
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                studioFilter === studio.value
+                  ? "bg-white text-zinc-950 shadow-sm dark:bg-zinc-800 dark:text-zinc-50"
+                  : "text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
+              }`}
+            >
+              {studio.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       <TabsList className="grid w-full max-w-md grid-cols-2 bg-zinc-100 dark:bg-zinc-900">
         <TabsTrigger value="attendance-log" className="flex items-center gap-1.5">
           <FileText className="size-4" />
           Attendance Log
         </TabsTrigger>
-        <TabsTrigger value="wfh-reports" className="flex items-center gap-1.5">
+        <TabsTrigger value="journals" className="flex items-center gap-1.5">
           <Home className="size-4" />
-          WFH Journal
+          Jurnal Kerja (WFO & WFH)
         </TabsTrigger>
       </TabsList>
 
@@ -306,15 +355,15 @@ export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }:
         </Card>
       </TabsContent>
 
-      <TabsContent value="wfh-reports">
+      <TabsContent value="journals">
         <Card className="shadow-none">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
               <Home className="size-5 text-sky-700 dark:text-sky-400" />
-              WFH Work Plan and Results
+              Jurnal Kerja Harian (WFO & WFH)
             </CardTitle>
             <CardDescription className="text-zinc-500 dark:text-zinc-400">
-              Review morning plans and end-of-day reports from WFH members.
+              Kelola rencana kerja pagi dan laporan hasil kerja sore anggota tim (Team & Intern).
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
@@ -323,21 +372,22 @@ export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }:
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Date</TableHead>
+                  <TableHead>Mode</TableHead>
                   <TableHead>Default Studio</TableHead>
-                  <TableHead>In/Out Time</TableHead>
-                  <TableHead className="w-[30%]">Morning Work Plan</TableHead>
-                  <TableHead className="w-[30%]">End-of-Day Report</TableHead>
+                  <TableHead className="w-[25%]">Morning Work Plan</TableHead>
+                  <TableHead className="w-[25%]">End-of-Day Report / Journal</TableHead>
+                  <TableHead className="w-[10%] text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {wfhRecords.length === 0 ? (
+                {journalRecords.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center text-sm text-zinc-500">
-                      No WFH records found for the selected filter.
+                    <TableCell colSpan={7} className="h-24 text-center text-sm text-zinc-500">
+                      No daily journals found for the selected filter.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  wfhRecords.map((item) => (
+                  journalRecords.map((item) => (
                     <TableRow key={item.id} className="align-top hover:bg-zinc-50/50 dark:hover:bg-zinc-900/10">
                       <TableCell className="font-medium pt-3">
                         <div className="flex items-center gap-2">
@@ -351,20 +401,36 @@ export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }:
                         </div>
                       </TableCell>
                       <TableCell className="pt-3">{formatDate(item.attendanceDate)}</TableCell>
-                      <TableCell className="pt-3">{item.ownerStudio.name}</TableCell>
-                      <TableCell className="pt-3 font-mono text-xs">
-                        <div>In: {formatTime(item.checkInAt)}</div>
-                        <div>Out: {formatTime(item.checkOutAt)}</div>
+                      <TableCell className="pt-3">
+                        <Badge variant="outline" className="text-[10px]">
+                          {item.workMode}
+                        </Badge>
                       </TableCell>
+                      <TableCell className="pt-3">{item.ownerStudio.name}</TableCell>
                       <TableCell className="pt-3 pb-3">
-                        <div className="rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-2.5 text-xs text-zinc-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed">
-                          {item.wfhPlan || "—"}
-                        </div>
+                        {item.workMode === "WFH" ? (
+                          <div className="rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-2.5 text-xs text-zinc-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed">
+                            {item.wfhPlan || "—"}
+                          </div>
+                        ) : (
+                          <span className="text-zinc-400 text-xs italic">WFO (Tidak ada rencana kerja)</span>
+                        )}
                       </TableCell>
                       <TableCell className="pt-3 pb-3">
                         <div className="rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-2.5 text-xs text-zinc-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed">
                           {item.wfhReport || "—"}
                         </div>
+                      </TableCell>
+                      <TableCell className="pt-3 text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openEditModal(item)}
+                          className="size-8"
+                          title="Edit Jurnal"
+                        >
+                          <Edit2 className="size-4 text-blue-600" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))
@@ -375,5 +441,53 @@ export function LaporanPresensiTabsClient({ records, statusColor, statusLabel }:
         </Card>
       </TabsContent>
     </Tabs>
+
+    <Dialog open={!!editingRecord} onOpenChange={(open) => !open && closeEditModal()}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Edit Jurnal Harian</DialogTitle>
+          <DialogDescription>
+            Ubah rencana kerja pagi dan laporan hasil kerja sore untuk {editingRecord?.user.name} pada {editingRecord && formatDate(editingRecord.attendanceDate)}.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          {editingRecord?.workMode === "WFH" && (
+            <div className="space-y-2">
+              <Label htmlFor="plan" className="text-xs font-semibold text-zinc-650">Rencana Kerja (Pagi)</Label>
+              <Textarea
+                id="plan"
+                placeholder="Masukkan rencana kerja pagi..."
+                value={planVal}
+                onChange={(e) => setPlanVal(e.target.value)}
+                rows={4}
+                className="resize-none text-zinc-800 dark:text-zinc-200"
+              />
+            </div>
+          )}
+          <div className="space-y-2">
+            <Label htmlFor="report" className="text-xs font-semibold text-zinc-650">
+              {editingRecord?.workMode === "WFH" ? "Laporan Hasil Kerja (Sore)" : "Jurnal WFO / Hasil Kerja"}
+            </Label>
+            <Textarea
+              id="report"
+              placeholder={editingRecord?.workMode === "WFH" ? "Masukkan laporan hasil kerja sore..." : "Masukkan jurnal WFO hari ini..."}
+              value={reportVal}
+              onChange={(e) => setReportVal(e.target.value)}
+              rows={4}
+              className="resize-none text-zinc-800 dark:text-zinc-200"
+            />
+          </div>
+        </div>
+        <DialogFooter className="gap-2">
+          <Button variant="outline" onClick={closeEditModal} disabled={isSubmitting}>
+            Batal
+          </Button>
+          <Button onClick={handleSave} disabled={isSubmitting}>
+            {isSubmitting ? "Menyimpan..." : "Simpan Perubahan"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }

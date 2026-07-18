@@ -27,6 +27,7 @@ import {
 } from "@/lib/attendance-report";
 import { requireAnyRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { materializeDailyAlpha } from "@/lib/attendance-alpha";
 
 export const dynamic = "force-dynamic";
 
@@ -57,25 +58,33 @@ export default async function AttendanceReportPage({
   const status = normalizeStatus(params.status);
   const { start, endExclusive } = getMonthRange(month);
 
-  const isGlobalSuperAdmin = currentUser.role === "SUPER_ADMIN" && currentUser.defaultStudioId === null;
+  const isSuperAdmin = currentUser.role === "SUPER_ADMIN";
+
+  // Automatically materialize Alpha records for today and yesterday
+  try {
+    await materializeDailyAlpha();
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    await materializeDailyAlpha(yesterday);
+  } catch (err) {
+    console.error("Auto Alpha materialization failed:", err);
+  }
 
   const selectedStudioId =
-    !isGlobalSuperAdmin
+    !isSuperAdmin
       ? (currentUser.defaultStudioId ?? "__unassigned__")
       : undefined;
 
   const baseWhere: Prisma.AttendanceRecordWhereInput = {
     attendanceDate: { gte: start, lt: endExclusive },
-    ...(!isGlobalSuperAdmin
+    ...(selectedStudioId
       ? {
           OR: [
             { ownerStudioId: selectedStudioId },
             { locationStudioId: selectedStudioId }
           ]
         }
-      : selectedStudioId
-        ? { ownerStudioId: selectedStudioId }
-        : {}),
+      : {}),
   };
 
   const detailWhere: Prisma.AttendanceRecordWhereInput = {
@@ -83,7 +92,7 @@ export default async function AttendanceReportPage({
     ...(status !== "ALL" ? { status } : {}),
   };
 
-  const [groups, records] = await Promise.all([
+  const [groups, records, studios] = await Promise.all([
     prisma.attendanceRecord.groupBy({
       by: ["status"],
       where: baseWhere,
@@ -112,6 +121,11 @@ export default async function AttendanceReportPage({
         wfhPlan: true,
         wfhReport: true,
       },
+    }),
+    prisma.studio.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
     }),
   ]);
   const summary = summarizeAttendanceStatuses(groups);
@@ -180,7 +194,7 @@ export default async function AttendanceReportPage({
       badge="PostgreSQL Data"
       title="Attendance Report"
       description={`${formatMonthLabel(month)}. ${
-        isGlobalSuperAdmin
+        isSuperAdmin
           ? "Scope can include all studios."
           : `Scope is locked to ${currentUser.defaultStudio?.name ?? "the Admin studio"}.`
       }`}
@@ -283,6 +297,8 @@ export default async function AttendanceReportPage({
         records={serializedRecords}
         statusColor={ATTENDANCE_STATUS_COLOR}
         statusLabel={ATTENDANCE_STATUS_LABEL}
+        studios={studios}
+        isSuperAdmin={isSuperAdmin}
       />
       </div>
     </DashboardShell>

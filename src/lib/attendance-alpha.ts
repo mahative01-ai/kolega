@@ -57,6 +57,9 @@ export async function materializeDailyAlpha(now = new Date()) {
   let createdCount = 0;
   let processedStudioCount = 0;
 
+  const todayKey = getJakartaDateKey(new Date());
+  const isPastDay = dateKey < todayKey;
+
   for (const studio of studios) {
     const cutoffMinutes = timeToMinutes(
       studio.policies[0]?.alphaCutoffTime,
@@ -64,7 +67,7 @@ export async function materializeDailyAlpha(now = new Date()) {
     );
 
     if (
-      currentMinutes < cutoffMinutes ||
+      (!isPastDay && currentMinutes < cutoffMinutes) ||
       globalHoliday ||
       studio.calendarEvents.length > 0
     ) {

@@ -66,7 +66,7 @@ export function RecentAttendanceTableClient({ records, statusColor, statusLabel 
     <TableBody>
       {records.map((item) => {
         const isWfh = item.workMode === "WFH";
-        const hasDetails = isWfh && (!!item.wfhPlan || !!item.wfhReport);
+        const hasDetails = isWfh ? (!!item.wfhPlan || !!item.wfhReport) : (item.workMode === "WFO" && !!item.wfhReport);
         const isExpanded = expandedId === item.id;
 
         return (
@@ -89,7 +89,7 @@ export function RecentAttendanceTableClient({ records, statusColor, statusLabel 
                       size="icon"
                       className="size-5 rounded p-0 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
                       onClick={() => toggleExpand(item.id)}
-                      title="Lihat Detail Kerja WFH"
+                      title={isWfh ? "Lihat Detail Kerja WFH" : "Lihat Jurnal WFO"}
                     >
                       {isExpanded ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
                     </Button>
@@ -105,33 +105,48 @@ export function RecentAttendanceTableClient({ records, statusColor, statusLabel 
               <TableCell className="font-mono text-xs">{formatTime(item.checkOutAt)}</TableCell>
             </TableRow>
 
-            {/* Collapsible WFH details */}
+            {/* Collapsible WFH/WFO details */}
             {isExpanded && hasDetails && (
               <TableRow className="bg-zinc-50/40 dark:bg-zinc-900/5 hover:bg-zinc-50/40 dark:hover:bg-zinc-900/5">
                 <TableCell colSpan={7} className="p-4 border-t border-zinc-100 dark:border-zinc-800">
-                  <div className="grid gap-4 md:grid-cols-2 max-w-4xl mx-auto">
-                    {/* WFH Plan details */}
-                    <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-3 space-y-1">
-                      <h5 className="text-[11px] font-bold text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
-                        <BookOpen className="size-3 text-blue-600" />
-                        RENCANA KERJA (PAGI)
-                      </h5>
-                      <p className="text-xs text-zinc-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed">
-                        {item.wfhPlan || "Tidak menuliskan rencana kerja."}
-                      </p>
-                    </div>
+                  {isWfh ? (
+                    <div className="grid gap-4 md:grid-cols-2 max-w-4xl mx-auto">
+                      {/* WFH Plan details */}
+                      <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-3 space-y-1">
+                        <h5 className="text-[11px] font-bold text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
+                          <BookOpen className="size-3 text-blue-600" />
+                          RENCANA KERJA (PAGI)
+                        </h5>
+                        <p className="text-xs text-zinc-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed">
+                          {item.wfhPlan || "Tidak menuliskan rencana kerja."}
+                        </p>
+                      </div>
 
-                    {/* WFH Report details */}
-                    <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-3 space-y-1">
-                      <h5 className="text-[11px] font-bold text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
-                        <CheckCircle className="size-3 text-emerald-600" />
-                        LAPORAN HASIL KERJA (SORE)
-                      </h5>
-                      <p className="text-xs text-zinc-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed">
-                        {item.wfhReport || "Tidak menuliskan laporan hasil kerja."}
-                      </p>
+                      {/* WFH Report details */}
+                      <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-3 space-y-1">
+                        <h5 className="text-[11px] font-bold text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
+                          <CheckCircle className="size-3 text-emerald-600" />
+                          LAPORAN HASIL KERJA (SORE)
+                        </h5>
+                        <p className="text-xs text-zinc-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed">
+                          {item.wfhReport || "Tidak menuliskan laporan hasil kerja."}
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="max-w-2xl mx-auto">
+                      {/* WFO Journal details */}
+                      <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-3 space-y-1">
+                        <h5 className="text-[11px] font-bold text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
+                          <CheckCircle className="size-3 text-emerald-600" />
+                          JURNAL WFO (HASIL KERJA HARI INI)
+                        </h5>
+                        <p className="text-xs text-zinc-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed">
+                          {item.wfhReport || "Tidak menuliskan jurnal WFO."}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </TableCell>
               </TableRow>
             )}
