@@ -225,12 +225,12 @@ export default async function LoginPage({
               <form action={loginAction}>
                 <FieldGroup>
                   <Field>
-                    <FieldLabel htmlFor="email">Email</FieldLabel>
+                    <FieldLabel htmlFor="identifier">Email or Username</FieldLabel>
                     <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      placeholder="name@email.com"
+                      id="identifier"
+                      name="identifier"
+                      type="text"
+                      placeholder="Email or username"
                       required
                       className="dark:bg-zinc-950 dark:border-zinc-800"
                     />

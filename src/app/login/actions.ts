@@ -41,13 +41,18 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   return earthRadiusMeters * c;
 }
 export async function loginAction(formData: FormData) {
-  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const identifier = String(formData.get("identifier") ?? formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
   const rememberMe = formData.get("rememberMe") === "on";
   const intent = String(formData.get("intent") ?? "");
 
-  const user = await prisma.user.findUnique({
-    where: { email },
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { email: identifier },
+        { username: identifier },
+      ],
+    },
     select: {
       id: true,
       role: true,
