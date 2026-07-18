@@ -74,29 +74,28 @@ export function RequestFormClient({ canRequestReplacementDay }: Props) {
           className="h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-3 text-sm outline-none focus:border-zinc-950 dark:focus:border-zinc-300 focus:ring-1 focus:ring-zinc-950 dark:focus:ring-zinc-300"
           required
         >
-          <option value="PERMISSION">Personal Leave / Private (Min H-1)</option>
-          <option value="SICK">Official Sick Leave (Doctor note required)</option>
-          <option value="DISPENSATION">Official Dispensation (Attachment required)</option>
+          <option value="PERMISSION">Personal Leave / Private</option>
+          <option value="SICK">Official Sick Leave</option>
+          <option value="DISPENSATION">Official Dispensation</option>
           {canRequestReplacementDay && (
-            <option value="LEAVE">Annual Leave (Min H-1, Decrements Balance)</option>
+            <option value="LEAVE">Annual Leave</option>
           )}
-          <option value="WFH">Work From Home (WFH)</option>
+          <option value="WFH">Work From Home</option>
         </select>
       </div>
 
       {guide && (
         <div
-          className={`flex gap-2 rounded-lg border p-3 text-xs leading-relaxed animate-in fade-in duration-200 ${
-            guide.variant === "amber"
+          className={`flex gap-2 rounded-lg border p-3 text-xs leading-relaxed animate-in fade-in duration-200 ${guide.variant === "amber"
               ? "border-amber-200 bg-amber-50/50 text-amber-800 dark:border-amber-900/30 dark:bg-amber-950/10 dark:text-amber-300"
               : guide.variant === "violet"
-              ? "border-violet-200 bg-violet-50/50 text-violet-800 dark:border-violet-900/30 dark:bg-violet-950/10 dark:text-violet-300"
-              : guide.variant === "emerald"
-              ? "border-emerald-200 bg-emerald-50/50 text-emerald-800 dark:border-emerald-900/30 dark:bg-emerald-950/10 dark:text-emerald-300"
-              : guide.variant === "rose"
-              ? "border-red-200 bg-red-50/50 text-red-800 dark:border-red-900/30 dark:bg-red-950/10 dark:text-red-300"
-              : "border-blue-200 bg-blue-50/50 text-blue-800 dark:border-blue-900/30 dark:bg-blue-950/10 dark:text-blue-300"
-          }`}
+                ? "border-violet-200 bg-violet-50/50 text-violet-800 dark:border-violet-900/30 dark:bg-violet-950/10 dark:text-violet-300"
+                : guide.variant === "emerald"
+                  ? "border-emerald-200 bg-emerald-50/50 text-emerald-800 dark:border-emerald-900/30 dark:bg-emerald-950/10 dark:text-emerald-300"
+                  : guide.variant === "rose"
+                    ? "border-red-200 bg-red-50/50 text-red-800 dark:border-red-900/30 dark:bg-red-950/10 dark:text-red-300"
+                    : "border-blue-200 bg-blue-50/50 text-blue-800 dark:border-blue-900/30 dark:bg-blue-950/10 dark:text-blue-300"
+            }`}
         >
           <AlertCircle className="size-4 shrink-0 mt-0.5" />
           <div>
