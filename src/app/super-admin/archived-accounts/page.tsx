@@ -21,8 +21,8 @@ export default async function ArchivedAccountsPage() {
       user={currentUser}
       currentPath="/super-admin/archived-accounts"
       badge="Super Admin"
-      title="Manajemen Arsip Akun"
-      description="Daftar akun nonaktif yang diarsipkan. Anda dapat memulihkan akun mereka kembali menjadi aktif bila diperlukan."
+      title="Archived Accounts Management"
+      description="List of deactivated archived accounts. You can restore their accounts back to active status if needed."
     >
       <ArchivedAccountsClient initialUsers={archivedUsers} />
     </DashboardShell>

@@ -23,8 +23,8 @@ type Payslip = {
 };
 
 const MONTH_NAMES = [
-  "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-  "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
 ];
 
 export function MemberPayslipClient({
@@ -37,9 +37,9 @@ export function MemberPayslipClient({
   return (
     <div className="space-y-6 font-sans">
       <div>
-        <h2 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 font-sans">Riwayat Slip Gaji</h2>
+        <h2 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 font-sans">Payslip History</h2>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Lihat dokumen slip gaji Anda dan cetak secara mandiri.
+          View your payslip documents and print them independently.
         </p>
       </div>
 
@@ -47,17 +47,17 @@ export function MemberPayslipClient({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Periode</TableHead>
-              <TableHead>Catatan</TableHead>
+              <TableHead>Period</TableHead>
+              <TableHead>Notes</TableHead>
               <TableHead>File</TableHead>
-              <TableHead className="text-right">Cetak</TableHead>
+              <TableHead className="text-right">Print</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {payslips.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center py-8 text-zinc-500">
-                  Belum ada data slip gaji yang diterbitkan untuk Anda.
+                  No payslip data issued for you yet.
                 </TableCell>
               </TableRow>
             ) : (
@@ -70,13 +70,13 @@ export function MemberPayslipClient({
                     {p.notes || "-"}
                   </TableCell>
                   <TableCell className="text-sm text-zinc-600 dark:text-zinc-300">
-                    {p.pdfFileName || "PDF slip gaji"}
+                    {p.pdfFileName || "Payslip PDF"}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button
                       size="icon"
                       variant="outline"
-                      title="Cetak Slip Gaji"
+                      title="Print Payslip"
                       onClick={() => window.open(`/payslip/${p.id}`, "_blank")}
                     >
                       <Printer className="size-4" />

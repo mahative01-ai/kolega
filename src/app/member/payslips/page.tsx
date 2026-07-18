@@ -27,9 +27,9 @@ export default async function MemberPayslipsPage() {
     <DashboardShell
       user={dashboardUser}
       currentPath="/member/payslips"
-      title="Slip Gaji Saya"
-      description="Lihat rincian riwayat gaji bulanan Anda."
-      badge="Keuangan"
+      title="My Payslips"
+      description="View details of your monthly salary history."
+      badge="Finance"
     >
       <div className="p-6">
         {isEligible ? (
@@ -41,7 +41,7 @@ export default async function MemberPayslipsPage() {
           />
         ) : (
           <div className="rounded-xl border border-zinc-200 bg-white p-6 text-sm text-zinc-600 shadow-none dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
-            Slip gaji hanya tersedia untuk Admin/Member dengan status Team.
+            Payslips are only available for Admin/Member with Team status.
           </div>
         )}
       </div>

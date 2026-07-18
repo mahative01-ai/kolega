@@ -388,8 +388,8 @@ export default async function AdminDashboardPage({
       user={currentUser}
       currentPath="/admin"
       badge="Welcome, Admin"
-      title="Dashboard Admin"
-      description={`Halo ${currentUser.name}. Halaman ini memuat presensi pribadi Anda serta modul operasional studio.`}
+      title="Admin Dashboard"
+      description={`Hello ${currentUser.name}. This page contains your personal attendance and studio operational modules.`}
     >
       {isBirthday && (
         <>
@@ -397,8 +397,8 @@ export default async function AdminDashboardPage({
           <div className="rounded-xl border border-pink-200 dark:border-pink-900 bg-pink-50 dark:bg-pink-950/20 p-5 text-sm text-pink-850 dark:text-pink-300 mb-6 flex items-center gap-4 shadow-sm">
             <span className="text-3xl">🎂</span>
             <div>
-              <h3 className="font-bold text-base text-pink-900 dark:text-pink-400">Selamat Ulang Tahun, {currentUser.name}! 🎉</h3>
-              <p className="text-xs text-pink-700 dark:text-pink-400 mt-0.5">Semoga hari Anda menyenangkan dan penuh kebahagiaan. Terima kasih atas kontribusi luar biasa Anda di tim!</p>
+              <h3 className="font-bold text-base text-pink-900 dark:text-pink-400">Happy Birthday, {currentUser.name}! 🎉</h3>
+              <p className="text-xs text-pink-700 dark:text-pink-400 mt-0.5">May your day be filled with joy and happiness. Thank you for your amazing contribution to the team!</p>
             </div>
           </div>
         </>
@@ -408,9 +408,9 @@ export default async function AdminDashboardPage({
         <div className="rounded-xl border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/20 p-4 text-sm text-blue-800 dark:text-blue-300 mb-6 flex items-center gap-3 shadow-sm">
           <span className="text-2xl">🎉</span>
           <div>
-            <h4 className="font-bold text-zinc-900 dark:text-zinc-100">Hari ini rekan kerja Anda di studio sedang berulang tahun:</h4>
+            <h4 className="font-bold text-zinc-900 dark:text-zinc-100">Today your studio colleagues are celebrating their birthday:</h4>
             <p className="text-xs text-blue-700 dark:text-blue-450 mt-0.5">
-              {data.colleaguesBirthdays.map((c) => c.name).join(", ")}. Jangan lupa berikan ucapan terbaikmu! 🎂
+              {data.colleaguesBirthdays.map((c) => c.name).join(", ")}. Don&apos;t forget to send them your best wishes! 🎂
             </p>
           </div>
         </div>

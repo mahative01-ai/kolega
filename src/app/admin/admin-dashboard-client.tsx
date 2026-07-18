@@ -177,7 +177,7 @@ const workModeStyles: Record<string, string> = {
 
 function formatTime(date: Date | null | string) {
   if (!date) return "-";
-  return new Intl.DateTimeFormat("id-ID", {
+  return new Intl.DateTimeFormat("en-US", {
     hour: "2-digit",
     minute: "2-digit",
     timeZone: "Asia/Jakarta",
@@ -185,7 +185,7 @@ function formatTime(date: Date | null | string) {
 }
 
 function formatFullDate(date: Date) {
-  return new Intl.DateTimeFormat("id-ID", {
+  return new Intl.DateTimeFormat("en-US", {
     dateStyle: "full",
     timeZone: "Asia/Jakarta",
   }).format(date);
@@ -334,13 +334,13 @@ export function AdminDashboardClient({
       color: "text-orange-700 dark:text-orange-400",
     },
     {
-      label: `Alpha Tim ${data.monthLabel}`,
+      label: `Team Alpha Days ${data.monthLabel}`,
       value: data.summary.alpha,
       icon: AlertTriangle,
       color: "text-red-700 dark:text-red-400",
     },
     {
-      label: `WFH Tim ${data.monthLabel}`,
+      label: `Team WFH ${data.monthLabel}`,
       value: data.summary.wfh,
       icon: Home,
       color: "text-sky-700 dark:text-sky-400",
@@ -433,7 +433,7 @@ export function AdminDashboardClient({
           )}
         >
           <User className="size-4" />
-          Aktivitas Saya
+          My Activity
         </button>
         <button
           onClick={() => setActiveTab("studio")}
@@ -445,7 +445,7 @@ export function AdminDashboardClient({
           )}
         >
           <Users className="size-4" />
-          Manajemen Studio
+          Studio Management
         </button>
       </div>
 
@@ -582,10 +582,10 @@ export function AdminDashboardClient({
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
                   <QrCode className="size-5 text-zinc-700 dark:text-zinc-400" />
-                  QR Card Saya
+                  My QR Card
                 </CardTitle>
                 <CardDescription className="text-zinc-500 dark:text-zinc-400">
-                  Kartu QR digital untuk memindai kehadiran di kantor.
+                  Digital QR card for scanning office attendance.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -637,7 +637,7 @@ export function AdminDashboardClient({
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-7 border border-zinc-200 dark:border-zinc-800 rounded overflow-hidden">
-                  {["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"].map((d) => (
+                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
                     <div key={d} className="bg-zinc-50 dark:bg-zinc-900/50 py-1.5 text-center text-[10px] font-bold text-zinc-500 border-b border-zinc-200 dark:border-zinc-800">
                       {d}
                     </div>
