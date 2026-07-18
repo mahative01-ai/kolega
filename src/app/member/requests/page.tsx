@@ -33,7 +33,7 @@ const requestTypeLabel: Record<string, string> = {
   PERMISSION: "Personal Leave",
   SICK: "Official Sick Leave",
   DISPENSATION: "Dispensation",
-  LEAVE: "Cuti Tahunan",
+  LEAVE: "Annual Leave",
   WFH: "WFH",
 };
 
@@ -90,7 +90,7 @@ const errorMessages: Record<string, string> = {
   "overlapping-request": "You already have an active request (Pending/Approved) for the selected date range.",
   "already-processed": "The request cannot be cancelled because it has already been reviewed by an Admin.",
   "not-found": "Request not found.",
-  "insufficient-leave": "Sisa jatah cuti tahunan Anda tidak mencukupi untuk durasi pengajuan ini.",
+  "insufficient-leave": "Your remaining annual leave balance is insufficient for this request duration.",
   unauthorized: "You do not have authorization to cancel this request.",
 };
 
@@ -166,11 +166,11 @@ export default async function MemberRequestsPage({
             {currentUser.memberStatus === "TEAM" && (
               <div className="mb-4 rounded-lg border border-blue-200 dark:border-blue-900 bg-blue-50/50 dark:bg-blue-950/20 p-3 flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <p className="text-[10px] font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wide">Jatah Cuti Tahunan</p>
-                  <p className="text-xs text-zinc-500">Sisa jatah cuti aktif Anda</p>
+                  <p className="text-[10px] font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wide">Annual Leave Balance</p>
+                  <p className="text-xs text-zinc-550 dark:text-zinc-400">Your remaining active annual leave balance</p>
                 </div>
                 <p className="text-2xl font-black text-blue-700 dark:text-blue-400">
-                  {leaveBalance} <span className="text-xs font-normal text-zinc-500">Hari</span>
+                  {leaveBalance} <span className="text-xs font-normal text-zinc-500 font-sans">Days</span>
                 </p>
               </div>
             )}

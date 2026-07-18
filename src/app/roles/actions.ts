@@ -521,7 +521,7 @@ export async function resetAllTeamLeavesAction() {
     });
 
     revalidatePath("/roles");
-    return { success: true, message: "Jatah cuti tahunan semua karyawan (Team) berhasil direset ke 12 hari." };
+    return { success: true, message: "Annual leave balance of all active Team members has been successfully reset to 12 days." };
   } catch (err: unknown) {
     return { success: false, error: err instanceof Error ? err.message : "Failed to reset leave balances." };
   }

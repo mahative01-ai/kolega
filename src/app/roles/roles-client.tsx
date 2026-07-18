@@ -197,16 +197,16 @@ export function RolesClient({
   };
 
   const handleBulkResetLeaves = () => {
-    if (!confirm("Apakah Anda yakin ingin mereset saldo cuti tahunan semua karyawan (Team) aktif ke 12 hari untuk tahun ini?")) {
+    if (!confirm("Are you sure you want to reset the annual leave balance of all active Team members to 12 days for this year?")) {
       return;
     }
 
     startTransition(async () => {
       const res = await resetAllTeamLeavesAction();
       if (!res.success) {
-        alert(res.error || "Gagal mereset saldo cuti.");
+        alert(res.error || "Failed to reset leave balances.");
       } else {
-        alert(res.message || "Saldo cuti berhasil direset.");
+        alert(res.message || "Leave balances successfully reset.");
       }
     });
   };
@@ -948,7 +948,7 @@ export function RolesClient({
                         Reset
                       </Button>
                     </div>
-                    <p className="text-[10px] text-zinc-500">Jatah cuti tahunan berjalan. Default: 12 hari.</p>
+                    <p className="text-[10px] text-zinc-500">Current annual leave balance. Default is 12 days.</p>
                   </div>
                 )}
               </div>
@@ -1096,7 +1096,7 @@ export function RolesClient({
                         </Badge>
                         {viewUser.memberStatus === "TEAM" && (
                           <Badge variant="outline" className="border-sky-500/30 bg-sky-50/50 dark:bg-sky-950/20 text-sky-700 dark:text-sky-300">
-                            Cuti: {viewUser.annualLeaveBalance} Hari
+                            Leave: {viewUser.annualLeaveBalance} Days
                           </Badge>
                         )}
                       </div>

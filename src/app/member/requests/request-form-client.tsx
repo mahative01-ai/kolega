@@ -78,7 +78,7 @@ export function RequestFormClient({ canRequestReplacementDay }: Props) {
           <option value="SICK">Official Sick Leave (Doctor note required)</option>
           <option value="DISPENSATION">Official Dispensation (Attachment required)</option>
           {canRequestReplacementDay && (
-            <option value="LEAVE">Cuti Tahunan (Min H-1, Potong Saldo)</option>
+            <option value="LEAVE">Annual Leave (Min H-1, Decrements Balance)</option>
           )}
           <option value="WFH">Work From Home (WFH)</option>
         </select>
