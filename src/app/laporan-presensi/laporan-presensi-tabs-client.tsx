@@ -200,7 +200,6 @@ export function LaporanPresensiTabsClient({
   const journalRecords = sortedRecords.filter((r) => r.workMode === "WFH" || r.workMode === "WFO");
 
   return (
-    <>
     <Tabs defaultValue="attendance-log" className="w-full space-y-3">
       {isSuperAdmin && (
         <div className="flex w-fit max-w-full flex-wrap rounded-lg bg-zinc-100 p-1 dark:bg-zinc-900">
@@ -374,15 +373,14 @@ export function LaporanPresensiTabsClient({
                   <TableHead>Date</TableHead>
                   <TableHead>Mode</TableHead>
                   <TableHead>Default Studio</TableHead>
-                  <TableHead className="w-[25%]">Morning Work Plan</TableHead>
-                  <TableHead className="w-[25%]">End-of-Day Report / Journal</TableHead>
-                  <TableHead className="w-[10%] text-right">Actions</TableHead>
+                  <TableHead className="w-[30%]">Morning Work Plan</TableHead>
+                  <TableHead className="w-[30%]">End-of-Day Report / Journal</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {journalRecords.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center text-sm text-zinc-500">
+                    <TableCell colSpan={6} className="h-24 text-center text-sm text-zinc-500">
                       No daily journals found for the selected filter.
                     </TableCell>
                   </TableRow>
@@ -417,20 +415,9 @@ export function LaporanPresensiTabsClient({
                         )}
                       </TableCell>
                       <TableCell className="pt-3 pb-3">
-                        <div className="rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-2.5 text-xs text-zinc-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed">
+                        <div className="rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-2.5 text-xs text-zinc-700 dark:text-zinc-350 whitespace-pre-line leading-relaxed">
                           {item.wfhReport || "—"}
                         </div>
-                      </TableCell>
-                      <TableCell className="pt-3 text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openEditModal(item)}
-                          className="size-8"
-                          title="Edit Jurnal"
-                        >
-                          <Edit2 className="size-4 text-blue-600" />
-                        </Button>
                       </TableCell>
                     </TableRow>
                   ))
@@ -441,53 +428,5 @@ export function LaporanPresensiTabsClient({
         </Card>
       </TabsContent>
     </Tabs>
-
-    <Dialog open={!!editingRecord} onOpenChange={(open) => !open && closeEditModal()}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Edit Jurnal Harian</DialogTitle>
-          <DialogDescription>
-            Ubah rencana kerja pagi dan laporan hasil kerja sore untuk {editingRecord?.user.name} pada {editingRecord && formatDate(editingRecord.attendanceDate)}.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4 py-4">
-          {editingRecord?.workMode === "WFH" && (
-            <div className="space-y-2">
-              <Label htmlFor="plan" className="text-xs font-semibold text-zinc-650">Rencana Kerja (Pagi)</Label>
-              <Textarea
-                id="plan"
-                placeholder="Masukkan rencana kerja pagi..."
-                value={planVal}
-                onChange={(e) => setPlanVal(e.target.value)}
-                rows={4}
-                className="resize-none text-zinc-800 dark:text-zinc-200"
-              />
-            </div>
-          )}
-          <div className="space-y-2">
-            <Label htmlFor="report" className="text-xs font-semibold text-zinc-650">
-              {editingRecord?.workMode === "WFH" ? "Laporan Hasil Kerja (Sore)" : "Jurnal WFO / Hasil Kerja"}
-            </Label>
-            <Textarea
-              id="report"
-              placeholder={editingRecord?.workMode === "WFH" ? "Masukkan laporan hasil kerja sore..." : "Masukkan jurnal WFO hari ini..."}
-              value={reportVal}
-              onChange={(e) => setReportVal(e.target.value)}
-              rows={4}
-              className="resize-none text-zinc-800 dark:text-zinc-200"
-            />
-          </div>
-        </div>
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={closeEditModal} disabled={isSubmitting}>
-            Batal
-          </Button>
-          <Button onClick={handleSave} disabled={isSubmitting}>
-            {isSubmitting ? "Menyimpan..." : "Simpan Perubahan"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-    </>
   );
 }
