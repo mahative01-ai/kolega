@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { Building2, Edit, Eye, Mail, Search, UserCog, UserPlus, Loader2, ArrowUpDown, Cake, Plus, Trash2 } from "lucide-react";
+import { Building2, Edit, Eye, Mail, Search, UserCog, UserPlus, Loader2, ArrowUpDown, Cake, Plus, Trash2, BarChart3, Calendar, CheckCircle2, Home } from "lucide-react";
 import { Combobox } from "@/components/ui/combobox";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -1044,21 +1044,193 @@ export function RolesClient({
                 </div>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-3">
-                {[
-                  ["Total", detailStats.total, "text-blue-300"],
-                  ["On Time", detailStats.onTime, "text-emerald-300"],
-                  ["Late", detailStats.late, "text-orange-300"],
-                  ["Sick", detailStats.sick, "text-violet-300"],
-                  ["Permission", detailStats.permission, "text-amber-300"],
-                  ["Alpha", detailStats.alpha, "text-red-300"],
-                  ["WFH", detailStats.wfh, "text-sky-300"],
-                ].map(([label, value, color]) => (
-                  <div key={label} className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-3">
-                    <p className="text-xs text-zinc-500">{label}</p>
-                    <p className={`mt-1 text-2xl font-semibold ${color}`}>{value}</p>
+              {/* 📊 Horizontal Stacked Bar Chart & Monthly Accumulation */}
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 space-y-4 shadow-xl">
+                {/* Header & Month Filter */}
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-zinc-800/80 pb-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
+                        <BarChart3 className="size-4 text-blue-400" />
+                        Distribusi Presensi Member
+                      </h4>
+                      <Badge variant="outline" className="border-blue-500/30 bg-blue-500/10 text-blue-300 text-[11px] px-2 py-0.5">
+                        {detailScope === "MONTH" ? (
+                          detailMonth ? new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric" }).format(new Date(Number(detailMonth.split("-")[0]), Number(detailMonth.split("-")[1]) - 1, 1)) : "Per Bulan"
+                        ) : "Semua Waktu"}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-zinc-400 mt-0.5">
+                      Akumulasi statistik kehadiran dan status presensi staf per bulan.
+                    </p>
                   </div>
-                ))}
+
+                  {/* Month / Scope Filter */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex rounded-lg border border-zinc-800 bg-zinc-950 p-0.5">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={detailScope === "MONTH" ? "secondary" : "ghost"}
+                        onClick={() => setDetailScope("MONTH")}
+                        className="h-7 text-xs px-2.5 font-medium"
+                      >
+                        Per Bulan
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={detailScope === "ALL" ? "secondary" : "ghost"}
+                        onClick={() => setDetailScope("ALL")}
+                        className="h-7 text-xs px-2.5 font-medium"
+                      >
+                        Semua
+                      </Button>
+                    </div>
+                    {detailScope === "MONTH" && (
+                      <Input
+                        type="month"
+                        value={detailMonth}
+                        onChange={(e) => setDetailMonth(e.target.value)}
+                        className="h-8 w-36 border-zinc-800 bg-zinc-950 text-xs text-zinc-100 font-mono"
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* Top KPI Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-3 flex items-center justify-between">
+                    <div>
+                      <p className="text-[11px] font-medium text-zinc-400">Total Presensi</p>
+                      <p className="text-2xl font-bold text-zinc-50 mt-0.5">
+                        {detailStats.total} <span className="text-xs font-normal text-zinc-500">hari</span>
+                      </p>
+                    </div>
+                    <div className="flex size-9 items-center justify-center rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400">
+                      <Calendar className="size-4" />
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-3 flex items-center justify-between">
+                    <div>
+                      <p className="text-[11px] font-medium text-zinc-400">Tepat Waktu (On Time)</p>
+                      <p className="text-2xl font-bold text-emerald-400 mt-0.5">
+                        {detailStats.onTime} <span className="text-xs font-normal text-zinc-500">({detailStats.total > 0 ? ((detailStats.onTime / detailStats.total) * 100).toFixed(0) : 0}%)</span>
+                      </p>
+                    </div>
+                    <div className="flex size-9 items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                      <CheckCircle2 className="size-4" />
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-3 flex items-center justify-between">
+                    <div>
+                      <p className="text-[11px] font-medium text-zinc-400">Kerja Dari Rumah (WFH)</p>
+                      <p className="text-2xl font-bold text-sky-400 mt-0.5">
+                        {detailStats.wfh} <span className="text-xs font-normal text-zinc-500">hari</span>
+                      </p>
+                    </div>
+                    <div className="flex size-9 items-center justify-center rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-400">
+                      <Home className="size-4" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Horizontal Stacked Bar Chart */}
+                <div className="space-y-2 pt-1">
+                  <div className="flex items-center justify-between text-xs text-zinc-400">
+                    <span className="font-semibold text-zinc-300">Grafik Akumulasi Proporsi Status</span>
+                    <span>{detailStats.total} Total Record</span>
+                  </div>
+
+                  <div className="h-7 w-full rounded-full bg-zinc-950 p-1 border border-zinc-800/90 flex overflow-hidden shadow-inner gap-0.5">
+                    {detailStats.total === 0 ? (
+                      <div className="w-full h-full rounded-full bg-zinc-800/40 flex items-center justify-center text-[11px] text-zinc-500 font-medium italic">
+                        Belum ada akumulasi presensi untuk periode ini
+                      </div>
+                    ) : (
+                      <>
+                        {detailStats.onTime > 0 && (
+                          <div
+                            style={{ width: `${(detailStats.onTime / detailStats.total) * 100}%` }}
+                            className="h-full bg-emerald-500 hover:bg-emerald-400 transition-all duration-200 rounded-l-full first:rounded-l-full last:rounded-r-full relative group cursor-pointer"
+                            title={`On Time: ${detailStats.onTime} hari (${((detailStats.onTime / detailStats.total) * 100).toFixed(1)}%)`}
+                          />
+                        )}
+                        {detailStats.late > 0 && (
+                          <div
+                            style={{ width: `${(detailStats.late / detailStats.total) * 100}%` }}
+                            className="h-full bg-orange-500 hover:bg-orange-400 transition-all duration-200 first:rounded-l-full last:rounded-r-full relative group cursor-pointer"
+                            title={`Late: ${detailStats.late} hari (${((detailStats.late / detailStats.total) * 100).toFixed(1)}%)`}
+                          />
+                        )}
+                        {detailStats.sick > 0 && (
+                          <div
+                            style={{ width: `${(detailStats.sick / detailStats.total) * 100}%` }}
+                            className="h-full bg-purple-500 hover:bg-purple-400 transition-all duration-200 first:rounded-l-full last:rounded-r-full relative group cursor-pointer"
+                            title={`Sick: ${detailStats.sick} hari (${((detailStats.sick / detailStats.total) * 100).toFixed(1)}%)`}
+                          />
+                        )}
+                        {detailStats.permission > 0 && (
+                          <div
+                            style={{ width: `${(detailStats.permission / detailStats.total) * 100}%` }}
+                            className="h-full bg-amber-400 hover:bg-amber-300 transition-all duration-200 first:rounded-l-full last:rounded-r-full relative group cursor-pointer"
+                            title={`Permission: ${detailStats.permission} hari (${((detailStats.permission / detailStats.total) * 100).toFixed(1)}%)`}
+                          />
+                        )}
+                        {detailStats.alpha > 0 && (
+                          <div
+                            style={{ width: `${(detailStats.alpha / detailStats.total) * 100}%` }}
+                            className="h-full bg-red-500 hover:bg-red-400 transition-all duration-200 first:rounded-l-full last:rounded-r-full relative group cursor-pointer"
+                            title={`Alpha: ${detailStats.alpha} hari (${((detailStats.alpha / detailStats.total) * 100).toFixed(1)}%)`}
+                          />
+                        )}
+                        {detailStats.wfh > 0 && (
+                          <div
+                            style={{ width: `${(detailStats.wfh / detailStats.total) * 100}%` }}
+                            className="h-full bg-sky-500 hover:bg-sky-400 transition-all duration-200 rounded-r-full first:rounded-l-full last:rounded-r-full relative group cursor-pointer"
+                            title={`WFH: ${detailStats.wfh} hari (${((detailStats.wfh / detailStats.total) * 100).toFixed(1)}%)`}
+                          />
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Legend Grid Items */}
+                <div className="pt-1">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+                    {[
+                      { label: "Total", count: detailStats.total, colorBg: "bg-blue-500", textColor: "text-blue-400" },
+                      { label: "On Time", count: detailStats.onTime, colorBg: "bg-emerald-500", textColor: "text-emerald-400" },
+                      { label: "Late", count: detailStats.late, colorBg: "bg-orange-500", textColor: "text-orange-400" },
+                      { label: "Sick", count: detailStats.sick, colorBg: "bg-purple-500", textColor: "text-purple-400" },
+                      { label: "Permission", count: detailStats.permission, colorBg: "bg-amber-400", textColor: "text-amber-400" },
+                      { label: "Alpha", count: detailStats.alpha, colorBg: "bg-red-500", textColor: "text-red-400" },
+                      { label: "WFH", count: detailStats.wfh, colorBg: "bg-sky-500", textColor: "text-sky-400" },
+                    ].map((item) => {
+                      const pct = detailStats.total > 0 && item.label !== "Total" ? ((item.count / detailStats.total) * 100).toFixed(0) : null;
+                      return (
+                        <div
+                          key={item.label}
+                          className="flex items-center gap-2 rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-2 transition-all hover:bg-zinc-950"
+                        >
+                          <span className={`size-2.5 rounded-full ${item.colorBg} shrink-0 shadow-sm`} />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[10px] font-medium text-zinc-400 truncate">{item.label}</p>
+                            <div className="flex items-baseline gap-1 mt-0.5">
+                              <span className={`text-xs font-bold ${item.textColor}`}>{item.count}</span>
+                              {pct !== null && (
+                                <span className="text-[9px] text-zinc-500 font-medium">({pct}%)</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
 
               {viewUser.memberStatus === "INTERN" && viewUser.internProfile && (
