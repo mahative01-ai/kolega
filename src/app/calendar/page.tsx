@@ -48,7 +48,7 @@ function firstDayOfMonth(year: number, month: number) {
 }
 
 function formatMonthLabel(year: number, month: number) {
-  return new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric" }).format(
+  return new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(
     new Date(year, month - 1, 1)
   );
 }

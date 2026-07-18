@@ -35,16 +35,16 @@ type Props = {
 };
 
 const statusLabel: Record<string, string> = {
-  PRESENT: "Hadir",
-  ON_TIME: "Tepat Waktu",
-  LATE: "Terlambat",
+  PRESENT: "Present",
+  ON_TIME: "On Time",
+  LATE: "Late",
   WFH: "WFH",
-  PERMISSION: "Izin",
-  SICK: "Sakit",
-  LEAVE: "Ganti Hari",
+  PERMISSION: "Permission",
+  SICK: "Sick",
+  LEAVE: "Leave Exchange",
   ALPHA: "Alpha",
-  HOLIDAY: "Libur",
-  OFF_DAY: "Libur",
+  HOLIDAY: "Holiday",
+  OFF_DAY: "Off Day",
 };
 
 const statusColor: Record<string, string> = {
@@ -61,7 +61,7 @@ const statusColor: Record<string, string> = {
 };
 
 function formatDate(date: Date | string) {
-  return new Intl.DateTimeFormat("id-ID", {
+  return new Intl.DateTimeFormat("en-US", {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -74,7 +74,7 @@ function formatTime(date: Date | string | null) {
     return "-";
   }
 
-  return new Intl.DateTimeFormat("id-ID", {
+  return new Intl.DateTimeFormat("en-US", {
     hour: "2-digit",
     minute: "2-digit",
     timeZone: "Asia/Jakarta",
@@ -156,7 +156,7 @@ export function RiwayatPresensiTableClient({ records }: Props) {
         <Input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Cari mode, status, atau studio..."
+          placeholder="Search mode, status, or studio..."
           className="pl-9"
         />
       </div>
@@ -168,7 +168,7 @@ export function RiwayatPresensiTableClient({ records }: Props) {
               <TableRow>
                 <TableHead onClick={() => handleSort("date")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                   <div className="flex items-center gap-1">
-                    Tanggal <ArrowUpDown className="size-3 text-zinc-400" />
+                    Date <ArrowUpDown className="size-3 text-zinc-400" />
                   </div>
                 </TableHead>
                 <TableHead onClick={() => handleSort("mode")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
@@ -193,12 +193,12 @@ export function RiwayatPresensiTableClient({ records }: Props) {
                 </TableHead>
                 <TableHead onClick={() => handleSort("late")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                   <div className="flex items-center gap-1">
-                    Terlambat <ArrowUpDown className="size-3 text-zinc-400" />
+                    Late <ArrowUpDown className="size-3 text-zinc-400" />
                   </div>
                 </TableHead>
                 <TableHead onClick={() => handleSort("early")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                   <div className="flex items-center gap-1">
-                    Pulang Cepat <ArrowUpDown className="size-3 text-zinc-400" />
+                    Early Checkout <ArrowUpDown className="size-3 text-zinc-400" />
                   </div>
                 </TableHead>
                 <TableHead onClick={() => handleSort("studio")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
@@ -208,10 +208,10 @@ export function RiwayatPresensiTableClient({ records }: Props) {
                 </TableHead>
                 <TableHead onClick={() => handleSort("location")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                   <div className="flex items-center gap-1">
-                    Lokasi <ArrowUpDown className="size-3 text-zinc-400" />
+                    Location <ArrowUpDown className="size-3 text-zinc-400" />
                   </div>
                 </TableHead>
-                <TableHead className="text-right">Aksi</TableHead>
+                <TableHead className="text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -221,7 +221,7 @@ export function RiwayatPresensiTableClient({ records }: Props) {
                     colSpan={10}
                     className="h-24 text-center text-sm text-zinc-500"
                   >
-                    Belum ada data presensi.
+                    No attendance records found.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -243,17 +243,17 @@ export function RiwayatPresensiTableClient({ records }: Props) {
                     <TableCell className="text-xs font-mono">{formatTime(record.checkOutAt)}</TableCell>
                     <TableCell className="text-xs">
                       {record.lateMinutes > 0
-                        ? `${record.lateMinutes} mnt`
+                        ? `${record.lateMinutes} min`
                         : "-"}
                     </TableCell>
                     <TableCell className="text-xs">
                       {record.earlyCheckoutMinutes > 0
-                        ? `${record.earlyCheckoutMinutes} mnt`
+                        ? `${record.earlyCheckoutMinutes} min`
                         : "-"}
                     </TableCell>
                     <TableCell className="text-xs">{record.ownerStudio.name}</TableCell>
                     <TableCell className="text-xs">
-                      {record.locationStudio?.name ?? "Tidak perlu lokasi"}
+                      {record.locationStudio?.name ?? "No location required"}
                     </TableCell>
                     <TableCell className="text-right">
                       {(() => {
@@ -272,7 +272,7 @@ export function RiwayatPresensiTableClient({ records }: Props) {
                                 "h-7 px-2 text-xs"
                               )}
                             >
-                              Koreksi
+                              Correction
                             </Link>
                           );
                         }
@@ -289,3 +289,4 @@ export function RiwayatPresensiTableClient({ records }: Props) {
     </div>
   );
 }
+

@@ -77,7 +77,7 @@ export function getMonthRange(month: string) {
 }
 
 export function formatMonthLabel(month: string) {
-  return new Intl.DateTimeFormat("id-ID", {
+  return new Intl.DateTimeFormat("en-US", {
     month: "long",
     year: "numeric",
     timeZone: "UTC",

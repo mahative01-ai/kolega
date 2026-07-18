@@ -85,35 +85,35 @@ async function getPersonalAttendanceHistory(userId: string) {
 export default async function PersonalAttendanceHistoryPage() {
   const currentUser = await requireAnyRole(["ADMIN", "MEMBER"]);
   const data = await getPersonalAttendanceHistory(currentUser.id);
-  const monthLabel = new Intl.DateTimeFormat("id-ID", {
+  const monthLabel = new Intl.DateTimeFormat("en-US", {
     month: "long",
     year: "numeric",
     timeZone: "UTC",
   }).format(data.monthStart);
   const metrics = [
     {
-      label: `Presensi ${monthLabel}`,
+      label: `Attendance (${monthLabel})`,
       value: data.total,
       icon: CalendarCheck2,
-      color: "text-blue-700",
+      color: "text-blue-700 dark:text-blue-400",
     },
     {
-      label: "Tepat Waktu",
+      label: "On Time",
       value: data.onTime,
       icon: CheckCheck,
-      color: "text-emerald-700",
+      color: "text-emerald-700 dark:text-emerald-400",
     },
     {
-      label: "Terlambat",
+      label: "Late",
       value: data.late,
       icon: Clock3,
-      color: "text-orange-700",
+      color: "text-orange-700 dark:text-orange-400",
     },
     {
-      label: "Check-out Selesai",
+      label: "Check-out Completed",
       value: data.completed,
       icon: LogOut,
-      color: "text-violet-700",
+      color: "text-violet-700 dark:text-violet-400",
     },
   ];
 
@@ -121,9 +121,9 @@ export default async function PersonalAttendanceHistoryPage() {
     <DashboardShell
       user={currentUser}
       currentPath="/member/presensi/riwayat"
-      badge="Riwayat Pribadi"
-      title="Riwayat Presensi Saya"
-      description={`Catatan presensi milik ${currentUser.name}. Data Admin di halaman ini tetap bersifat personal.`}
+      badge="Personal History"
+      title="My Attendance History"
+      description={`Attendance logs for ${currentUser.name}.`}
     >
       <div className="space-y-6">
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -140,7 +140,7 @@ export default async function PersonalAttendanceHistoryPage() {
                 </CardHeader>
                 <CardContent>
                   <p className={`text-3xl font-semibold ${metric.color}`}>
-                    {metric.value.toLocaleString("id-ID")}
+                    {metric.value.toLocaleString("en-US")}
                   </p>
                 </CardContent>
               </Card>
@@ -153,10 +153,10 @@ export default async function PersonalAttendanceHistoryPage() {
             <div>
               <CardTitle className="text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
                 <History className="size-5 text-blue-700 dark:text-blue-400" />
-                Catatan Presensi
+                Attendance Records
               </CardTitle>
               <CardDescription>
-                Maksimal 60 catatan terbaru, termasuk WFO dan WFH.
+                Up to 60 recent attendance records, including WFO and WFH.
               </CardDescription>
             </div>
           </CardHeader>

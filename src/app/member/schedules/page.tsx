@@ -19,8 +19,8 @@ function getMonthRange() {
 }
 
 function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("id-ID", {
-    weekday: "long",
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -59,19 +59,19 @@ export default async function MemberSchedulesPage() {
     <DashboardShell
       user={currentUser}
       currentPath="/member/schedules"
-      badge="Jadwal Personal"
-      title="Jadwal Saya"
-      description="Jadwal WFO/WFH personal yang diatur oleh Super Admin."
+      badge="Personal Schedule"
+      title="My Schedule"
+      description="Personal WFO/WFH work schedule configured by Super Admin."
     >
       <div className="grid gap-4">
         <Card className="shadow-none">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <CalendarClock className="size-5 text-blue-700" />
-              Status Hari Ini
+              <CalendarClock className="size-5 text-blue-700 dark:text-blue-400" />
+              Today's Work Status
             </CardTitle>
             <CardDescription>
-              Jika tidak ada jadwal khusus, mode kerja mengikuti default studio.
+              If no custom schedule is set, work mode follows default studio settings.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -86,26 +86,26 @@ export default async function MemberSchedulesPage() {
 
         <Card className="shadow-none">
           <CardHeader>
-            <CardTitle className="text-base">Jadwal Khusus Bulan Ini</CardTitle>
+            <CardTitle className="text-base">Custom Schedules This Month</CardTitle>
             <CardDescription>
-              Menampilkan jadwal personal yang berbeda dari default.
+              List of personal schedules overriding default settings.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Tanggal</TableHead>
+                  <TableHead>Date</TableHead>
                   <TableHead>Mode</TableHead>
                   <TableHead>Studio</TableHead>
-                  <TableHead>Catatan</TableHead>
+                  <TableHead>Notes</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {personalSchedules.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={4} className="h-24 text-center text-sm text-zinc-500">
-                      Belum ada jadwal personal bulan ini.
+                      No custom personal schedules for this month.
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -130,3 +130,4 @@ export default async function MemberSchedulesPage() {
     </DashboardShell>
   );
 }
+

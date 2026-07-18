@@ -34,8 +34,8 @@ import { EVENT_TYPE_CONFIG } from "./page-config";
 import { cn } from "@/lib/utils";
 
 const MONTH_NAMES = [
-  "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-  "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
 ];
 
 type Studio = { id: string; name: string };
@@ -92,7 +92,7 @@ export function CalendarGridClient({
   const [originalDate, setOriginalDate] = useState("");
   const [newDate, setNewDate] = useState("");
 
-  const dayLabels = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
+  const dayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   const monthStr = String(month).padStart(2, "0");
 
@@ -100,15 +100,15 @@ export function CalendarGridClient({
   const [isSyncPending, startSyncTransition] = useTransition();
 
   const handleSyncHolidays = () => {
-    if (!confirm(`Apakah Anda yakin ingin menyinkronkan hari libur nasional untuk tahun ${year}?`)) return;
+    if (!confirm(`Are you sure you want to sync national holidays for year ${year}?`)) return;
     
     startSyncTransition(async () => {
       try {
         const res = await syncHolidaysAction(year);
-        alert(`Sinkronisasi berhasil! ${res.createdCount} hari libur nasional baru ditambahkan.`);
+        alert(`Sync successful! ${res.createdCount} new national holidays added.`);
         window.location.reload();
       } catch (err: unknown) {
-        alert(err instanceof Error ? err.message : "Terjadi kesalahan saat menyinkronkan.");
+        alert(err instanceof Error ? err.message : "An error occurred while syncing.");
       }
     });
   };
@@ -152,7 +152,7 @@ export function CalendarGridClient({
   const handleDeleteSwap = async (eventId: string) => {
     if (
       !confirm(
-        "Apakah Anda yakin ingin menghapus pengalihan libur ini? Seluruh jadwal kerja dan hari libur pengganti terkait akan dibatalkan."
+        "Are you sure you want to delete this holiday transfer? All related replacement workdays and holiday schedules will be cancelled."
       )
     ) {
       return;
@@ -161,47 +161,47 @@ export function CalendarGridClient({
     startTransition(async () => {
       try {
         await deleteSwappedHolidayAction(eventId);
-        setSuccess("Pengalihan libur berhasil dihapus!");
+        setSuccess("Holiday transfer deleted successfully!");
         setTimeout(() => {
           setDialogOpen(false);
           resetForm();
           window.location.reload();
         }, 1500);
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Terjadi kesalahan saat menghapus.");
+        setError(err instanceof Error ? err.message : "An error occurred while deleting.");
       }
     });
   };
 
   const handleDeleteRegular = async (eventId: string) => {
-    if (!confirm("Apakah Anda yakin ingin menghapus hari libur/agenda ini?")) return;
+    if (!confirm("Are you sure you want to delete this holiday/event?")) return;
 
     startTransition(async () => {
       try {
         await deleteCalendarEventAction(eventId);
-        setSuccess("Hari libur/agenda berhasil dihapus!");
+        setSuccess("Holiday/event deleted successfully!");
         setTimeout(() => {
           setDialogOpen(false);
           resetForm();
           window.location.reload();
         }, 1500);
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Terjadi kesalahan saat menghapus.");
+        setError(err instanceof Error ? err.message : "An error occurred while deleting.");
       }
     });
   };
 
   function handleSubmit() {
     if (!holidayName.trim()) {
-      setError("Nama libur wajib diisi.");
+      setError("Holiday name is required.");
       return;
     }
     if (!originalDate || !newDate) {
-      setError("Kedua tanggal wajib diisi.");
+      setError("Both dates are required.");
       return;
     }
     if (originalDate === newDate) {
-      setError("Tanggal asal dan tanggal baru tidak boleh sama.");
+      setError("Original date and new date cannot be the same.");
       return;
     }
 
@@ -213,7 +213,7 @@ export function CalendarGridClient({
           originalDate,
           newDate,
         });
-        setSuccess("Libur berhasil dialihkan/ditukar!");
+        setSuccess("Holiday transferred/swapped successfully!");
         setTimeout(() => {
           setDialogOpen(false);
           resetForm();
@@ -221,7 +221,7 @@ export function CalendarGridClient({
           window.location.reload();
         }, 1500);
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Terjadi kesalahan saat memproses.");
+        setError(err instanceof Error ? err.message : "An error occurred while processing.");
       }
     });
   }
@@ -239,7 +239,7 @@ export function CalendarGridClient({
               {monthLabel}
             </CardTitle>
             <CardDescription className="mt-0.5">
-              {totalEventsCount} agenda di bulan ini
+              {totalEventsCount} events this month
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
@@ -256,7 +256,7 @@ export function CalendarGridClient({
                 ) : (
                   <RefreshCw className="size-3" />
                 )}
-                Sync Kalender
+                Sync Calendar
               </Button>
             )}
             <div className="flex items-center gap-1.5">
@@ -297,14 +297,14 @@ export function CalendarGridClient({
               <a
                 href={`?month=${prevMonthKey}${activeStudioId ? `&studioId=${activeStudioId}` : ""}`}
                 className={buttonVariants({ variant: "outline", size: "icon", className: "h-8 w-8" })}
-                aria-label="Bulan sebelumnya"
+                aria-label="Previous month"
               >
                 <ChevronLeft className="size-4" />
               </a>
               <a
                 href={`?month=${nextMonthKey}${activeStudioId ? `&studioId=${activeStudioId}` : ""}`}
                 className={buttonVariants({ variant: "outline", size: "icon", className: "h-8 w-8" })}
-                aria-label="Bulan berikutnya"
+                aria-label="Next month"
               >
                 <ChevronRight className="size-4" />
               </a>
@@ -384,7 +384,7 @@ export function CalendarGridClient({
                     })}
                     {cellEvents.length > 3 && (
                       <div className="text-[8px] text-zinc-400 font-bold text-right px-1">
-                        +{cellEvents.length - 3} lainnya
+                        +{cellEvents.length - 3} more
                       </div>
                     )}
                   </div>

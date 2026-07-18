@@ -14,14 +14,14 @@ import { ConfettiTrigger } from "@/components/confetti-trigger";
 export const dynamic = "force-dynamic";
 
 const statusLabel: Record<string, string> = {
-  PRESENT: "Hadir",
-  ON_TIME: "Tepat Waktu",
-  LATE: "Terlambat",
+  PRESENT: "Present",
+  ON_TIME: "On Time",
+  LATE: "Late",
   WFH: "WFH",
-  PERMISSION: "Izin",
-  SICK: "Sakit",
-  DISPENSATION: "Dispensasi",
-  LEAVE: "Ganti Hari",
+  PERMISSION: "Permission",
+  SICK: "Sick",
+  DISPENSATION: "Dispensation",
+  LEAVE: "Leave Exchange",
   ALPHA: "Alpha",
 };
 
@@ -39,7 +39,7 @@ const statusColor: Record<string, string> = {
 
 function formatTime(date: Date | null) {
   if (!date) return "-";
-  return new Intl.DateTimeFormat("id-ID", {
+  return new Intl.DateTimeFormat("en-US", {
     hour: "2-digit",
     minute: "2-digit",
     timeZone: "Asia/Jakarta",
@@ -47,20 +47,20 @@ function formatTime(date: Date | null) {
 }
 
 const successMessages: Record<string, string> = {
-  checkin: "Berhasil melakukan check-in WFO!",
-  checkout: "Berhasil melakukan check-out WFO!",
-  done: "Presensi hari ini sudah selesai dilakukan.",
+  checkin: "Successfully checked in WFO!",
+  checkout: "Successfully checked out WFO!",
+  done: "Today's attendance has been completed.",
 };
 
 const errorMessages: Record<string, string> = {
-  qr: "Kartu QR tidak valid atau dinonaktifkan.",
-  studio: "Studio penempatan Anda tidak ditemukan.",
-  "missing-checkout": "Anda belum check-out pada hari sebelumnya. Silakan ajukan koreksi presensi di dashboard.",
-  mode: "Status atau mode kerja tidak valid untuk presensi WFO hari ini.",
-  alpha: "Waktu cutoff presensi sudah terlewati. Anda ditandai Alpa.",
-  "location-required": "GPS / Lokasi diperlukan untuk memverifikasi presensi WFO.",
-  "studio-location-missing": "Lokasi GPS Studio penempatan belum dikonfigurasi oleh admin.",
-  "checkout-too-early": "Check-out belum dibuka. Durasi kerja hari ini belum terpenuhi.",
+  qr: "QR Card is invalid or deactivated.",
+  studio: "Placement studio not found.",
+  "missing-checkout": "You have not checked out on the previous day. Please submit an attendance correction.",
+  mode: "Invalid work mode or status for WFO attendance today.",
+  alpha: "Attendance cutoff time has passed. Marked as Alpha.",
+  "location-required": "GPS / Location is required to verify WFO attendance.",
+  "studio-location-missing": "Studio GPS location has not been configured by admin.",
+  "checkout-too-early": "Check-out is not open yet. Minimum work duration not reached.",
 };
 
 export default async function MemberPresensiPage({
@@ -109,9 +109,9 @@ export default async function MemberPresensiPage({
     <DashboardShell
       user={currentUser}
       currentPath="/member"
-      badge="Scan QR / Kamera"
-      title="Presensi WFO Manual"
-      description="Scan QR Card Anda menggunakan kamera perangkat ini untuk melakukan Check-in atau Check-out WFO."
+      badge="QR Scanner"
+      title="WFO Attendance Scanner"
+      description="Scan your QR Card using your camera to Check-in or Check-out for WFO."
     >
       <div className="max-w-2xl mx-auto space-y-6">
         {params.success && successMessages[params.success] ? (
@@ -127,11 +127,11 @@ export default async function MemberPresensiPage({
           <div className="rounded-md border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/20 px-4 py-3 text-sm text-red-700 dark:text-red-400">
             {params.error === "checkout-too-early" ? (
               <span>
-                Check-out baru dibuka pukul <strong>{params.time}</strong>
-                {params.remaining ? `, sisa ${params.remaining} menit.` : "."}
+                Check-out opens at <strong>{params.time}</strong>
+                {params.remaining ? `, ${params.remaining} minutes remaining.` : "."}
               </span>
             ) : (
-              errorMessages[params.error] || "Terjadi kesalahan saat memproses presensi."
+              errorMessages[params.error] || "An error occurred while processing attendance."
             )}
           </div>
         ) : null}
@@ -140,7 +140,7 @@ export default async function MemberPresensiPage({
           className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "flex items-center gap-1.5 w-fit")}
         >
           <ArrowLeft className="size-4" />
-          Kembali ke Dashboard
+          Back to Dashboard
         </Link>
 
         {/* Status Card */}
@@ -148,7 +148,7 @@ export default async function MemberPresensiPage({
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-bold flex items-center gap-2">
               <Clock3 className="size-4 text-blue-700 dark:text-blue-400" />
-              Status Presensi Hari Ini
+              Today's Attendance Status
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-3 text-xs">
@@ -165,7 +165,7 @@ export default async function MemberPresensiPage({
               </p>
             </div>
             <div className="rounded-md border border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-2.5">
-              <p className="text-zinc-500 font-medium">Status Kerja</p>
+              <p className="text-zinc-500 font-medium">Work Status</p>
               <div className="mt-1">
                 {existingRecord ? (
                   <Badge className={cn("text-[10px] font-semibold border shadow-none", statusColor[existingRecord.status])}>
@@ -173,7 +173,7 @@ export default async function MemberPresensiPage({
                   </Badge>
                 ) : (
                   <Badge variant="outline" className="text-zinc-500 dark:text-zinc-400 text-[10px] shadow-none">
-                    Belum Presensi
+                    Not Checked In
                   </Badge>
                 )}
               </div>
@@ -183,7 +183,7 @@ export default async function MemberPresensiPage({
             <CardContent className="pt-0">
               <p className="flex items-center gap-1.5 text-xs text-orange-700 dark:text-orange-400 font-medium">
                 <ShieldAlert className="size-4" />
-                Terlambat {existingRecord.lateMinutes} menit.
+                Late by {existingRecord.lateMinutes} minutes.
               </p>
             </CardContent>
           ) : null}
@@ -194,16 +194,16 @@ export default async function MemberPresensiPage({
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm font-bold">
               <QrCode className="size-4 text-emerald-600" />
-              Kamera Scanner QR
+              QR Scanner Camera
             </CardTitle>
             <CardDescription className="text-xs">
-              Pindai QR Card aktif Anda untuk melakukan check-in atau check-out.
+              Scan your active QR Card to check-in or check-out.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center justify-center">
             <QrScannerForm
               disabled={!hasQr || hasCheckedOut}
-              submitLabel={hasCheckedOut ? "Presensi Selesai" : (hasCheckedIn ? "Check-out WFO" : "Check-in WFO")}
+              submitLabel={hasCheckedOut ? "Attendance Completed" : (hasCheckedIn ? "Check-out WFO" : "Check-in WFO")}
             />
           </CardContent>
         </Card>
@@ -211,3 +211,4 @@ export default async function MemberPresensiPage({
     </DashboardShell>
   );
 }
+

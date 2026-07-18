@@ -53,7 +53,7 @@ type Props = {
 };
 
 function formatDate(dateStr: string) {
-  return new Intl.DateTimeFormat("id-ID", {
+  return new Intl.DateTimeFormat("en-US", {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -63,7 +63,7 @@ function formatDate(dateStr: string) {
 
 function formatTime(timeStr: string | null) {
   if (!timeStr) return "-";
-  return new Intl.DateTimeFormat("id-ID", {
+  return new Intl.DateTimeFormat("en-US", {
     hour: "2-digit",
     minute: "2-digit",
     timeZone: "Asia/Jakarta",
@@ -118,10 +118,10 @@ export function LaporanPresensiTabsClient({
 
         closeEditModal();
       } else {
-        toast.error("Gagal memperbarui jurnal.");
+        toast.error("Failed to update journal.");
       }
     } catch (err: any) {
-      toast.error(err.message || "Terjadi kesalahan.");
+      toast.error(err.message || "An error occurred.");
     } finally {
       setIsSubmitting(false);
     }

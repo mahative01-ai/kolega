@@ -19,14 +19,14 @@ import {
 export const dynamic = "force-dynamic";
 
 const errorMessages: Record<string, string> = {
-  "invalid": "Email atau password tidak sesuai.",
-  "need-presence": "Akses dasbor terkunci. Silakan lakukan scan QR Card presensi atau verifikasi izin terlebih dahulu hari ini.",
-  "archived": "Akun Anda saat ini sedang dinonaktifkan sementara (diarsipkan). Silakan hubungi administrator untuk bantuan lebih lanjut.",
-  "inactive": "Akun Anda saat ini sedang dinonaktifkan. Silakan hubungi administrator.",
+  "invalid": "Invalid email or password.",
+  "need-presence": "Dashboard access locked. Please scan your QR attendance card or submit an approved request for today.",
+  "archived": "Your account is currently archived. Please contact an administrator for assistance.",
+  "inactive": "Your account is currently disabled. Please contact an administrator.",
 };
 
 const successMessages: Record<string, string> = {
-  "reset-password": "Password berhasil diperbarui. Silakan masuk dengan password baru.",
+  "reset-password": "Password updated successfully. Please sign in with your new password.",
 };
 
 export default async function LoginPage({
@@ -47,10 +47,10 @@ export default async function LoginPage({
   const errorMessage = params.error ? errorMessages[params.error] : null;
   const successMessage = params.success ? successMessages[params.success] : null;
 
-  let statusText = "Belum Check-in WFO";
+  let statusText = "Not checked in (WFO)";
   let statusColor = "bg-zinc-100 text-zinc-500 border-zinc-200 dark:bg-zinc-950 dark:border-zinc-800 dark:text-zinc-400";
   let scannerDisabled = false;
-  let scannerDisabledMessage = "Scan belum tersedia.";
+  let scannerDisabledMessage = "Scan not available.";
 
   if (currentUser) {
     const todayKey = getJakartaDateKey();
@@ -74,26 +74,26 @@ export default async function LoginPage({
 
     if (attendance) {
       if (attendance.status === "SICK") {
-        statusText = "Sakit (Izin)";
+        statusText = "Sick Leave";
         statusColor = "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-900/50";
       } else if (attendance.status === "LEAVE") {
-        statusText = "Ganti Hari";
+        statusText = "Replacement Leave";
         statusColor = "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900/50";
       } else if (attendance.status === "PERMISSION") {
-        statusText = "Izin Khusus";
+        statusText = "Special Permission";
         statusColor = "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/50";
       } else if (attendance.status === "ALPHA") {
-        statusText = "Alpha";
+        statusText = "Absent";
         statusColor = "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-900/50";
       } else if (attendance.checkInAt) {
-        const checkInTime = new Intl.DateTimeFormat("id-ID", {
+        const checkInTime = new Intl.DateTimeFormat("en-US", {
           hour: "2-digit",
           minute: "2-digit",
           timeZone: "Asia/Jakarta",
         }).format(new Date(attendance.checkInAt));
 
         if (attendance.checkOutAt) {
-          const checkOutTime = new Intl.DateTimeFormat("id-ID", {
+          const checkOutTime = new Intl.DateTimeFormat("en-US", {
             hour: "2-digit",
             minute: "2-digit",
             timeZone: "Asia/Jakarta",
@@ -102,10 +102,10 @@ export default async function LoginPage({
           statusColor = "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/50";
         } else {
           if (attendance.status === "LATE") {
-            statusText = `WFO: Check-in ${checkInTime} (Terlambat ${attendance.lateMinutes}m)`;
+            statusText = `WFO: Check-in ${checkInTime} (Late ${attendance.lateMinutes}m)`;
             statusColor = "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/50";
           } else {
-            statusText = `WFO: Check-in ${checkInTime} (Tepat Waktu)`;
+            statusText = `WFO: Check-in ${checkInTime} (On Time)`;
             statusColor = "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/50";
           }
 
@@ -132,17 +132,17 @@ export default async function LoginPage({
 
             if (!eligibility.isAllowed) {
               const allowedClock = formatMinutesAsClock(eligibility.allowedCheckoutMinutes);
-              statusText = `Check-out dibuka ${allowedClock}`;
+              statusText = `Check-out opens at ${allowedClock}`;
               statusColor = "bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-950 dark:border-zinc-800 dark:text-zinc-300";
               scannerDisabled = true;
-              scannerDisabledMessage = `Check-out baru dibuka pukul ${allowedClock}. Sisa ${eligibility.remainingMinutes} menit.`;
+              scannerDisabledMessage = `Check-out opens at ${allowedClock}. ${eligibility.remainingMinutes} minutes remaining.`;
             }
           }
         }
       }
     } else if (params.action === "checkout") {
       scannerDisabled = true;
-      scannerDisabledMessage = "Anda belum check-in WFO hari ini.";
+      scannerDisabledMessage = "You have not checked in (WFO) today.";
     } else {
       const personalSchedule = await prisma.personalWorkSchedule.findUnique({
         where: {
@@ -155,7 +155,7 @@ export default async function LoginPage({
       });
 
       if (personalSchedule?.workMode === "WFH") {
-        statusText = "Jadwal WFH (Belum Check-in)";
+        statusText = "WFH Schedule (Not checked in)";
         statusColor = "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900/50";
       }
     }
@@ -187,7 +187,7 @@ export default async function LoginPage({
 
         {isRegistered && (
           <p className="rounded-lg bg-emerald-50 dark:bg-emerald-950/20 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/50">
-            Registrasi berhasil. Silakan login.
+            Registration successful. Please sign in.
           </p>
         )}
 
@@ -217,7 +217,7 @@ export default async function LoginPage({
         ) : (
           <Tabs defaultValue="qr" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-4 bg-zinc-100 dark:bg-zinc-800">
-              <TabsTrigger value="credentials" className="text-xs">Kredensial</TabsTrigger>
+              <TabsTrigger value="credentials" className="text-xs">Credentials</TabsTrigger>
               <TabsTrigger value="qr" className="text-xs">Scan QR Card</TabsTrigger>
             </TabsList>
 
@@ -230,7 +230,7 @@ export default async function LoginPage({
                       id="email"
                       name="email"
                       type="email"
-                      placeholder="nama@email.com"
+                      placeholder="name@email.com"
                       required
                       className="dark:bg-zinc-950 dark:border-zinc-800"
                     />
@@ -241,7 +241,7 @@ export default async function LoginPage({
                     <PasswordInput
                       id="password"
                       name="password"
-                      placeholder="Masukkan password"
+                      placeholder="Enter password"
                       required
                       className="dark:bg-zinc-950 dark:border-zinc-800"
                     />
@@ -258,7 +258,7 @@ export default async function LoginPage({
                       htmlFor="rememberMe"
                       className="text-xs text-zinc-500 dark:text-zinc-400 cursor-pointer select-none"
                     >
-                      Ingat saya (30 hari)
+                      Remember me (30 days)
                     </label>
                   </div>
 
@@ -267,7 +267,7 @@ export default async function LoginPage({
                       href="/forgot-password"
                       className="text-xs font-medium text-zinc-600 underline-offset-4 hover:text-zinc-950 hover:underline dark:text-zinc-400 dark:hover:text-zinc-50"
                     >
-                      Lupa password?
+                      Forgot password?
                     </a>
                   </div>
 
@@ -276,7 +276,7 @@ export default async function LoginPage({
                       type="submit"
                       className="w-full bg-zinc-950 hover:bg-zinc-900 text-white dark:bg-zinc-50 dark:hover:bg-zinc-200 dark:text-zinc-950 font-medium"
                     >
-                      Masuk dengan Kredensial
+                      Sign In with Credentials
                     </Button>
                     <Button
                       type="submit"
@@ -285,7 +285,7 @@ export default async function LoginPage({
                       variant="secondary"
                       className="w-full font-medium"
                     >
-                      Ajukan Izin, Sakit, atau Cuti
+                      Submit Leave, Sick, or WFH Request
                     </Button>
                   </Field>
                 </FieldGroup>

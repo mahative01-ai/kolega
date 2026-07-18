@@ -44,7 +44,7 @@ type Props = {
 
 function formatTime(dateStr: string | null) {
   if (!dateStr) return "-";
-  return new Intl.DateTimeFormat("id-ID", {
+  return new Intl.DateTimeFormat("en-US", {
     hour: "2-digit",
     minute: "2-digit",
     timeZone: "Asia/Jakarta",
@@ -52,7 +52,7 @@ function formatTime(dateStr: string | null) {
 }
 
 function formatDate(dateStr: string) {
-  return new Intl.DateTimeFormat("id-ID", {
+  return new Intl.DateTimeFormat("en-US", {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -61,10 +61,10 @@ function formatDate(dateStr: string) {
 }
 
 function formatLocationValidation(status: string) {
-  if (status === "INSIDE_RADIUS") return "Dalam radius";
-  if (status === "OUTSIDE_RADIUS") return "Diluar jangkauan";
-  if (status === "NOT_REQUIRED") return "Tidak perlu";
-  return "Belum tersedia";
+  if (status === "INSIDE_RADIUS") return "Inside radius";
+  if (status === "OUTSIDE_RADIUS") return "Outside radius";
+  if (status === "NOT_REQUIRED") return "Not required";
+  return "N/A";
 }
 
 export function AttendanceTableBodyClient({ records, statusColor, statusLabel }: Props) {
@@ -79,7 +79,7 @@ export function AttendanceTableBodyClient({ records, statusColor, statusLabel }:
       <TableBody>
         <TableRow>
           <TableCell colSpan={12} className="h-24 text-center text-sm text-zinc-500">
-            Tidak ada data presensi untuk filter ini.
+            No attendance records found for this filter.
           </TableCell>
         </TableRow>
       </TableBody>
@@ -109,7 +109,7 @@ export function AttendanceTableBodyClient({ records, statusColor, statusLabel }:
               </TableCell>
               <TableCell>{formatDate(record.attendanceDate)}</TableCell>
               <TableCell>{record.ownerStudio.name}</TableCell>
-              <TableCell>{record.locationStudio?.name ?? "Tidak perlu lokasi"}</TableCell>
+              <TableCell>{record.locationStudio?.name ?? "Location not required"}</TableCell>
               <TableCell>
                 <Badge
                   variant="outline"
@@ -136,7 +136,7 @@ export function AttendanceTableBodyClient({ records, statusColor, statusLabel }:
                       size="icon"
                       className="size-5 rounded p-0 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
                       onClick={() => toggleExpand(record.id)}
-                      title={isWfh ? "Lihat Detail Kerja WFH" : "Lihat Jurnal WFO"}
+                      title={isWfh ? "View WFH Work Details" : "View WFO Journal"}
                     >
                       {isExpanded ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
                     </Button>
@@ -150,8 +150,8 @@ export function AttendanceTableBodyClient({ records, statusColor, statusLabel }:
               </TableCell>
               <TableCell>{formatTime(record.checkInAt)}</TableCell>
               <TableCell>{formatTime(record.checkOutAt)}</TableCell>
-              <TableCell>{record.lateMinutes > 0 ? `${record.lateMinutes} menit` : "-"}</TableCell>
-              <TableCell>{record.earlyCheckoutMinutes > 0 ? `${record.earlyCheckoutMinutes} menit` : "-"}</TableCell>
+              <TableCell>{record.lateMinutes > 0 ? `${record.lateMinutes} mins` : "-"}</TableCell>
+              <TableCell>{record.earlyCheckoutMinutes > 0 ? `${record.earlyCheckoutMinutes} mins` : "-"}</TableCell>
             </TableRow>
 
             {/* Collapsible WFH/WFO Details row */}
@@ -164,10 +164,10 @@ export function AttendanceTableBodyClient({ records, statusColor, statusLabel }:
                       <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-3 space-y-1">
                         <h5 className="text-[11px] font-bold text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
                           <BookOpen className="size-3 text-blue-600" />
-                          RENCANA KERJA (PAGI)
+                          MORNING WORK PLAN
                         </h5>
                         <p className="text-xs text-zinc-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed">
-                          {record.wfhPlan || "Tidak menuliskan rencana kerja."}
+                          {record.wfhPlan || "No morning work plan submitted."}
                         </p>
                       </div>
 
@@ -175,10 +175,10 @@ export function AttendanceTableBodyClient({ records, statusColor, statusLabel }:
                       <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-3 space-y-1">
                         <h5 className="text-[11px] font-bold text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
                           <CheckCircle className="size-3 text-emerald-600" />
-                          LAPORAN HASIL KERJA (SORE)
+                          END-OF-DAY WORK REPORT
                         </h5>
                         <p className="text-xs text-zinc-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed">
-                          {record.wfhReport || "Tidak menuliskan laporan hasil kerja."}
+                          {record.wfhReport || "No work report submitted."}
                         </p>
                       </div>
                     </div>
@@ -188,10 +188,10 @@ export function AttendanceTableBodyClient({ records, statusColor, statusLabel }:
                       <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-3 space-y-1">
                         <h5 className="text-[11px] font-bold text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
                           <CheckCircle className="size-3 text-emerald-600" />
-                          JURNAL WFO (HASIL KERJA HARI INI)
+                          WFO JOURNAL (TODAY'S WORK REPORT)
                         </h5>
                         <p className="text-xs text-zinc-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed">
-                          {record.wfhReport || "Tidak menuliskan jurnal WFO."}
+                          {record.wfhReport || "No WFO journal submitted."}
                         </p>
                       </div>
                     </div>

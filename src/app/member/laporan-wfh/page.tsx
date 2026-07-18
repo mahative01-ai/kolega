@@ -14,7 +14,7 @@ function getMonthOptions() {
   for (let i = 0; i < 12; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    const label = new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric" }).format(d);
+    const label = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(d);
     options.push({ key, label });
   }
   return options;
@@ -84,9 +84,9 @@ export default async function MemberLaporanWfhPage({
     <DashboardShell
       user={user}
       currentPath="/member/laporan-wfh"
-      badge="Laporan Kerja"
-      title="Catatan Jurnal Kerja Saya"
-      description="Rencana kerja pagi (WFH) dan laporan/jurnal hasil kerja sore (WFO & WFH) Anda."
+      badge="Work Journal"
+      title="My Work Journal & Reports"
+      description="Morning work plans (WFH) and evening work reports (WFO & WFH)."
     >
       <LaporanWfhClient
         initialRecords={serializedRecords}
@@ -97,3 +97,4 @@ export default async function MemberLaporanWfhPage({
     </DashboardShell>
   );
 }
+

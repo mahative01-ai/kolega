@@ -95,10 +95,10 @@ type Props = {
 };
 
 const requestTypeLabel: Record<string, string> = {
-  PERMISSION: "Izin",
-  SICK: "Sakit",
-  DISPENSATION: "Dispensasi",
-  LEAVE: "Ganti Hari",
+  PERMISSION: "Permission",
+  SICK: "Sick",
+  DISPENSATION: "Dispensation",
+  LEAVE: "Leave Exchange",
   WFH: "WFH",
 };
 
@@ -111,10 +111,10 @@ const requestTypeColor: Record<string, string> = {
 };
 
 const requestStatusLabel: Record<string, string> = {
-  PENDING: "Menunggu",
-  APPROVED: "Disetujui",
-  REJECTED: "Ditolak",
-  CANCELLED: "Dibatalkan",
+  PENDING: "Pending",
+  APPROVED: "Approved",
+  REJECTED: "Rejected",
+  CANCELLED: "Cancelled",
 };
 
 const requestStatusColor: Record<string, string> = {
@@ -125,17 +125,17 @@ const requestStatusColor: Record<string, string> = {
 };
 
 const statusLabel: Record<string, string> = {
-  PRESENT: "Hadir",
-  ON_TIME: "Tepat Waktu",
-  LATE: "Terlambat",
+  PRESENT: "Present",
+  ON_TIME: "On Time",
+  LATE: "Late",
   WFH: "WFH",
-  PERMISSION: "Izin",
-  SICK: "Sakit",
-  DISPENSATION: "Dispensasi",
-  LEAVE: "Ganti Hari",
+  PERMISSION: "Permission",
+  SICK: "Sick",
+  DISPENSATION: "Dispensation",
+  LEAVE: "Leave Exchange",
   ALPHA: "Alpha",
-  HOLIDAY: "Libur",
-  OFF_DAY: "Libur",
+  HOLIDAY: "Holiday",
+  OFF_DAY: "Off Day",
 };
 
 const statusColor: Record<string, string> = {
@@ -149,15 +149,28 @@ const statusColor: Record<string, string> = {
   LEAVE: "bg-sky-100 text-sky-800",
   ALPHA: "bg-red-100 text-red-800",
   HOLIDAY: "bg-zinc-200 text-zinc-700",
+  OFF_DAY: "bg-zinc-200 text-zinc-700",
 };
 
 function formatDate(date: Date | string | null | undefined) {
   if (!date) return "-";
-  return new Intl.DateTimeFormat("id-ID", {
+  return new Intl.DateTimeFormat("en-US", {
     day: "2-digit",
     month: "short",
     year: "numeric",
     timeZone: "UTC",
+  }).format(new Date(date));
+}
+
+function formatDateTime(date: Date | string | null | undefined) {
+  if (!date) return "-";
+  return new Intl.DateTimeFormat("en-US", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Asia/Jakarta",
   }).format(new Date(date));
 }
 
@@ -386,8 +399,8 @@ export function ApprovalsTabsClient({
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
       <TabsList className="mb-4">
-        <TabsTrigger value="requests">Pengajuan Izin</TabsTrigger>
-        <TabsTrigger value="corrections">Koreksi Kehadiran</TabsTrigger>
+        <TabsTrigger value="requests">Leave & WFH Requests</TabsTrigger>
+        <TabsTrigger value="corrections">Attendance Corrections</TabsTrigger>
       </TabsList>
 
       {/* ────────────────── TAB 1: REQUESTS ────────────────── */}
@@ -397,7 +410,7 @@ export function ApprovalsTabsClient({
           <Input
             value={searchReq}
             onChange={(e) => setSearchReq(e.target.value)}
-            placeholder="Cari nama lengkap..."
+            placeholder="Search full name..."
             className="pl-9"
           />
         </div>
@@ -406,10 +419,10 @@ export function ApprovalsTabsClient({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ClipboardList className="size-5 text-blue-700" />
-              Menunggu Persetujuan Izin ({sortedAndFilteredPendingReq.length})
+              Pending Leave Requests ({sortedAndFilteredPendingReq.length})
             </CardTitle>
             <CardDescription>
-              Daftar pengajuan izin, sakit, cuti, atau WFH yang menunggu tinjauan Anda.
+              List of leave, sick, dispensation, leave exchange, or WFH requests awaiting your review.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
@@ -419,34 +432,34 @@ export function ApprovalsTabsClient({
                   <TableRow>
                     <TableHead onClick={() => handleSortPendingReq("name")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                       <div className="flex items-center gap-1">
-                        Nama / Email <ArrowUpDown className="size-3 text-zinc-400" />
+                        Name / Email <ArrowUpDown className="size-3 text-zinc-400" />
                       </div>
                     </TableHead>
                     <TableHead onClick={() => handleSortPendingReq("type")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                       <div className="flex items-center gap-1">
-                        Tipe <ArrowUpDown className="size-3 text-zinc-400" />
+                        Type <ArrowUpDown className="size-3 text-zinc-400" />
                       </div>
                     </TableHead>
                     <TableHead onClick={() => handleSortPendingReq("startDate")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                       <div className="flex items-center gap-1">
-                        Mulai <ArrowUpDown className="size-3 text-zinc-400" />
+                        Start Date <ArrowUpDown className="size-3 text-zinc-400" />
                       </div>
                     </TableHead>
                     <TableHead onClick={() => handleSortPendingReq("endDate")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                       <div className="flex items-center gap-1">
-                        Selesai <ArrowUpDown className="size-3 text-zinc-400" />
+                        End Date <ArrowUpDown className="size-3 text-zinc-400" />
                       </div>
                     </TableHead>
-                    <TableHead>Alasan / Catatan</TableHead>
-                    <TableHead>Lampiran</TableHead>
-                    <TableHead className="text-right">Aksi</TableHead>
+                    <TableHead>Reason / Note</TableHead>
+                    <TableHead>Attachment</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {sortedAndFilteredPendingReq.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={7} className="h-24 text-center text-sm text-zinc-500">
-                        Tidak ada pengajuan izin pending saat ini.
+                        No pending leave requests at this time.
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -470,31 +483,31 @@ export function ApprovalsTabsClient({
                         <TableCell className="text-xs font-mono">{formatDate(req.endDate)}</TableCell>
                         <TableCell className="max-w-[180px] truncate text-xs">
                           <Dialog>
-                            <DialogTrigger className="cursor-pointer hover:underline text-blue-600 dark:text-blue-400 font-medium" title="Klik untuk melihat detail">{req.reason}</DialogTrigger>
+                            <DialogTrigger className="cursor-pointer hover:underline text-blue-600 dark:text-blue-400 font-medium" title="Click for details">{req.reason}</DialogTrigger>
                             <DialogContent className="max-w-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 font-sans">
                               <DialogHeader>
-                                <DialogTitle>Detail Alasan Izin</DialogTitle>
+                                <DialogTitle>Leave Request Details</DialogTitle>
                                 <DialogDescription>
-                                  Diajukan oleh {req.user.name} ({req.user.email})
+                                  Submitted by {req.user.name} ({req.user.email})
                                 </DialogDescription>
                               </DialogHeader>
                               <div className="space-y-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Tipe Pengajuan</p>
+                                    <p className="text-xs font-semibold text-zinc-400">Request Type</p>
                                     <p className="mt-1 font-semibold">{requestTypeLabel[req.type] ?? req.type}</p>
                                   </div>
                                   <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Studio Asal</p>
+                                    <p className="text-xs font-semibold text-zinc-400">Home Studio</p>
                                     <p className="mt-1">{req.user.defaultStudio?.name ?? "-"}</p>
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-xs font-semibold text-zinc-400">Periode Absen</p>
-                                  <p className="mt-1 font-medium">{formatDate(req.startDate)} s.d. {formatDate(req.endDate)}</p>
+                                  <p className="text-xs font-semibold text-zinc-400">Absence Period</p>
+                                  <p className="mt-1 font-medium">{formatDate(req.startDate)} to {formatDate(req.endDate)}</p>
                                 </div>
                                 <div>
-                                  <p className="text-xs font-semibold text-zinc-400">Alasan Lengkap</p>
+                                  <p className="text-xs font-semibold text-zinc-400">Full Reason</p>
                                   <p className="mt-1 whitespace-pre-wrap leading-relaxed text-zinc-850 dark:text-zinc-200">{req.reason}</p>
                                 </div>
                               </div>
@@ -510,7 +523,7 @@ export function ApprovalsTabsClient({
                               className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline"
                             >
                               <Paperclip className="size-3" />
-                              Lihat File
+                              View File
                             </a>
                           ) : (
                             <span className="text-xs text-zinc-400">-</span>
@@ -527,7 +540,7 @@ export function ApprovalsTabsClient({
                                 className="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] h-8"
                               >
                                 <CheckCircle2 className="size-3 mr-1" />
-                                Setujui
+                                Approve
                               </Button>
                             </form>
                             <form action={reviewRequestAction} method="POST">
@@ -540,7 +553,7 @@ export function ApprovalsTabsClient({
                                 className="text-[11px] h-8"
                               >
                                 <XCircle className="size-3 mr-1" />
-                                Tolak
+                                Reject
                               </Button>
                             </form>
                           </div>
@@ -559,10 +572,10 @@ export function ApprovalsTabsClient({
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
               <Clock className="size-5 text-zinc-500" />
-              Riwayat Persetujuan Perizinan (50 Terakhir)
+              Leave Request Approval History (Last 50)
             </CardTitle>
             <CardDescription>
-              Daftar perizinan yang telah disetujui, ditolak, atau dibatalkan.
+              List of leave requests that have been approved, rejected, or cancelled.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
@@ -572,7 +585,7 @@ export function ApprovalsTabsClient({
                   <TableRow>
                     <TableHead onClick={() => handleSortHistoryReq("name")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                       <div className="flex items-center gap-1">
-                        Nama / Email <ArrowUpDown className="size-3 text-zinc-400" />
+                        Name / Email <ArrowUpDown className="size-3 text-zinc-400" />
                       </div>
                     </TableHead>
                     <TableHead onClick={() => handleSortHistoryReq("studio")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
@@ -582,20 +595,20 @@ export function ApprovalsTabsClient({
                     </TableHead>
                     <TableHead onClick={() => handleSortHistoryReq("type")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                       <div className="flex items-center gap-1">
-                        Jenis <ArrowUpDown className="size-3 text-zinc-400" />
+                        Type <ArrowUpDown className="size-3 text-zinc-400" />
                       </div>
                     </TableHead>
                     <TableHead onClick={() => handleSortHistoryReq("startDate")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                       <div className="flex items-center gap-1">
-                        Mulai <ArrowUpDown className="size-3 text-zinc-400" />
+                        Start Date <ArrowUpDown className="size-3 text-zinc-400" />
                       </div>
                     </TableHead>
                     <TableHead onClick={() => handleSortHistoryReq("endDate")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                       <div className="flex items-center gap-1">
-                        Selesai <ArrowUpDown className="size-3 text-zinc-400" />
+                        End Date <ArrowUpDown className="size-3 text-zinc-400" />
                       </div>
                     </TableHead>
-                    <TableHead>Alasan / Catatan</TableHead>
+                    <TableHead>Reason / Note</TableHead>
                     <TableHead onClick={() => handleSortHistoryReq("status")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                       <div className="flex items-center gap-1">
                         Status <ArrowUpDown className="size-3 text-zinc-400" />
@@ -603,10 +616,10 @@ export function ApprovalsTabsClient({
                     </TableHead>
                     <TableHead onClick={() => handleSortHistoryReq("reviewer")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                       <div className="flex items-center gap-1">
-                        Ditinjau Oleh <ArrowUpDown className="size-3 text-zinc-400" />
+                        Reviewed By <ArrowUpDown className="size-3 text-zinc-400" />
                       </div>
                     </TableHead>
-                    {currentUser.role === "SUPER_ADMIN" && <TableHead className="text-right">Aksi</TableHead>}
+                    {currentUser.role === "SUPER_ADMIN" && <TableHead className="text-right">Action</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -616,7 +629,7 @@ export function ApprovalsTabsClient({
                         colSpan={currentUser.role === "SUPER_ADMIN" ? 9 : 8}
                         className="h-24 text-center text-sm text-zinc-500"
                       >
-                        Tidak ada riwayat perizinan.
+                        No leave request history found.
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -717,7 +730,7 @@ export function ApprovalsTabsClient({
           <Input
             value={searchCorr}
             onChange={(e) => setSearchCorr(e.target.value)}
-            placeholder="Cari nama lengkap..."
+            placeholder="Search full name..."
             className="pl-9"
           />
         </div>
@@ -726,10 +739,10 @@ export function ApprovalsTabsClient({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ClipboardList className="size-5 text-amber-600" />
-              Menunggu Persetujuan Koreksi ({sortedAndFilteredPendingCorr.length})
+              Pending Attendance Corrections ({sortedAndFilteredPendingCorr.length})
             </CardTitle>
             <CardDescription>
-              Daftar permintaan koreksi data presensi lampau yang diajukan oleh member.
+              List of past attendance correction requests submitted by members.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
@@ -739,7 +752,7 @@ export function ApprovalsTabsClient({
                   <TableRow>
                     <TableHead onClick={() => handleSortPendingCorr("name")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                       <div className="flex items-center gap-1">
-                        Nama / Email <ArrowUpDown className="size-3 text-zinc-400" />
+                        Name / Email <ArrowUpDown className="size-3 text-zinc-400" />
                       </div>
                     </TableHead>
                     <TableHead onClick={() => handleSortPendingCorr("studio")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
@@ -749,28 +762,28 @@ export function ApprovalsTabsClient({
                     </TableHead>
                     <TableHead onClick={() => handleSortPendingCorr("date")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                       <div className="flex items-center gap-1">
-                        Tanggal Presensi <ArrowUpDown className="size-3 text-zinc-400" />
+                        Attendance Date <ArrowUpDown className="size-3 text-zinc-400" />
                       </div>
                     </TableHead>
                     <TableHead onClick={() => handleSortPendingCorr("previousStatus")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                       <div className="flex items-center gap-1">
-                        Status Lama <ArrowUpDown className="size-3 text-zinc-400" />
+                        Previous Status <ArrowUpDown className="size-3 text-zinc-400" />
                       </div>
                     </TableHead>
                     <TableHead onClick={() => handleSortPendingCorr("newStatus")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                       <div className="flex items-center gap-1">
-                        Status Baru <ArrowUpDown className="size-3 text-zinc-400" />
+                        New Status <ArrowUpDown className="size-3 text-zinc-400" />
                       </div>
                     </TableHead>
-                    <TableHead>Alasan Koreksi</TableHead>
-                    <TableHead className="text-right">Aksi</TableHead>
+                    <TableHead>Correction Reason</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {sortedAndFilteredPendingCorr.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={7} className="h-24 text-center text-sm text-zinc-500">
-                        Tidak ada pengajuan koreksi presensi pending saat ini.
+                        No pending attendance corrections at this time.
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -794,34 +807,34 @@ export function ApprovalsTabsClient({
                         </TableCell>
                         <TableCell className="max-w-[200px] truncate text-xs">
                           <Dialog>
-                            <DialogTrigger className="cursor-pointer hover:underline text-blue-600 dark:text-blue-400 font-medium" title="Klik untuk detail alasan">{corr.reason}</DialogTrigger>
+                            <DialogTrigger className="cursor-pointer hover:underline text-blue-600 dark:text-blue-400 font-medium" title="Click for details">{corr.reason}</DialogTrigger>
                             <DialogContent className="max-w-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 font-sans">
                               <DialogHeader>
-                                <DialogTitle>Detail Alasan Koreksi</DialogTitle>
+                                <DialogTitle>Correction Reason Details</DialogTitle>
                                 <DialogDescription>
-                                  Diajukan oleh {corr.requestedBy.name} ({corr.requestedBy.email})
+                                  Submitted by {corr.requestedBy.name} ({corr.requestedBy.email})
                                 </DialogDescription>
                               </DialogHeader>
                               <div className="space-y-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Tanggal Kehadiran</p>
+                                    <p className="text-xs font-semibold text-zinc-400">Attendance Date</p>
                                     <p className="mt-1 font-semibold">{formatDate(corr.attendanceRecord?.attendanceDate)}</p>
                                   </div>
                                   <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Studio Asal</p>
+                                    <p className="text-xs font-semibold text-zinc-400">Home Studio</p>
                                     <p className="mt-1">{corr.requestedBy.defaultStudio?.name ?? "-"}</p>
                                   </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Status Lama</p>
+                                    <p className="text-xs font-semibold text-zinc-400">Previous Status</p>
                                     <Badge variant="outline" className={corr.previousStatus ? statusColor[corr.previousStatus] : "mt-1"}>
                                       {corr.previousStatus ? (statusLabel[corr.previousStatus] ?? corr.previousStatus) : "-"}
                                     </Badge>
                                   </div>
                                   <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Status Baru</p>
+                                    <p className="text-xs font-semibold text-zinc-400">New Status</p>
                                     <Badge variant="outline" className={corr.newStatus ? statusColor[corr.newStatus] : "mt-1"}>
                                       {corr.newStatus ? (statusLabel[corr.newStatus] ?? corr.newStatus) : "-"}
                                     </Badge>
@@ -829,16 +842,16 @@ export function ApprovalsTabsClient({
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Jam Check-In Baru</p>
+                                    <p className="text-xs font-semibold text-zinc-400">New Check-In Time</p>
                                     <p className="mt-1 font-medium">{corr.proposedCheckInTime ? corr.proposedCheckInTime : "-"}</p>
                                   </div>
                                   <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Jam Check-Out Baru</p>
+                                    <p className="text-xs font-semibold text-zinc-400">New Check-Out Time</p>
                                     <p className="mt-1 font-medium">{corr.proposedCheckOutTime ? corr.proposedCheckOutTime : "-"}</p>
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-xs font-semibold text-zinc-400">Alasan Lengkap</p>
+                                  <p className="text-xs font-semibold text-zinc-400">Full Reason</p>
                                   <p className="mt-1 whitespace-pre-wrap leading-relaxed text-zinc-850 dark:text-zinc-200">{corr.reason}</p>
                                 </div>
                               </div>
@@ -856,7 +869,7 @@ export function ApprovalsTabsClient({
                                 className="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] h-8"
                               >
                                 <CheckCircle2 className="size-3 mr-1" />
-                                Setujui
+                                Approve
                               </Button>
                             </form>
                             <form action={reviewCorrectionAction} method="POST">
@@ -869,7 +882,7 @@ export function ApprovalsTabsClient({
                                 className="text-[11px] h-8"
                               >
                                 <XCircle className="size-3 mr-1" />
-                                Tolak
+                                Reject
                               </Button>
                             </form>
                           </div>
@@ -888,10 +901,10 @@ export function ApprovalsTabsClient({
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
               <Clock className="size-5 text-zinc-500" />
-              Riwayat Persetujuan Koreksi (50 Terakhir)
+              Attendance Correction History (Last 50)
             </CardTitle>
             <CardDescription>
-              Daftar permintaan koreksi data presensi yang telah disetujui atau ditolak.
+              List of attendance correction requests that have been approved or rejected.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
@@ -901,7 +914,7 @@ export function ApprovalsTabsClient({
                   <TableRow>
                     <TableHead onClick={() => handleSortHistoryCorr("name")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                       <div className="flex items-center gap-1">
-                        Nama / Email <ArrowUpDown className="size-3 text-zinc-400" />
+                        Name / Email <ArrowUpDown className="size-3 text-zinc-400" />
                       </div>
                     </TableHead>
                     <TableHead onClick={() => handleSortHistoryCorr("studio")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
@@ -911,20 +924,20 @@ export function ApprovalsTabsClient({
                     </TableHead>
                     <TableHead onClick={() => handleSortHistoryCorr("date")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                       <div className="flex items-center gap-1">
-                        Tanggal Presensi <ArrowUpDown className="size-3 text-zinc-400" />
+                        Attendance Date <ArrowUpDown className="size-3 text-zinc-400" />
                       </div>
                     </TableHead>
                     <TableHead onClick={() => handleSortHistoryCorr("previousStatus")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                       <div className="flex items-center gap-1">
-                        Status Lama <ArrowUpDown className="size-3 text-zinc-400" />
+                        Previous Status <ArrowUpDown className="size-3 text-zinc-400" />
                       </div>
                     </TableHead>
                     <TableHead onClick={() => handleSortHistoryCorr("newStatus")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                       <div className="flex items-center gap-1">
-                        Status Baru <ArrowUpDown className="size-3 text-zinc-400" />
+                        New Status <ArrowUpDown className="size-3 text-zinc-400" />
                       </div>
                     </TableHead>
-                    <TableHead>Alasan Koreksi</TableHead>
+                    <TableHead>Correction Reason</TableHead>
                     <TableHead onClick={() => handleSortHistoryCorr("status")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                       <div className="flex items-center gap-1">
                         Status <ArrowUpDown className="size-3 text-zinc-400" />
@@ -932,10 +945,10 @@ export function ApprovalsTabsClient({
                     </TableHead>
                     <TableHead onClick={() => handleSortHistoryCorr("reviewer")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                       <div className="flex items-center gap-1">
-                        Ditinjau Oleh <ArrowUpDown className="size-3 text-zinc-400" />
+                        Reviewed By <ArrowUpDown className="size-3 text-zinc-400" />
                       </div>
                     </TableHead>
-                    {currentUser.role === "SUPER_ADMIN" && <TableHead className="text-right">Aksi</TableHead>}
+                    {currentUser.role === "SUPER_ADMIN" && <TableHead className="text-right">Action</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -945,7 +958,7 @@ export function ApprovalsTabsClient({
                         colSpan={currentUser.role === "SUPER_ADMIN" ? 9 : 8}
                         className="h-24 text-center text-sm text-zinc-500"
                       >
-                        Tidak ada riwayat koreksi.
+                        No correction history found.
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -972,31 +985,31 @@ export function ApprovalsTabsClient({
                             <DialogTrigger className="cursor-pointer hover:underline text-blue-600 dark:text-blue-400 font-medium">{corr.reason}</DialogTrigger>
                             <DialogContent className="max-w-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 font-sans">
                               <DialogHeader>
-                                <DialogTitle>Detail Alasan Koreksi (Riwayat)</DialogTitle>
+                                <DialogTitle>Correction Reason Details (History)</DialogTitle>
                                 <DialogDescription>
-                                  Diajukan oleh {corr.requestedBy.name} ({corr.requestedBy.email})
+                                  Submitted by {corr.requestedBy.name} ({corr.requestedBy.email})
                                 </DialogDescription>
                               </DialogHeader>
                               <div className="space-y-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Tanggal Kehadiran</p>
+                                    <p className="text-xs font-semibold text-zinc-400">Attendance Date</p>
                                     <p className="mt-1 font-semibold">{formatDate(corr.attendanceRecord?.attendanceDate)}</p>
                                   </div>
                                   <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Studio Asal</p>
+                                    <p className="text-xs font-semibold text-zinc-400">Home Studio</p>
                                     <p className="mt-1">{corr.requestedBy.defaultStudio?.name ?? "-"}</p>
                                   </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Status Lama</p>
+                                    <p className="text-xs font-semibold text-zinc-400">Previous Status</p>
                                     <Badge variant="outline" className={corr.previousStatus ? statusColor[corr.previousStatus] : "mt-1"}>
                                       {corr.previousStatus ? (statusLabel[corr.previousStatus] ?? corr.previousStatus) : "-"}
                                     </Badge>
                                   </div>
                                   <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Status Baru</p>
+                                    <p className="text-xs font-semibold text-zinc-400">New Status</p>
                                     <Badge variant="outline" className={corr.newStatus ? statusColor[corr.newStatus] : "mt-1"}>
                                       {corr.newStatus ? (statusLabel[corr.newStatus] ?? corr.newStatus) : "-"}
                                     </Badge>
@@ -1004,20 +1017,20 @@ export function ApprovalsTabsClient({
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Jam Check-In Baru</p>
+                                    <p className="text-xs font-semibold text-zinc-400">New Check-In Time</p>
                                     <p className="mt-1 font-medium">{corr.proposedCheckInTime ? corr.proposedCheckInTime : "-"}</p>
                                   </div>
                                   <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Jam Check-Out Baru</p>
+                                    <p className="text-xs font-semibold text-zinc-400">New Check-Out Time</p>
                                     <p className="mt-1 font-medium">{corr.proposedCheckOutTime ? corr.proposedCheckOutTime : "-"}</p>
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-xs font-semibold text-zinc-400">Alasan Lengkap</p>
+                                  <p className="text-xs font-semibold text-zinc-400">Full Reason</p>
                                   <p className="mt-1 whitespace-pre-wrap leading-relaxed text-zinc-850 dark:text-zinc-200">{corr.reason}</p>
                                 </div>
                                 <div>
-                                  <p className="text-xs font-semibold text-zinc-400">Status Pengajuan</p>
+                                  <p className="text-xs font-semibold text-zinc-400">Request Status</p>
                                   <Badge className={`mt-1 ${requestStatusColor[corr.status]}`}>
                                     {requestStatusLabel[corr.status] ?? corr.status}
                                   </Badge>
@@ -1037,7 +1050,7 @@ export function ApprovalsTabsClient({
                         {currentUser.role === "SUPER_ADMIN" && (
                           <TableCell className="text-right">
                             <form action={deleteCorrectionAction} method="POST" onSubmit={(e) => {
-                              if (!confirm("Apakah Anda yakin ingin menghapus koreksi ini secara permanen dan memulihkan data kehadiran sebelumnya?")) {
+                              if (!confirm("Are you sure you want to permanently delete this correction and restore previous attendance data?")) {
                                 e.preventDefault();
                               }
                             }}>
@@ -1048,7 +1061,7 @@ export function ApprovalsTabsClient({
                                 variant="ghost"
                                 className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 h-7 px-2"
                               >
-                                Hapus
+                                Delete
                               </Button>
                             </form>
                           </TableCell>

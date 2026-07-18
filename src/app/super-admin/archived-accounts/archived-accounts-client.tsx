@@ -39,8 +39,8 @@ type Props = {
 };
 
 const memberStatusLabel: Record<string, string> = {
-  TEAM: "Staf / Team",
-  INTERN: "Intern / Magang",
+  TEAM: "Staff / Team",
+  INTERN: "Intern",
 };
 
 export function ArchivedAccountsClient({ initialUsers }: Props) {
@@ -57,7 +57,7 @@ export function ArchivedAccountsClient({ initialUsers }: Props) {
   function formatDate(dVal: Date | string | null) {
     if (!dVal) return "-";
     const d = new Date(dVal);
-    return new Intl.DateTimeFormat("id-ID", {
+    return new Intl.DateTimeFormat("en-US", {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -68,7 +68,7 @@ export function ArchivedAccountsClient({ initialUsers }: Props) {
   }
 
   const handleRestore = (id: string, name: string) => {
-    if (!confirm(`Apakah Anda yakin ingin memulihkan kembali akun ${name} menjadi aktif?`)) {
+    if (!confirm(`Are you sure you want to restore account ${name} back to active status?`)) {
       return;
     }
 
@@ -80,7 +80,7 @@ export function ArchivedAccountsClient({ initialUsers }: Props) {
           setUsers(users.filter((u) => u.id !== id));
         }
       } catch (err: unknown) {
-        alert(err instanceof Error ? err.message : "Gagal memulihkan akun.");
+        alert(err instanceof Error ? err.message : "Failed to restore account.");
       }
     });
   };
@@ -93,7 +93,7 @@ export function ArchivedAccountsClient({ initialUsers }: Props) {
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari nama lengkap akun terarsip..."
+            placeholder="Search archived account full name..."
             className="pl-9"
           />
         </div>
@@ -103,10 +103,10 @@ export function ArchivedAccountsClient({ initialUsers }: Props) {
         <CardHeader>
           <CardTitle className="text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
             <UserMinus className="size-5 text-zinc-500" />
-            Daftar Akun Terarsip (Nonaktif)
+            Archived Accounts List (Inactive)
           </CardTitle>
           <CardDescription>
-            Menampilkan seluruh akun magang atau staf yang dinonaktifkan secara permanen. Akun ini tidak dapat login kecuali dipulihkan.
+            Displaying all deactivated intern or staff accounts. These accounts cannot log in unless restored.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -114,20 +114,20 @@ export function ArchivedAccountsClient({ initialUsers }: Props) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nama Anggota</TableHead>
+                  <TableHead>Member Name</TableHead>
                   <TableHead>Username</TableHead>
-                  <TableHead>Role Akses</TableHead>
-                  <TableHead>Status Member</TableHead>
-                  <TableHead>Studio Asal</TableHead>
-                  <TableHead>Waktu Diarsipkan</TableHead>
-                  <TableHead className="text-right">Aksi</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Member Status</TableHead>
+                  <TableHead>Home Studio</TableHead>
+                  <TableHead>Archived At</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredUsers.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8 text-zinc-500 text-sm">
-                      Tidak ada akun terarsip ditemukan.
+                      No archived accounts found.
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -163,7 +163,7 @@ export function ArchivedAccountsClient({ initialUsers }: Props) {
                           className="text-[10px] h-7 px-2 border-zinc-200 dark:border-zinc-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 hover:text-emerald-600 shadow-none"
                         >
                           <RotateCcw className="size-3 mr-1" />
-                          Pulihkan Akun
+                          Restore Account
                         </Button>
                       </TableCell>
                     </TableRow>
