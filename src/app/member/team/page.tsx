@@ -50,8 +50,8 @@ export default async function TeamMoodPage() {
       user={currentUser}
       currentPath="/member/team"
       badge="Kolega Mood"
-      title="Suasana Hati Tim (Team Mood)"
-      description="Lihat bagaimana suasana hati rekan kerja Anda hari ini di Mahative dan Kipa."
+      title="Team Mood"
+      description="See how your colleagues are feeling today at Mahative and Kipa."
     >
       <div className="space-y-6">
         {/* Mood Stats Overview Bar */}
@@ -59,10 +59,10 @@ export default async function TeamMoodPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-bold flex items-center gap-1.5 text-zinc-900 dark:text-zinc-50">
               <Smile className="size-4 text-blue-700 dark:text-blue-400" />
-              Rekapitulasi Mood Hari Ini
+              Today's Mood Overview
             </CardTitle>
             <CardDescription className="text-xs">
-              {sharingCount} dari {totalCount} rekan kerja membagikan suasana hatinya hari ini.
+              {sharingCount} out of {totalCount} colleagues shared their mood today.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -107,7 +107,7 @@ export default async function TeamMoodPage() {
                       {u.name}
                     </h4>
                     <p className="text-[10px] text-zinc-500 truncate">
-                      {u.defaultStudio?.name ?? "Studio tidak diset"}
+                      {u.defaultStudio?.name ?? "No studio assigned"}
                     </p>
                   </div>
                 </CardHeader>
@@ -120,7 +120,7 @@ export default async function TeamMoodPage() {
                       </span>
                     </div>
                     <div className="text-xs text-zinc-650 dark:text-zinc-350 italic bg-zinc-50 dark:bg-zinc-900/40 p-2.5 rounded-lg border border-zinc-100 dark:border-zinc-800/60 min-h-[60px] flex items-center">
-                      {u.moodNote ? `"${u.moodNote}"` : "Tidak ada pesan status."}
+                      {u.moodNote ? `"${u.moodNote}"` : "No status message."}
                     </div>
                   </div>
                 </CardContent>

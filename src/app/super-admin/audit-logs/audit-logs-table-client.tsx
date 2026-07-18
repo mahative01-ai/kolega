@@ -41,7 +41,7 @@ type Props = {
 const TZ = "Asia/Jakarta";
 
 function formatDate(date: Date | string) {
-  return new Intl.DateTimeFormat("id-ID", {
+  return new Intl.DateTimeFormat("en-US", {
     dateStyle: "medium",
     timeStyle: "short",
     timeZone: TZ,
@@ -84,8 +84,8 @@ export function AuditLogsTableClient({ logs }: Props) {
         aVal = new Date(a.createdAt).getTime();
         bVal = new Date(b.createdAt).getTime();
       } else if (sortField === "actor") {
-        aVal = (a.actor?.name ?? "Sistem").toLowerCase();
-        bVal = (b.actor?.name ?? "Sistem").toLowerCase();
+        aVal = (a.actor?.name ?? "System").toLowerCase();
+        bVal = (b.actor?.name ?? "System").toLowerCase();
       } else if (sortField === "entity") {
         aVal = a.entity.toLowerCase();
         bVal = b.entity.toLowerCase();
@@ -104,8 +104,8 @@ export function AuditLogsTableClient({ logs }: Props) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center text-zinc-500">
         <ShieldAlert className="size-10 text-zinc-300 mb-2" />
-        <p className="text-sm font-semibold">Tidak Ada Log</p>
-        <p className="text-xs text-zinc-400 mt-1">Tidak ada catatan audit log yang cocok dengan filter saat ini.</p>
+        <p className="text-sm font-semibold">No Logs Found</p>
+        <p className="text-xs text-zinc-400 mt-1">No audit log records match the current filter.</p>
       </div>
     );
   }
@@ -118,22 +118,22 @@ export function AuditLogsTableClient({ logs }: Props) {
             <TableRow>
               <TableHead onClick={() => handleSort("createdAt")} className="w-[170px] cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                 <div className="flex items-center gap-1 whitespace-nowrap">
-                  Waktu (WIB) <ArrowUpDown className="size-3 text-zinc-400" />
+                  Time (WIB) <ArrowUpDown className="size-3 text-zinc-400" />
                 </div>
               </TableHead>
               <TableHead onClick={() => handleSort("actor")} className="w-[200px] cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                 <div className="flex items-center gap-1">
-                  Aktor <ArrowUpDown className="size-3 text-zinc-400" />
+                  Actor <ArrowUpDown className="size-3 text-zinc-400" />
                 </div>
               </TableHead>
               <TableHead onClick={() => handleSort("entity")} className="w-[180px] cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                 <div className="flex items-center gap-1">
-                  Entitas <ArrowUpDown className="size-3 text-zinc-400" />
+                  Entity <ArrowUpDown className="size-3 text-zinc-400" />
                 </div>
               </TableHead>
               <TableHead onClick={() => handleSort("action")} className="w-[200px] cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                 <div className="flex items-center gap-1">
-                  Tindakan <ArrowUpDown className="size-3 text-zinc-400" />
+                  Action <ArrowUpDown className="size-3 text-zinc-400" />
                 </div>
               </TableHead>
               <TableHead className="w-[280px]">Metadata</TableHead>
@@ -148,7 +148,7 @@ export function AuditLogsTableClient({ logs }: Props) {
                     {formatDate(log.createdAt)}
                   </TableCell>
                   <TableCell className="w-[200px] overflow-hidden">
-                    <div className="font-semibold text-zinc-900 dark:text-zinc-100 text-xs truncate" title={log.actor?.name || "Sistem"}>{log.actor?.name || "Sistem"}</div>
+                    <div className="font-semibold text-zinc-900 dark:text-zinc-100 text-xs truncate" title={log.actor?.name || "System"}>{log.actor?.name || "System"}</div>
                     <div className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate w-full" title={log.actor?.email || "system@kolega.com"}>{log.actor?.email || "system@kolega.com"}</div>
                     {log.actor?.role && (
                       <Badge className="mt-1 text-[9px] px-1 py-0 border-0 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-medium">
@@ -176,12 +176,12 @@ export function AuditLogsTableClient({ logs }: Props) {
                           {JSON.stringify(log.metadata)}
                         </div>
                         <Dialog>
-                          <DialogTrigger className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-900" title="Lihat metadata lengkap">
+                          <DialogTrigger className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-900" title="View full metadata">
                             <Eye className="size-3.5 text-zinc-500 hover:text-zinc-950" />
                           </DialogTrigger>
                           <DialogContent className="max-w-lg bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 font-sans">
                             <DialogHeader>
-                              <DialogTitle className="text-sm">Metadata Audit Log</DialogTitle>
+                              <DialogTitle className="text-sm">Audit Log Metadata</DialogTitle>
                             </DialogHeader>
                             <div className="py-2">
                               <pre className="text-xs bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-300 rounded p-3 overflow-auto max-h-[350px] leading-relaxed">

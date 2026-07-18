@@ -65,8 +65,8 @@ export default async function AuditLogsPage({
       user={user}
       currentPath="/super-admin/audit-logs"
       badge="Audit Trail"
-      title="Audit Log Administrator"
-      description="Pantau riwayat aksi penting yang dilakukan oleh Admin dan Super Admin."
+      title="Administrator Audit Log"
+      description="Monitor important action history performed by Admin and Super Admin."
     >
       <div className="space-y-6">
         {/* Info Banner */}
@@ -74,10 +74,10 @@ export default async function AuditLogsPage({
           <Clock className="size-5 text-primary mt-0.5 shrink-0" />
           <div>
             <p className="font-semibold text-zinc-900 dark:text-zinc-50 mb-1">
-              Apa itu Audit Trail?
+              What is Audit Trail?
             </p>
             <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-              Jejak audit (Audit Trail) otomatis merekam setiap aksi krusial yang dilakukan oleh Owner/Super Admin dan Admin (seperti perubahan jadwal kerja studio, persetujuan izin/sakit, pembuatan akun baru, atau penugasan piket). Sistem ini menjamin transparansi penuh, kepatuhan kebijakan, dan keamanan data presensi Kolega.
+              Audit Trail automatically records every crucial action performed by Owner/Super Admin and Admin (such as studio work schedule changes, leave/sick approvals, new account creations, or picket assignments). This system ensures full transparency, policy compliance, and security of Kolega attendance data.
             </p>
           </div>
         </div>
@@ -89,7 +89,7 @@ export default async function AuditLogsPage({
               <div className="grid gap-1.5">
                 <label htmlFor="actor-select" className="text-sm font-semibold flex items-center gap-1.5">
                   <User className="size-4 text-zinc-500" />
-                  Aktor
+                  Actor
                 </label>
                 <select
                   id="actor-select"
@@ -97,7 +97,7 @@ export default async function AuditLogsPage({
                   defaultValue={filterActorId}
                   className="h-9 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 px-3 text-sm focus:outline-none"
                 >
-                  <option value="">Semua Aktor</option>
+                  <option value="">All Actors</option>
                   {actors.map((a) => (
                     <option key={a.id} value={a.id}>
                       {a.name} ({a.email})
@@ -109,7 +109,7 @@ export default async function AuditLogsPage({
               <div className="grid gap-1.5">
                 <label htmlFor="entity-select" className="text-sm font-semibold flex items-center gap-1.5">
                   <Archive className="size-4 text-zinc-500" />
-                  Entitas
+                  Entity
                 </label>
                 <select
                   id="entity-select"
@@ -117,7 +117,7 @@ export default async function AuditLogsPage({
                   defaultValue={filterEntity}
                   className="h-9 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 px-3 text-sm focus:outline-none"
                 >
-                  <option value="">Semua Entitas</option>
+                  <option value="">All Entities</option>
                   {entities.map((e) => (
                     <option key={e} value={e}>
                       {e}
@@ -129,12 +129,12 @@ export default async function AuditLogsPage({
               <div className="grid gap-1.5">
                 <label htmlFor="search-input" className="text-sm font-semibold flex items-center gap-1.5">
                   <Search className="size-4 text-zinc-500" />
-                  Pencarian
+                  Search
                 </label>
                 <Input
                   id="search-input"
                   name="search"
-                  placeholder="Aksi..."
+                  placeholder="Action..."
                   defaultValue={filterSearch}
                   className="h-9"
                 />
@@ -142,7 +142,7 @@ export default async function AuditLogsPage({
 
               <Button type="submit" className="w-full">
                 <Filter className="size-4 mr-1.5" />
-                Filter Log
+                Filter Logs
               </Button>
             </form>
           </CardContent>
@@ -153,9 +153,9 @@ export default async function AuditLogsPage({
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <Clock className="size-5 text-blue-700" />
-              Riwayat Tindakan ({logs.length} log)
+              Action History ({logs.length} logs)
             </CardTitle>
-            <CardDescription>Menampilkan maksimal 200 log tindakan terbaru.</CardDescription>
+            <CardDescription>Displaying up to 200 latest action logs.</CardDescription>
           </CardHeader>
           <CardContent>
             <AuditLogsTableClient logs={logs} />

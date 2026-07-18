@@ -47,17 +47,17 @@ import { DashboardCharts } from "@/components/dashboard-charts";
 export const dynamic = "force-dynamic";
 
 const statusLabel: Record<string, string> = {
-  PRESENT: "Hadir",
-  ON_TIME: "Tepat Waktu",
-  LATE: "Terlambat",
+  PRESENT: "Present",
+  ON_TIME: "On Time",
+  LATE: "Late",
   WFH: "WFH",
-  PERMISSION: "Izin",
-  SICK: "Sakit",
-  DISPENSATION: "Dispensasi",
-  LEAVE: "Ganti Hari",
+  PERMISSION: "Permission",
+  SICK: "Sick Leave",
+  DISPENSATION: "Dispensation",
+  LEAVE: "Replacement Leave",
   ALPHA: "Alpha",
-  HOLIDAY: "Libur",
-  OFF_DAY: "Libur",
+  HOLIDAY: "Holiday",
+  OFF_DAY: "Off Day",
 };
 
 const statusColor: Record<string, string> = {
@@ -213,7 +213,7 @@ async function getSuperAdminDashboardData() {
       (t) => t.attendanceDate.getTime() === d.getTime()
     );
 
-    const dateLabel = new Intl.DateTimeFormat("id-ID", {
+    const dateLabel = new Intl.DateTimeFormat("en-US", {
       weekday: "short",
       day: "2-digit",
       month: "2-digit",
@@ -304,19 +304,19 @@ export default async function SuperAdminDashboardPage() {
     birthDate.getUTCMonth() === currentDate.getMonth();
   const metrics = [
     {
-      label: `Jumlah Presensi ${data.monthLabel}`,
+      label: `Total Attendance ${data.monthLabel}`,
       value: data.attendanceSummary.total,
       icon: ClipboardCheck,
       color: "text-blue-700 dark:text-blue-400",
     },
     {
-      label: `Sakit ${data.monthLabel}`,
+      label: `Sick ${data.monthLabel}`,
       value: data.attendanceSummary.sick,
       icon: HeartPulse,
       color: "text-violet-700 dark:text-violet-400",
     },
     {
-      label: `Terlambat ${data.monthLabel}`,
+      label: `Late ${data.monthLabel}`,
       value: data.attendanceSummary.late,
       icon: Clock3,
       color: "text-orange-700 dark:text-orange-400",
@@ -334,7 +334,7 @@ export default async function SuperAdminDashboardPage() {
       color: "text-sky-700 dark:text-sky-400",
     },
     {
-      label: "Minus Hari Kerja",
+      label: "Minus Workdays",
       value: data.workDayBalanceSummary.debt,
       icon: ShieldAlert,
       color: "text-red-700 dark:text-red-400",
@@ -361,7 +361,7 @@ export default async function SuperAdminDashboardPage() {
       currentPath="/super-admin"
       badge="Welcome, Super Admin"
       title="Super Admin Dashboard"
-      description={`Halo ${currentUser.name}. Halaman ini khusus Owner untuk melihat ringkasan Mahative dan Kipa dalam satu tempat.`}
+      description={`Hello ${currentUser.name}. This page is for Owners to view a summary of Mahative and Kipa in one place.`}
     >
       {isBirthday && (
         <>
@@ -369,8 +369,8 @@ export default async function SuperAdminDashboardPage() {
           <div className="rounded-xl border border-pink-200 dark:border-pink-900 bg-pink-50 dark:bg-pink-950/20 p-5 text-sm text-pink-850 dark:text-pink-300 mb-6 flex items-center gap-4 shadow-sm">
             <span className="text-3xl">🎂</span>
             <div>
-              <h3 className="font-bold text-base text-pink-900 dark:text-pink-400">Selamat Ulang Tahun, {currentUser.name}! 🎉</h3>
-              <p className="text-xs text-pink-700 dark:text-pink-400 mt-0.5">Semoga hari Anda menyenangkan dan penuh kebahagiaan. Terima kasih atas kontribusi luar biasa Anda di tim!</p>
+              <h3 className="font-bold text-base text-pink-900 dark:text-pink-400">Happy Birthday, {currentUser.name}! 🎉</h3>
+              <p className="text-xs text-pink-700 dark:text-pink-400 mt-0.5">May your day be filled with joy and happiness. Thank you for your amazing contribution to the team!</p>
             </div>
           </div>
         </>
@@ -392,7 +392,7 @@ export default async function SuperAdminDashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <p className={cn("text-3xl font-semibold", metric.color)}>
-                    {metric.value.toLocaleString("id-ID")}
+                    {metric.value.toLocaleString("en-US")}
                   </p>
                 </CardContent>
               </Card>
@@ -412,10 +412,10 @@ export default async function SuperAdminDashboardPage() {
             <CardHeader>
               <CardTitle className="text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
                 <Building2 className="size-5 text-blue-700 dark:text-blue-400" />
-                Ringkasan Studio
+                Studio Summary
               </CardTitle>
               <CardDescription className="text-zinc-500 dark:text-zinc-400">
-                Super Admin memantau data seluruh studio aktif secara terpusat.
+                Super Admin centrally monitors data across all active studios.
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
@@ -427,8 +427,8 @@ export default async function SuperAdminDashboardPage() {
                     <TableHead>Admin</TableHead>
                     <TableHead>Member</TableHead>
                     <TableHead>Placement</TableHead>
-                    <TableHead>Presensi Bulan Ini</TableHead>
-                    <TableHead>Luar Radius</TableHead>
+                    <TableHead>Attendance This Month</TableHead>
+                    <TableHead>Outside Radius</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -473,10 +473,10 @@ export default async function SuperAdminDashboardPage() {
               <CardHeader className="pb-3 border-b border-zinc-100 dark:border-zinc-800">
                 <CardTitle className="text-sm font-bold flex items-center gap-1.5 text-zinc-900 dark:text-zinc-50">
                   <ShieldAlert className="size-4 text-blue-700 dark:text-blue-400" />
-                  Operasional & Monitoring Live
+                  Live Operations & Monitoring
                 </CardTitle>
                 <CardDescription className="text-zinc-500 dark:text-zinc-400">
-                  Statistik verifikasi dan warning geofence terkini.
+                  Latest verification statistics and geofence warnings.
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-4 space-y-3 text-sm">
@@ -487,13 +487,13 @@ export default async function SuperAdminDashboardPage() {
                       <ClipboardList className="size-3 text-zinc-400" />
                       PENDING REQUESTS
                     </p>
-                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400">Menunggu persetujuan Owner</p>
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400">Awaiting Owner approval</p>
                   </div>
                   <Link
                     href="/admin/requests"
                     className="rounded-full bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/30 dark:hover:bg-blue-950/50 text-blue-700 dark:text-blue-400 font-bold px-3 py-1 text-xs transition-colors flex items-center gap-0.5"
                   >
-                    {data.pendingRequests} Izin
+                    {data.pendingRequests} Requests
                     <ArrowRight className="size-3" />
                   </Link>
                 </div>
@@ -505,7 +505,7 @@ export default async function SuperAdminDashboardPage() {
                       <ShieldAlert className="size-3 text-zinc-400" />
                       SOFT WARNING GEOFENCE
                     </p>
-                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400">Presensi luar radius bulan ini</p>
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400">Out-of-radius attendance this month</p>
                   </div>
                   <Badge
                     variant="outline"
@@ -516,17 +516,17 @@ export default async function SuperAdminDashboardPage() {
                         : "bg-zinc-50 dark:bg-zinc-900/50 text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800"
                     )}
                   >
-                    {data.outsideRadiusThisMonth} Kali
+                    {data.outsideRadiusThisMonth} Times
                   </Badge>
                 </div>
 
                 <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-3">
                   <p className="font-bold text-zinc-700 dark:text-zinc-300 text-xs flex items-center gap-1">
                     <Clock3 className="size-3 text-zinc-400" />
-                    SALDO HARI KERJA
+                    WORKDAY BALANCE
                   </p>
                   <p className="mt-0.5 text-[11px] text-zinc-500 dark:text-zinc-400">
-                    Hutang ganti hari, surplus, dan anggota yang lunas.
+                    Replacement debt, surplus, and cleared members.
                   </p>
                   <div className="mt-3 grid grid-cols-3 gap-2">
                     <div className="rounded-md border border-red-200 bg-red-50 p-2 text-center dark:border-red-900 dark:bg-red-950/20">
@@ -539,11 +539,11 @@ export default async function SuperAdminDashboardPage() {
                     </div>
                     <div className="rounded-md border border-zinc-200 bg-white p-2 text-center dark:border-zinc-800 dark:bg-zinc-950">
                       <div className="text-lg font-bold text-zinc-700 dark:text-zinc-300">{data.workDayBalanceSummary.settled}</div>
-                      <div className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">Lunas</div>
+                      <div className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">Cleared</div>
                     </div>
                   </div>
                   <div className="mt-2 text-[11px] text-zinc-500 dark:text-zinc-400">
-                    Total hutang aktif: <span className="font-semibold text-red-700 dark:text-red-300">{data.workDayBalanceSummary.totalDebtDays} hari</span>
+                    Total active debt: <span className="font-semibold text-red-700 dark:text-red-300">{data.workDayBalanceSummary.totalDebtDays} days</span>
                   </div>
                 </div>
               </CardContent>
@@ -593,19 +593,19 @@ export default async function SuperAdminDashboardPage() {
           <CardHeader>
             <CardTitle className="text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
               <Users className="size-5 text-blue-700 dark:text-blue-400" />
-              Kehadiran Tim Lintas Studio Hari Ini
+              Cross-Studio Team Attendance Today
             </CardTitle>
             <CardDescription className="text-zinc-500 dark:text-zinc-400">
-              Daftar kehadiran staf lintas studio Mahative dan Kipa hari ini.
+              Today&apos;s attendance list of staff across Mahative and Kipa studios.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nama</TableHead>
+                  <TableHead>Name</TableHead>
                   <TableHead>Default Studio</TableHead>
-                  <TableHead>Lokasi Presensi</TableHead>
+                  <TableHead>Attendance Location</TableHead>
                   <TableHead>Mode</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Check-in</TableHead>
