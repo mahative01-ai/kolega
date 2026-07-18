@@ -11,6 +11,7 @@ import {
   Camera,
   Brush,
   Building,
+  CalendarDays,
 } from "lucide-react";
 import QRCode from "qrcode";
 import Link from "next/link";
@@ -98,7 +99,7 @@ async function getMemberDashboardData(userId: string, selectedMonthKey?: string)
 
   const userObj = await prisma.user.findUnique({
     where: { id: userId },
-    select: { defaultStudioId: true, workDayBalance: true, picketDay: true }
+    select: { defaultStudioId: true, workDayBalance: true, picketDay: true, annualLeaveBalance: true, memberStatus: true }
   });
 
   const studioColleagues = userObj?.defaultStudioId
@@ -301,6 +302,8 @@ async function getMemberDashboardData(userId: string, selectedMonthKey?: string)
     internProfile,
     lateMakeupMinutes: lateMinutesSum._sum.lateMinutes ?? 0,
     workDayBalance: userObj?.workDayBalance ?? 0,
+    annualLeaveBalance: userObj?.annualLeaveBalance ?? 12,
+    memberStatus: userObj?.memberStatus ?? "TEAM",
     picketDay: userObj?.picketDay ?? null,
     announcement,
     picketCalendar,
@@ -434,6 +437,13 @@ export default async function MemberDashboardPage({
       icon: Home,
       color: "text-sky-700 dark:text-sky-400",
     },
+    ...(data.memberStatus === "TEAM" ? [{
+      label: "Annual Leave Balance",
+      value: data.annualLeaveBalance,
+      subValue: `${data.annualLeaveBalance} days remaining`,
+      icon: CalendarDays,
+      color: "text-blue-700 dark:text-blue-400",
+    }] : []),
     {
       label: "Workday Balance",
       value: data.workDayBalance,

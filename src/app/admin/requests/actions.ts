@@ -99,11 +99,20 @@ export async function reviewRequestAction(formData: FormData) {
         countDate.setUTCDate(countDate.getUTCDate() + 1);
       }
 
-      if (request.type === "PERMISSION" || request.type === "LEAVE") {
+      if (request.type === "PERMISSION") {
         await tx.user.update({
           where: { id: request.userId },
           data: {
             workDayBalance: {
+              decrement: daysCount,
+            },
+          },
+        });
+      } else if (request.type === "LEAVE") {
+        await tx.user.update({
+          where: { id: request.userId },
+          data: {
+            annualLeaveBalance: {
               decrement: daysCount,
             },
           },
@@ -286,11 +295,20 @@ export async function quickReviewRequestAction(requestId: string, approve: boole
         countDate.setUTCDate(countDate.getUTCDate() + 1);
       }
 
-      if (request.type === "PERMISSION" || request.type === "LEAVE") {
+      if (request.type === "PERMISSION") {
         await tx.user.update({
           where: { id: request.userId },
           data: {
             workDayBalance: {
+              decrement: daysCount,
+            },
+          },
+        });
+      } else if (request.type === "LEAVE") {
+        await tx.user.update({
+          where: { id: request.userId },
+          data: {
+            annualLeaveBalance: {
               decrement: daysCount,
             },
           },
@@ -402,7 +420,7 @@ export async function deleteRequestAction(formData: FormData) {
       const start = new Date(request.startDate);
       const end = new Date(request.endDate);
 
-      // 1. Revert work-day balance side effect
+      // 1. Revert balance side effects
       if (request.type === "PERMISSION" || request.type === "LEAVE") {
         let daysCount = 0;
         const countDate = new Date(start);
@@ -410,14 +428,25 @@ export async function deleteRequestAction(formData: FormData) {
           daysCount++;
           countDate.setUTCDate(countDate.getUTCDate() + 1);
         }
-        await tx.user.update({
-          where: { id: request.userId },
-          data: {
-            workDayBalance: {
-              increment: daysCount,
+        if (request.type === "PERMISSION") {
+          await tx.user.update({
+            where: { id: request.userId },
+            data: {
+              workDayBalance: {
+                increment: daysCount,
+              },
             },
-          },
-        });
+          });
+        } else {
+          await tx.user.update({
+            where: { id: request.userId },
+            data: {
+              annualLeaveBalance: {
+                increment: daysCount,
+              },
+            },
+          });
+        }
       }
 
       // 2. Revert materialized schedules/records

@@ -28,8 +28,8 @@ const SYARAT_KETERANGAN: Record<string, { title: string; desc: string; variant: 
     variant: "emerald",
   },
   LEAVE: {
-    title: "Replacement Leave Terms",
-    desc: "Must be requested at least 1 day in advance. Once approved, the system logs a workday debt.",
+    title: "Cuti Tahunan Terms",
+    desc: "Must be requested at least 1 day in advance. Once approved, the system decrements your Annual Leave Balance.",
     variant: "rose",
   },
   WFH: {
@@ -78,7 +78,7 @@ export function RequestFormClient({ canRequestReplacementDay }: Props) {
           <option value="SICK">Official Sick Leave (Doctor note required)</option>
           <option value="DISPENSATION">Official Dispensation (Attachment required)</option>
           {canRequestReplacementDay && (
-            <option value="LEAVE">Replacement Leave (Min H-1)</option>
+            <option value="LEAVE">Cuti Tahunan (Min H-1, Potong Saldo)</option>
           )}
           <option value="WFH">Work From Home (WFH)</option>
         </select>

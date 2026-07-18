@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireAnyRole, hashPassword } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { dateOnly } from "@/lib/calendar";
+import { getCurrentAnnualLeaveYear } from "@/lib/annual-leave";
 
 const ACCOUNT_STATUSES = ["ACTIVE", "INACTIVE", "ARCHIVED"] as const;
 
@@ -489,3 +490,39 @@ export async function updateUserAction(formData: FormData) {
   }
 }
 
+export async function resetAllTeamLeavesAction() {
+  const actor = await requireAnyRole(["SUPER_ADMIN"]);
+
+  try {
+    const currentYear = getCurrentAnnualLeaveYear();
+
+    await prisma.user.updateMany({
+      where: {
+        memberStatus: "TEAM",
+        accountStatus: "ACTIVE",
+        role: "MEMBER",
+      },
+      data: {
+        annualLeaveBalance: 12,
+        annualLeaveYear: currentYear,
+      },
+    });
+
+    // Create audit log
+    await prisma.auditLog.create({
+      data: {
+        actorId: actor.id,
+        entity: "User",
+        action: "BULK_ANNUAL_LEAVE_RESET",
+        metadata: {
+          year: currentYear,
+        },
+      },
+    });
+
+    revalidatePath("/roles");
+    return { success: true, message: "Jatah cuti tahunan semua karyawan (Team) berhasil direset ke 12 hari." };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : "Failed to reset leave balances." };
+  }
+}

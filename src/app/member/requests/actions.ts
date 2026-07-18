@@ -94,6 +94,27 @@ export async function createRequestAction(formData: FormData) {
     redirect("/member/requests?error=intern-leave");
   }
 
+  if (requestedType === "LEAVE") {
+    const start = new Date(startDateStr);
+    const end = new Date(endDateStr);
+    let daysCount = 0;
+    const countDate = new Date(start);
+    while (countDate <= end) {
+      daysCount++;
+      countDate.setUTCDate(countDate.getUTCDate() + 1);
+    }
+
+    const userObj = await prisma.user.findUnique({
+      where: { id: currentUser.id },
+      select: { annualLeaveBalance: true },
+    });
+
+    const leaveBalance = userObj?.annualLeaveBalance ?? 0;
+    if (leaveBalance < daysCount) {
+      redirect("/member/requests?error=insufficient-leave");
+    }
+  }
+
   // Handle optional file attachment (Base64 for serverless compatibility)
   const file = formData.get("attachment") as File | null;
   let attachmentUrl: string | null = null;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { Building2, Edit, Eye, Mail, Search, UserCog, UserPlus, Loader2, ArrowUpDown, Cake, Plus, Trash2, BarChart3, Calendar, CheckCircle2, Home } from "lucide-react";
+import { Building2, Edit, Eye, Mail, Search, UserCog, UserPlus, Loader2, ArrowUpDown, Cake, Plus, Trash2, BarChart3, Calendar, CheckCircle2, Home, RefreshCw } from "lucide-react";
 import { Combobox } from "@/components/ui/combobox";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ROLE_LABEL } from "@/lib/roles";
-import { createUserAction, updateUserAction } from "./actions";
+import { createUserAction, updateUserAction, resetAllTeamLeavesAction } from "./actions";
 import { getMood } from "@/lib/moods";
 
 type UserWithRelations = {
@@ -158,6 +158,7 @@ export function RolesClient({
   const [addMemberStatus, setAddMemberStatus] = useState("TEAM");
   const [editMemberStatus, setEditMemberStatus] = useState("TEAM");
   const [editAccountStatus, setEditAccountStatus] = useState("ACTIVE");
+  const [editAnnualLeave, setEditAnnualLeave] = useState(12);
   const [searchQuery, setSearchQuery] = useState("");
   const [studioFilter, setStudioFilter] = useState("ALL");
   const [memberTypeFilter, setMemberTypeFilter] = useState<
@@ -190,8 +191,24 @@ export function RolesClient({
     setEditMemberStatus(user.memberStatus);
     setEditAccountStatus(user.accountStatus);
     setEditMentorId(user.internProfile?.mentorId ?? "");
+    setEditAnnualLeave(user.annualLeaveBalance);
     setErrorMsg("");
     setEditOpen(true);
+  };
+
+  const handleBulkResetLeaves = () => {
+    if (!confirm("Apakah Anda yakin ingin mereset saldo cuti tahunan semua karyawan (Team) aktif ke 12 hari untuk tahun ini?")) {
+      return;
+    }
+
+    startTransition(async () => {
+      const res = await resetAllTeamLeavesAction();
+      if (!res.success) {
+        alert(res.error || "Gagal mereset saldo cuti.");
+      } else {
+        alert(res.message || "Saldo cuti berhasil direset.");
+      }
+    });
   };
 
   const filteredUsers = useMemo(() => {
@@ -433,8 +450,20 @@ export function RolesClient({
               ))}
             </div>
 
-            {(isSuperAdmin || currentUser.role === "ADMIN") && (
-              <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-2">
+              {isSuperAdmin && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleBulkResetLeaves}
+                  disabled={isPending}
+                  className="border-red-200 hover:bg-red-50 hover:text-red-750 dark:border-red-900/30 dark:hover:bg-red-950/20"
+                >
+                  <RefreshCw className="size-3.5 mr-1" />
+                  Reset All Team Leaves
+                </Button>
+              )}
+              {(isSuperAdmin || currentUser.role === "ADMIN") && (
                 <Button
                   size="sm"
                   onClick={() => {
@@ -445,8 +474,8 @@ export function RolesClient({
                   <UserPlus aria-hidden="true" className="size-3.5" />
                   Add Member
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -898,6 +927,30 @@ export function RolesClient({
                   />
                   <p className="text-[10px] text-zinc-500">Negative means replacement-day debt, positive means surplus.</p>
                 </div>
+                {editMemberStatus === "TEAM" && (
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold">Annual Leave Balance</label>
+                    <div className="flex gap-2">
+                      <Input
+                        name="annualLeaveBalance"
+                        type="number"
+                        value={editAnnualLeave}
+                        onChange={(e) => setEditAnnualLeave(Number(e.target.value))}
+                        disabled={!isSuperAdmin}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setEditAnnualLeave(12)}
+                        disabled={!isSuperAdmin}
+                        className="h-9 px-3 shrink-0"
+                      >
+                        Reset
+                      </Button>
+                    </div>
+                    <p className="text-[10px] text-zinc-500">Jatah cuti tahunan berjalan. Default: 12 hari.</p>
+                  </div>
+                )}
               </div>
 
               {editMemberStatus === "INTERN" && (
@@ -1041,6 +1094,11 @@ export function RolesClient({
                         <Badge variant="outline" className={workDayBalanceClass(viewUser.workDayBalance)}>
                           {workDayBalanceText(viewUser.workDayBalance)}
                         </Badge>
+                        {viewUser.memberStatus === "TEAM" && (
+                          <Badge variant="outline" className="border-sky-500/30 bg-sky-50/50 dark:bg-sky-950/20 text-sky-700 dark:text-sky-300">
+                            Cuti: {viewUser.annualLeaveBalance} Hari
+                          </Badge>
+                        )}
                       </div>
                     </div>
                   </div>
