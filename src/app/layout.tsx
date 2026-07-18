@@ -1,9 +1,16 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import NextTopLoader from "nextjs-toploader";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Kolega",
@@ -16,8 +23,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className="h-full antialiased" suppressHydrationWarning>
-      <body className="flex min-h-full flex-col bg-background text-foreground">
+    <html lang="en" className={`h-full antialiased ${inter.variable}`} suppressHydrationWarning>
+      <body className="flex min-h-full flex-col bg-background text-foreground font-sans">
         <NextTopLoader
           color="#3b82f6"
           initialPosition={0.08}
