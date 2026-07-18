@@ -1063,34 +1063,33 @@ export function RolesClient({
                         ) : "All Time"}
                       </Badge>
                     </div>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 min-h-[18px]">
-                      {detailScope === "MONTH"
-                        ? "Monthly accumulation of member attendance statistics."
-                        : "All-time accumulation of member attendance statistics from initial record."}
-                    </p>
                   </div>
 
                   {/* Month / Scope Filter (Fixed layout width to prevent UI shift) */}
                   <div className="flex flex-wrap items-center gap-2 shrink-0">
-                    <div className="flex rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-950 p-0.5">
-                      <Button
+                    <div className="flex items-center rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-950 p-0.5">
+                      <button
                         type="button"
-                        size="sm"
-                        variant={detailScope === "MONTH" ? "secondary" : "ghost"}
                         onClick={() => setDetailScope("MONTH")}
-                        className="h-7 text-xs px-2.5 font-medium"
+                        className={`h-7 px-3 text-xs font-semibold rounded-md transition-all duration-150 cursor-pointer ${
+                          detailScope === "MONTH"
+                            ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 shadow-sm border border-zinc-200/50 dark:border-zinc-800"
+                            : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
+                        }`}
                       >
                         Monthly
-                      </Button>
-                      <Button
+                      </button>
+                      <button
                         type="button"
-                        size="sm"
-                        variant={detailScope === "ALL" ? "secondary" : "ghost"}
                         onClick={() => setDetailScope("ALL")}
-                        className="h-7 text-xs px-2.5 font-medium"
+                        className={`h-7 px-3 text-xs font-semibold rounded-md transition-all duration-150 cursor-pointer ${
+                          detailScope === "ALL"
+                            ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 shadow-sm border border-zinc-200/50 dark:border-zinc-800"
+                            : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
+                        }`}
                       >
                         All
-                      </Button>
+                      </button>
                     </div>
                     <div className="w-36 h-8 flex items-center shrink-0">
                       {detailScope === "MONTH" ? (
@@ -1098,7 +1097,7 @@ export function RolesClient({
                           type="month"
                           value={detailMonth}
                           onChange={(e) => setDetailMonth(e.target.value)}
-                          className="h-8 w-36 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-xs text-zinc-900 dark:text-zinc-100 font-mono"
+                          className="h-8 w-36 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-xs text-zinc-900 dark:text-zinc-100 font-medium"
                         />
                       ) : (
                         <div className="h-8 w-36 rounded-md border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-100/50 dark:bg-zinc-950/40 flex items-center justify-center text-[11px] text-zinc-400 dark:text-zinc-500 font-medium">
@@ -1269,33 +1268,28 @@ export function RolesClient({
                   <Table>
                     <TableHeader>
                       <TableRow className="border-zinc-200 dark:border-zinc-800 hover:bg-transparent">
-                        <TableHead className="text-zinc-500 dark:text-zinc-400">Date</TableHead>
-                        <TableHead className="text-zinc-500 dark:text-zinc-400">Times</TableHead>
-                        <TableHead className="text-zinc-500 dark:text-zinc-400">Status</TableHead>
-                        <TableHead className="text-right text-zinc-500 dark:text-zinc-400">Actions</TableHead>
+                        <TableHead className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">Date</TableHead>
+                        <TableHead className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">Times</TableHead>
+                        <TableHead className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">Status</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {detailRecords.length === 0 ? (
                         <TableRow className="border-zinc-200 dark:border-zinc-800">
-                          <TableCell colSpan={4} className="h-20 text-center text-zinc-400 dark:text-zinc-500">No attendance records found.</TableCell>
+                          <TableCell colSpan={3} className="h-20 text-center text-zinc-400 dark:text-zinc-500 text-xs">No attendance records found.</TableCell>
                         </TableRow>
                       ) : detailRecords.slice(0, 20).map((record) => (
                         <TableRow key={record.id} className="border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900/60">
-                          <TableCell>{formatDate(record.attendanceDate)}</TableCell>
-                          <TableCell className="font-mono text-xs text-zinc-700 dark:text-zinc-300">
+                          <TableCell className="text-xs font-medium text-zinc-900 dark:text-zinc-100">
+                            {formatDate(record.attendanceDate)}
+                          </TableCell>
+                          <TableCell className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
                             {formatTime(record.checkInAt)} - {formatTime(record.checkOutAt)}
                           </TableCell>
                           <TableCell>
                             <Badge className="border-indigo-500/30 bg-indigo-500/15 text-indigo-700 dark:text-indigo-300">
                               {record.status.replace("_", " ")}
                             </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="inline-flex gap-1 text-zinc-400">
-                              <Edit className="size-4" />
-                              <Trash2 className="size-4" />
-                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
