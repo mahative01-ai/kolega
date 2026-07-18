@@ -9,6 +9,8 @@ import {
   ShieldCheck,
   History,
   Camera,
+  Brush,
+  Building,
 } from "lucide-react";
 import QRCode from "qrcode";
 import Link from "next/link";
@@ -96,7 +98,7 @@ async function getMemberDashboardData(userId: string, selectedMonthKey?: string)
 
   const userObj = await prisma.user.findUnique({
     where: { id: userId },
-    select: { defaultStudioId: true, workDayBalance: true }
+    select: { defaultStudioId: true, workDayBalance: true, picketDay: true }
   });
 
   const studioColleagues = userObj?.defaultStudioId
@@ -299,6 +301,7 @@ async function getMemberDashboardData(userId: string, selectedMonthKey?: string)
     internProfile,
     lateMakeupMinutes: lateMinutesSum._sum.lateMinutes ?? 0,
     workDayBalance: userObj?.workDayBalance ?? 0,
+    picketDay: userObj?.picketDay ?? null,
     announcement,
     picketCalendar,
     calendarEvents,
@@ -401,21 +404,21 @@ export default async function MemberDashboardPage({
 
   const metrics = [
     {
-      label: `Presensi ${data.monthLabel}`,
+      label: `Attendance ${data.monthLabel}`,
       value: data.summary.total,
       icon: CheckCircle2,
       color: "text-blue-700 dark:text-blue-400",
     },
     {
-      label: `Sakit ${data.monthLabel}`,
+      label: `Sick Leave ${data.monthLabel}`,
       value: data.summary.sick,
       icon: HeartPulse,
       color: "text-violet-700 dark:text-violet-400",
     },
     {
-      label: `Terlambat ${data.monthLabel}`,
+      label: `Late ${data.monthLabel}`,
       value: data.summary.late,
-      subValue: data.lateMakeupMinutes > 0 ? `Utang: ${data.lateMakeupMinutes} m` : "Lunas",
+      subValue: data.lateMakeupMinutes > 0 ? `Owed: ${data.lateMakeupMinutes} m` : "None",
       icon: Clock3,
       color: "text-orange-700 dark:text-orange-400",
     },
@@ -432,14 +435,14 @@ export default async function MemberDashboardPage({
       color: "text-sky-700 dark:text-sky-400",
     },
     {
-      label: "Saldo Hari Kerja",
+      label: "Workday Balance",
       value: data.workDayBalance,
       subValue:
         data.workDayBalance < 0
-          ? `Hutang ${Math.abs(data.workDayBalance)} hari`
+          ? `Owed ${Math.abs(data.workDayBalance)} d`
           : data.workDayBalance > 0
-            ? `Surplus ${data.workDayBalance} hari`
-            : "Lunas",
+            ? `Surplus ${data.workDayBalance} d`
+            : "None",
       icon: ShieldCheck,
       color:
         data.workDayBalance < 0
@@ -471,8 +474,8 @@ export default async function MemberDashboardPage({
       user={currentUser}
       currentPath="/member"
       badge="Welcome, Member"
-      title="Dashboard Member"
-      description={`Halo ${currentUser.name}. Dashboard ini fokus ke presensi pribadi, jadwal, QR card, dan request izin.`}
+      title="Member Dashboard"
+      description={`Hello ${currentUser.name}. This dashboard focuses on your personal attendance, schedule, QR card, and request submissions.`}
     >
       {isBirthday && (
         <>
@@ -480,8 +483,8 @@ export default async function MemberDashboardPage({
           <div className="rounded-xl border border-pink-200 dark:border-pink-900 bg-pink-50 dark:bg-pink-950/20 p-5 text-sm text-pink-850 dark:text-pink-300 mb-6 flex items-center gap-4 shadow-sm">
             <span className="text-3xl">🎂</span>
             <div>
-              <h3 className="font-bold text-base text-pink-900 dark:text-pink-400">Selamat Ulang Tahun, {currentUser.name}! 🎉</h3>
-              <p className="text-xs text-pink-700 dark:text-pink-400 mt-0.5">Semoga hari Anda menyenangkan dan penuh kebahagiaan. Terima kasih atas kontribusi luar biasa Anda di tim!</p>
+              <h3 className="font-bold text-base text-pink-900 dark:text-pink-400">Happy Birthday, {currentUser.name}! 🎉</h3>
+              <p className="text-xs text-pink-700 dark:text-pink-400 mt-0.5">Wishing you a wonderful day filled with happiness. Thank you for your amazing contributions to the team!</p>
             </div>
           </div>
         </>
@@ -491,9 +494,9 @@ export default async function MemberDashboardPage({
         <div className="rounded-xl border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/20 p-4 text-sm text-blue-800 dark:text-blue-300 mb-6 flex items-center gap-3 shadow-sm">
           <span className="text-2xl">🎉</span>
           <div>
-            <h4 className="font-bold text-zinc-900 dark:text-zinc-100">Hari ini rekan kerja Anda di studio sedang berulang tahun:</h4>
+            <h4 className="font-bold text-zinc-900 dark:text-zinc-100">Today is your studio colleague&apos;s birthday:</h4>
             <p className="text-xs text-blue-700 dark:text-blue-450 mt-0.5">
-              {data.colleaguesBirthdays.map((colleague) => colleague.name).join(", ")}. Jangan lupa berikan ucapan terbaikmu! 🎂
+              {data.colleaguesBirthdays.map((colleague) => colleague.name).join(", ")}. Don&apos;t forget to send them your best wishes! 🎂
             </p>
           </div>
         </div>
@@ -529,7 +532,7 @@ export default async function MemberDashboardPage({
                     variant="outline"
                     className={cn(
                       "shrink-0 text-[10px] px-1.5 py-0",
-                      metric.label === "Saldo Hari Kerja"
+                      metric.label === "Workday Balance"
                         ? data.workDayBalance < 0
                           ? "bg-red-50 dark:bg-red-950/20 text-red-800 dark:text-red-300 border-red-200 dark:border-red-900"
                           : data.workDayBalance > 0
@@ -551,7 +554,7 @@ export default async function MemberDashboardPage({
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
             <Clock3 className="size-5 text-blue-700 dark:text-blue-400" />
-            Presensi Hari Ini
+            Today&apos;s Attendance
           </CardTitle>
           <CardDescription className="text-zinc-500 dark:text-zinc-400">
             {formatFullDate(new Date())}
@@ -581,7 +584,7 @@ export default async function MemberDashboardPage({
                 </Badge>
               ) : (
                 <Badge variant="outline" className="text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-xs px-2 py-0.5 shadow-none">
-                  Belum Presensi
+                  Not Checked In
                 </Badge>
               )}
             </div>
@@ -593,21 +596,21 @@ export default async function MemberDashboardPage({
             className={cn(buttonVariants({ variant: "outline", size: "sm" }), "flex items-center gap-1.5")}
           >
             <History className="size-4" />
-            Lihat Riwayat Presensi
+            View Attendance History
           </Link>
           
           {!isWfhMode && (!data.todayRecord || !data.todayRecord.checkOutAt) && (
             isCheckoutLocked ? (
               <span
                 aria-disabled="true"
-                title={`Check-out baru dibuka pukul ${checkoutAvailableTime}`}
+                title={`Check-out opens at ${checkoutAvailableTime}`}
                 className={cn(
                   buttonVariants({ variant: "default", size: "sm" }),
                   "flex cursor-not-allowed items-center gap-1.5 bg-zinc-200 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400"
                 )}
               >
                 <Camera className="size-4" />
-                Check-out dibuka {checkoutAvailableTime}
+                Check-out opens {checkoutAvailableTime}
               </span>
             ) : (
               <Link
@@ -628,7 +631,7 @@ export default async function MemberDashboardPage({
             <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 p-4 bg-zinc-50/50 dark:bg-zinc-900/10">
               <h3 className="text-sm font-semibold mb-3 text-zinc-900 dark:text-zinc-50 flex items-center gap-1.5">
                 <Home className="size-4 text-emerald-600" />
-                Presensi WFH
+                WFH Attendance
               </h3>
               <WfhForm
                 hasCheckedIn={!!data.todayRecord?.checkInAt}
@@ -644,7 +647,7 @@ export default async function MemberDashboardPage({
             <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 p-4 bg-zinc-50/50 dark:bg-zinc-900/10">
               <h3 className="text-sm font-semibold mb-3 text-zinc-900 dark:text-zinc-50 flex items-center gap-1.5 font-sans">
                 <FileText className="size-4 text-emerald-600" />
-                Jurnal WFO Hari Ini
+                Today&apos;s WFO Journal
               </h3>
               <WfoJournalForm
                 initialJournal={data.todayRecord.wfhReport}
@@ -660,10 +663,10 @@ export default async function MemberDashboardPage({
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
                 <QrCode className="size-5 text-zinc-700 dark:text-zinc-400" />
-                QR Card Saya
+                My QR Card
               </CardTitle>
               <CardDescription className="text-zinc-500 dark:text-zinc-400">
-                Kartu QR Card digital untuk melakukan presensi WFO di kantor.
+                Digital QR Card for logging WFO attendance at the office.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -690,7 +693,7 @@ export default async function MemberDashboardPage({
                       )}
                     >
                       <Download className="size-4" />
-                      Lihat QR Card
+                      View QR Card
                     </a>
                   </div>
                 </>
@@ -698,12 +701,31 @@ export default async function MemberDashboardPage({
                 <form action={createPersonalQrCredentialAction}>
                   <Button type="submit" className="w-full">
                     <ShieldCheck className="mr-1.5 size-4" />
-                    Aktifkan QR Card
+                    Activate QR Card
                   </Button>
                 </form>
               )}
             </CardContent>
           </Card>
+
+          {data.picketDay && data.picketDay.trim() !== "" && (
+            <Card className="shadow-none">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-bold flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
+                  <Brush className="size-4 text-amber-600" />
+                  Your Picket Schedule
+                </CardTitle>
+                <CardDescription className="text-zinc-500 dark:text-zinc-400">
+                  Your regular weekly studio cleaning duty.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pb-4">
+                <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                  Your scheduled picket day is: <span className="font-semibold text-amber-750 dark:text-amber-400">{data.picketDay}</span>.
+                </p>
+              </CardContent>
+            </Card>
+          )}
 
 
         </div>
@@ -711,9 +733,9 @@ export default async function MemberDashboardPage({
         <Card id="kalender-kerja" className="shadow-none">
           <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <CardTitle className="text-zinc-900 dark:text-zinc-50">Kalender Kerja Saya</CardTitle>
+              <CardTitle className="text-zinc-900 dark:text-zinc-50">My Work Calendar</CardTitle>
               <CardDescription className="text-zinc-500 dark:text-zinc-400">
-                Mode kerja Anda bulan {formatCalendarMonth(data.selectedMonth.year, data.selectedMonth.monthIndex)}.
+                Your work schedule for the month of {formatCalendarMonth(data.selectedMonth.year, data.selectedMonth.monthIndex)}.
               </CardDescription>
             </div>
             <form className="flex items-center gap-2">
@@ -782,14 +804,14 @@ export default async function MemberDashboardPage({
                       <div className="flex items-center gap-1">
                         {isPicket && (
                           <span className="rounded bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-900 px-1 py-0.5 text-[9px] font-bold">
-                            🧹 Piket
+                            🧹 Picket
                           </span>
                         )}
                         {isRealHoliday ? (
                           <span
                             className="rounded px-1 py-0.5 text-[9px] font-semibold border bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-300 border-red-200 dark:border-red-900"
                           >
-                            Libur
+                            Holiday
                           </span>
                         ) : (
                           <span
@@ -824,15 +846,15 @@ export default async function MemberDashboardPage({
                       ))}
                       {isRealHoliday ? (
                         <p className="truncate text-[9px] text-zinc-400 font-medium">
-                          Hari Libur
+                          Holiday
                         </p>
                       ) : schedule?.note ? (
                         <p className="truncate text-[9px] text-zinc-400" title={schedule.note}>
                           {schedule.note}
                         </p>
                       ) : hasReplacement ? (
-                        <p className="truncate text-[9px] text-zinc-500 font-semibold" title="Hari Kerja Pengganti">
-                          Pengganti (WFO)
+                        <p className="truncate text-[9px] text-zinc-500 font-semibold" title="Replacement Workday">
+                          Replacement (WFO)
                         </p>
                       ) : (
                         <p className="truncate text-[9px] text-zinc-300 dark:text-zinc-600">
@@ -853,16 +875,16 @@ export default async function MemberDashboardPage({
           <Card className="shadow-none flex flex-col justify-between">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-bold text-zinc-900 dark:text-zinc-50">
-                Bimbingan Magang
+                Internship Supervision
               </CardTitle>
-              <CardDescription className="text-xs text-zinc-500">Informasi pembimbing & sisa waktu magang</CardDescription>
+              <CardDescription className="text-xs text-zinc-500">Mentor information and remaining internship period</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 flex-1 flex flex-col justify-between">
               {/* Mentor Info */}
               <div className="rounded-md border border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-3 flex flex-col gap-1">
-                <p className="text-[10px] uppercase tracking-wider font-bold text-zinc-400">Pembimbing / Mentor</p>
+                <p className="text-[10px] uppercase tracking-wider font-bold text-zinc-400">Supervisor / Mentor</p>
                 <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-                  {data.internProfile.mentor?.name ?? "Belum ditentukan"}
+                  {data.internProfile.mentor?.name ?? "Not assigned yet"}
                 </p>
                 {data.internProfile.mentor?.email && (
                   <p className="text-xs text-zinc-500">{data.internProfile.mentor.email}</p>
@@ -872,9 +894,9 @@ export default async function MemberDashboardPage({
               {/* Progress Bar */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-zinc-500">Masa Magang</span>
+                  <span className="text-zinc-500">Internship Period</span>
                   <span className="font-semibold text-zinc-700 dark:text-zinc-300">
-                    {Math.max(0, Math.ceil((new Date(data.internProfile.endDate).getTime() - today.getTime()) / (1000 * 60 * 60 * 24)))} Hari Lagi
+                    {Math.max(0, Math.ceil((new Date(data.internProfile.endDate).getTime() - today.getTime()) / (1000 * 60 * 60 * 24)))} Days Left
                   </span>
                 </div>
                 {(() => {
@@ -894,9 +916,9 @@ export default async function MemberDashboardPage({
                         />
                       </div>
                       <div className="flex justify-between text-[9px] text-zinc-400">
-                        <span>{new Date(data.internProfile.startDate).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}</span>
-                        <span className="font-bold text-zinc-600 dark:text-zinc-400">{percent}% selesai</span>
-                        <span>{new Date(data.internProfile.endDate).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}</span>
+                        <span>{new Date(data.internProfile.startDate).toLocaleDateString("en-US", { day: "numeric", month: "short" })}</span>
+                        <span className="font-bold text-zinc-600 dark:text-zinc-400">{percent}% completed</span>
+                        <span>{new Date(data.internProfile.endDate).toLocaleDateString("en-US", { day: "numeric", month: "short" })}</span>
                       </div>
                     </div>
                   );
@@ -908,16 +930,16 @@ export default async function MemberDashboardPage({
 
         <Card className={cn("shadow-none", !data.internProfile && "lg:col-span-2")}>
           <CardHeader>
-            <CardTitle className="text-zinc-900 dark:text-zinc-50">Riwayat Presensi Saya</CardTitle>
+            <CardTitle className="text-zinc-900 dark:text-zinc-50">My Attendance History</CardTitle>
             <CardDescription className="text-zinc-500 dark:text-zinc-400">
-              Data terbaru untuk akun yang sedang login.
+              Recent records for the logged-in account.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Tanggal</TableHead>
+                  <TableHead>Date</TableHead>
                   <TableHead>Default Studio</TableHead>
                   <TableHead>Mode</TableHead>
                   <TableHead>Status</TableHead>
@@ -930,7 +952,7 @@ export default async function MemberDashboardPage({
                       colSpan={4}
                       className="h-24 text-center text-sm text-zinc-500"
                     >
-                      Belum ada data presensi.
+                      No attendance records yet.
                     </TableCell>
                   </TableRow>
                 ) : (

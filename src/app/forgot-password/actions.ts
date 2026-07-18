@@ -51,15 +51,15 @@ export async function requestPasswordResetAction(formData: FormData) {
 
     await sendEmail({
       to: user.email,
-      subject: "Reset Password Kolega New Gen",
-      text: `Halo ${user.name},
+      subject: "Reset Password Kolega",
+      text: `Hello ${user.name},
 
-Kami menerima permintaan reset password untuk akun Kolega New Gen Anda.
+We received a request to reset the password for your Kolega account.
 
-Buka link ini untuk membuat password baru:
+Click this link to create a new password:
 ${resetUrl}
 
-Link ini berlaku selama 30 menit. Abaikan email ini jika Anda tidak meminta reset password.`,
+This link is valid for 30 minutes. Ignore this email if you did not request a password reset.`,
     });
   }
 

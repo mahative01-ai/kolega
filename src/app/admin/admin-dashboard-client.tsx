@@ -880,66 +880,24 @@ export function AdminDashboardClient({
               <CardHeader className="pb-3 border-b border-zinc-100 dark:border-zinc-800">
                 <CardTitle className="text-sm font-bold flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
                   <Brush className="size-4 text-blue-700 dark:text-blue-400" />
-                  Today&apos;s Studio Picket Officers
+                  Today&apos;s Picket Duty
                 </CardTitle>
                 <CardDescription className="text-zinc-500 dark:text-zinc-400">
-                  Staff responsible for today&apos;s studio order.
+                  Daily studio clean-up and order responsibility.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="pt-4 space-y-4">
+              <CardContent className="pt-4">
                 {data.picketToday.length === 0 ? (
-                  <p className="text-center py-6 text-xs text-zinc-400 dark:text-zinc-500">
-                    No picket officers assigned today.
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                    There are no picket duty officers assigned for today.
                   </p>
                 ) : (
-                  <div className="flex flex-wrap gap-2.5">
-                    {data.picketToday.map((picket) => {
-                      const isRemoving = removingPickets[picket.id] || false;
-                      return (
-                        <div
-                          key={picket.id}
-                          className="rounded-full border border-blue-100 dark:border-blue-900/50 bg-blue-50/50 dark:bg-blue-950/20 pl-3.5 pr-2 py-1 text-xs font-semibold text-blue-800 dark:text-blue-300 flex items-center gap-1.5"
-                        >
-                          <User className="size-3 text-blue-500" />
-                          <span>{picket.user.name}</span>
-                          <button
-                            onClick={() => handleQuickRemovePicket(picket.id)}
-                            disabled={isPending || isRemoving}
-                            className="rounded-full hover:bg-blue-100 dark:hover:bg-blue-900 p-0.5 text-blue-400 hover:text-red-600 transition-colors shrink-0"
-                            title="Remove picket officer"
-                          >
-                            {isRemoving ? <Loader2 className="size-3 animate-spin" /> : <X className="size-3" />}
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* Quick Picket Switcher Selection */}
-                {data.studioMembers && data.studioMembers.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-2.5 pt-3 border-t border-dashed border-zinc-100 dark:border-zinc-800">
-                    <Label htmlFor="picket-select" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Assign Officer:</Label>
-                    <select
-                      id="picket-select"
-                      value={picketUserId}
-                      onChange={(e) => setPicketUserId(e.target.value)}
-                      className="rounded border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-2 py-1 text-xs text-zinc-700 dark:text-zinc-300 outline-none"
-                    >
-                      <option value="">-- Select Member --</option>
-                      {data.studioMembers.map((m) => (
-                        <option key={m.id} value={m.id}>{m.name}</option>
-                      ))}
-                    </select>
-                    <Button
-                      size="sm"
-                      className="h-7 text-xs"
-                      onClick={handleQuickAssignPicket}
-                      disabled={isPending || !picketUserId}
-                    >
-                      Assign
-                    </Button>
-                  </div>
+                  <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                    The picket duty officers for today are:{" "}
+                    <span className="font-semibold">
+                      {data.picketToday.map((p) => p.user.name).join(", ")}
+                    </span>
+                  </p>
                 )}
               </CardContent>
             </Card>

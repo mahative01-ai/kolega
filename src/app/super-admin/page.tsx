@@ -554,16 +554,16 @@ export default async function SuperAdminDashboardPage() {
               <CardHeader className="pb-3 border-b border-zinc-100 dark:border-zinc-800">
                 <CardTitle className="text-sm font-bold flex items-center gap-1.5 text-zinc-900 dark:text-zinc-50">
                   <Brush className="size-4 text-blue-700 dark:text-blue-400" />
-                  Petugas Piket Hari Ini
+                  Today&apos;s Picket Duty
                 </CardTitle>
                 <CardDescription className="text-zinc-500 dark:text-zinc-400">
-                  Jadwal piket aktif Kipa & Mahative hari ini.
+                  Active picket schedules for Kipa & Mahative today.
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-4">
                 {data.picketToday.length === 0 ? (
-                  <p className="text-center py-4 text-xs text-zinc-400 dark:text-zinc-500">
-                    Tidak ada jadwal piket hari ini.
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                    There are no picket duty officers assigned for today.
                   </p>
                 ) : (
                   <div className="space-y-2.5">
@@ -572,20 +572,12 @@ export default async function SuperAdminDashboardPage() {
                       const studioPickets = data.picketToday.filter((p) => p.studio.name === studioName);
                       return (
                         <div key={studioName} className="space-y-1">
-                          <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 flex items-center gap-1">
-                            <Building className="size-3 text-zinc-400" />
-                            {studioName.toUpperCase()}
+                          <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                            The picket duty officers for <span className="font-semibold">{studioName}</span> today are:{" "}
+                            <span className="font-semibold">
+                              {studioPickets.map((p) => p.user.name).join(", ")}
+                            </span>
                           </p>
-                          <div className="flex flex-wrap gap-1.5">
-                            {studioPickets.map((picket) => (
-                              <div
-                                key={picket.id}
-                                className="rounded bg-zinc-100 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800 px-2 py-0.5 text-[10px] font-medium"
-                              >
-                                {picket.user.name}
-                              </div>
-                            ))}
-                          </div>
                         </div>
                       );
                     })}

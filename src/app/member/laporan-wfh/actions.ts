@@ -45,7 +45,6 @@ export async function updateOwnJournalAction(
 
 export async function createOwnJournalAction(
   dateStr: string,
-  workMode: "WFO" | "WFH",
   wfhPlan: string,
   wfhReport: string
 ) {
@@ -66,15 +65,28 @@ export async function createOwnJournalAction(
   });
 
   if (existingRecord) {
-    // If it exists, update it
+    // If it exists, update it using its existing workMode
     await prisma.attendanceRecord.update({
       where: { id: existingRecord.id },
       data: {
-        wfhPlan: workMode === "WFH" ? (wfhPlan.trim() || null) : null,
+        wfhPlan: existingRecord.workMode === "WFH" ? (wfhPlan.trim() || null) : null,
         wfhReport: wfhReport.trim() || null,
       },
     });
   } else {
+    // If no record exists, fetch personal schedule to determine workMode
+    const personalSchedule = await prisma.personalWorkSchedule.findUnique({
+      where: {
+        userId_workDate: {
+          userId: currentUser.id,
+          workDate: attendanceDate,
+        },
+      },
+      select: { workMode: true },
+    });
+
+    const workMode = personalSchedule?.workMode ?? "WFO";
+
     // Fetch owner studio from defaultStudioId
     const defaultStudio = await prisma.studio.findFirst({
       where: { id: currentUser.defaultStudioId || "__none__" },

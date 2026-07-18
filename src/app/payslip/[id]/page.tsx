@@ -102,12 +102,11 @@ export default async function PrintablePayslipPage({
             </div>
             <div>
               <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">KOLEGA</h1>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 font-mono">NEW GENERATION</p>
             </div>
           </div>
           <div className="text-right">
-            <h2 className="text-lg font-bold text-zinc-800 dark:text-zinc-200">SLIP GAJI</h2>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">Periode: {periodName}</p>
+            <h2 className="text-lg font-bold text-zinc-800 dark:text-zinc-200">PAYSLIP</h2>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Period: {periodName}</p>
           </div>
         </div>
 
@@ -179,12 +178,12 @@ export default async function PrintablePayslipPage({
           </div>
           <div className="flex flex-col items-center">
             <span className="text-zinc-400 dark:text-zinc-500 text-xs uppercase tracking-wider mb-12">
-              Disahkan Oleh
+              Authorized By
             </span>
             <div className="border-b border-zinc-300 dark:border-zinc-700 w-40 mb-1 font-semibold text-zinc-900 dark:text-zinc-50">
               Super Admin
             </div>
-            <span className="text-[10px] text-zinc-400">KOLEGA New Gen</span>
+            <span className="text-[10px] text-zinc-400">KOLEGA</span>
           </div>
         </div>
 

@@ -169,9 +169,8 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
               <div className="flex aspect-square size-8 items-center justify-center shrink-0 rounded-lg bg-zinc-950 dark:bg-zinc-100 text-zinc-50 dark:text-zinc-950">
                 <Terminal className="size-4" />
               </div>
-              <div className="flex flex-col ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+              <div className="flex flex-col ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap justify-center">
                 <span className="font-semibold text-zinc-900 dark:text-zinc-100 text-xs">Kolega</span>
-                <span className="text-[9px] text-zinc-500 dark:text-zinc-400">New Gen</span>
               </div>
             </div>
           </div>
@@ -183,9 +182,8 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                   <div className="flex aspect-square size-9 items-center justify-center rounded-lg bg-zinc-950 dark:bg-zinc-100 text-zinc-50 dark:text-zinc-950">
                     <Terminal className="size-4" />
                   </div>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
+                  <div className="grid flex-1 text-left text-sm leading-tight justify-center">
                     <span className="truncate font-semibold text-zinc-900 dark:text-zinc-100">Kolega</span>
-                    <span className="truncate text-xs text-zinc-500 dark:text-zinc-400">New Gen</span>
                   </div>
                 </div>
               </SidebarMenuItem>

@@ -170,11 +170,11 @@ export default async function LoginPage({
           <div className="flex size-9 items-center justify-center rounded-lg bg-zinc-950 dark:bg-zinc-100 text-zinc-50 dark:text-zinc-950">
             <Terminal className="size-5" />
           </div>
-          <h1 className="text-xl font-bold tracking-tight">Kolega New Gen</h1>
+          <h1 className="text-xl font-bold tracking-tight">Kolega</h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
             {currentUser
-              ? "Pindai QR Card Anda untuk mencatatkan kehadiran."
-              : "Pilih cara masuk untuk membuka dasbor Anda."}
+              ? "Scan your QR Card to log your attendance."
+              : "Choose a login method to open your dashboard."}
           </p>
         </div>
 

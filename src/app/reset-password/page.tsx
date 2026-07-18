@@ -32,7 +32,7 @@ export default async function ResetPasswordPage({
           </div>
           <h1 className="text-xl font-bold tracking-tight">Reset Password</h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Buat password baru untuk akun Kolega New Gen.
+            Create a new password for your Kolega account.
           </p>
         </div>
 

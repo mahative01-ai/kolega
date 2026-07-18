@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,7 +35,7 @@ type Props = {
 
 function formatTime(dateStr: string | null) {
   if (!dateStr) return "-";
-  return new Intl.DateTimeFormat("id-ID", {
+  return new Intl.DateTimeFormat("en-US", {
     hour: "2-digit",
     minute: "2-digit",
     timeZone: "Asia/Jakarta",
@@ -43,7 +43,7 @@ function formatTime(dateStr: string | null) {
 }
 
 function formatDate(dateStr: string) {
-  return new Intl.DateTimeFormat("id-ID", {
+  return new Intl.DateTimeFormat("en-US", {
     dateStyle: "full",
     timeZone: "Asia/Jakarta",
   }).format(new Date(dateStr));
@@ -62,22 +62,28 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
     const today = new Date();
     return today.toLocaleDateString("en-CA"); // YYYY-MM-DD format in local time
   });
-  const [createMode, setCreateMode] = useState<"WFO" | "WFH">("WFO");
   const [createPlan, setCreatePlan] = useState("");
   const [createReport, setCreateReport] = useState("");
 
+  const resolvedCreateMode = useMemo(() => {
+    const existing = records.find(
+      (r) => r.attendanceDate.split("T")[0] === createDate
+    );
+    return existing ? existing.workMode : null;
+  }, [records, createDate]);
+
   const handleCreateSubmit = async () => {
     if (!createDate) {
-      toast.error("Tanggal wajib dipilih.");
+      toast.error("Date is required.");
       return;
     }
     if (!createReport.trim()) {
-      toast.error("Laporan / Jurnal wajib diisi.");
+      toast.error("Report/Journal is required.");
       return;
     }
     setIsSubmitting(true);
     try {
-      const res = await createOwnJournalAction(createDate, createMode, createPlan, createReport);
+      const res = await createOwnJournalAction(createDate, createPlan, createReport);
       if (res.success) {
         toast.success(res.message);
         setCreateOpen(false);
@@ -86,17 +92,17 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
         // Reload to update RSC query
         window.location.reload();
       } else {
-        toast.error("Gagal membuat jurnal.");
+        toast.error("Failed to create journal.");
       }
     } catch (err: any) {
-      toast.error(err.message || "Terjadi kesalahan.");
+      toast.error(err.message || "An error occurred.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (recordId: string) => {
-    if (!confirm("Apakah Anda yakin ingin menghapus jurnal untuk tanggal ini? Rencana dan hasil kerja akan dikosongkan.")) return;
+    if (!confirm("Are you sure you want to delete the journal for this date? The work plan and report will be cleared.")) return;
     try {
       const res = await deleteOwnJournalAction(recordId);
       if (res.success) {
@@ -107,10 +113,10 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
           )
         );
       } else {
-        toast.error("Gagal menghapus jurnal.");
+        toast.error("Failed to delete journal.");
       }
     } catch (err: any) {
-      toast.error(err.message || "Terjadi kesalahan.");
+      toast.error(err.message || "An error occurred.");
     }
   };
 
@@ -145,10 +151,10 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
 
         closeEditModal();
       } else {
-        toast.error("Gagal memperbarui jurnal.");
+        toast.error("Failed to update journal.");
       }
     } catch (err: any) {
-      toast.error(err.message || "Terjadi kesalahan.");
+      toast.error(err.message || "An error occurred.");
     } finally {
       setIsSubmitting(false);
     }
@@ -161,7 +167,7 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
             <Calendar className="size-4 text-blue-700 dark:text-blue-400" />
-            Pilih Bulan Laporan
+            Select Report Month
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -180,13 +186,13 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
                   ))}
                 </select>
               </div>
-              <Button type="submit">Tampilkan</Button>
+              <Button type="submit">Show</Button>
             </form>
             <Button
               onClick={() => setCreateOpen(true)}
               className="bg-blue-700 hover:bg-blue-800 text-white dark:bg-blue-600 dark:hover:bg-blue-700"
             >
-              + Buat Jurnal Baru
+              + Create New Journal
             </Button>
           </div>
         </CardContent>
@@ -197,17 +203,17 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
         <CardHeader className="pb-3 border-b border-zinc-100 dark:border-zinc-800">
           <CardTitle className="text-base flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
             <Home className="size-5 text-blue-700 dark:text-blue-400" />
-            Riwayat Jurnal Kerja WFO & WFH ({monthLabel})
+            WFO & WFH Work Journal History ({monthLabel})
           </CardTitle>
           <CardDescription className="text-zinc-500 dark:text-zinc-400">
-            Ditemukan {records.length} catatan presensi pada bulan ini.
+            Found {records.length} attendance records this month.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           {records.length === 0 ? (
             <div className="text-center py-12">
               <BookOpen className="size-8 text-zinc-300 dark:text-zinc-700 mx-auto mb-2" />
-              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Tidak ada riwayat presensi pada bulan ini.</p>
+              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">No attendance history found for this month.</p>
             </div>
           ) : (
             <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -250,7 +256,7 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
                           size="icon"
                           onClick={() => openEditModal(record)}
                           className="size-8 rounded border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                          title="Tulis/Edit Jurnal"
+                          title="Write/Edit Journal"
                         >
                           <Edit2 className="size-3.5 text-blue-600 dark:text-blue-400" />
                         </Button>
@@ -259,7 +265,7 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
                           size="icon"
                           onClick={() => handleDelete(record.id)}
                           className="size-8 rounded border border-zinc-200 dark:border-zinc-800 hover:bg-red-50 hover:border-red-200 dark:hover:bg-red-950/20 disabled:opacity-30 disabled:hover:bg-transparent"
-                          title="Hapus Jurnal"
+                          title="Delete Journal"
                           disabled={!record.wfhPlan && !record.wfhReport}
                         >
                           <Trash2 className="size-3.5 text-red-600 dark:text-red-400" />
@@ -275,20 +281,20 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
                           <>
                             <h4 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
                               <BookOpen className="size-3 text-zinc-400" />
-                              RENCANA KERJA (PAGI)
+                              MORNING WORK PLAN
                             </h4>
                             <p className="text-sm text-zinc-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed">
-                              {record.wfhPlan || "Tidak menuliskan rencana kerja."}
+                              {record.wfhPlan || "No work plan submitted."}
                             </p>
                           </>
                         ) : (
                           <>
                             <h4 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
                               <Home className="size-3 text-zinc-400" />
-                              LOKASI PRESENSI
+                              ATTENDANCE LOCATION
                             </h4>
                             <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">
-                              Presensi WFO di <span className="font-semibold">{record.ownerStudio.name}</span>
+                              WFO attendance at <span className="font-semibold">{record.ownerStudio.name}</span>
                             </p>
                           </>
                         )}
@@ -298,16 +304,16 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
                       <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/10 p-3.5 space-y-1.5">
                         <h4 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
                           <CheckCircle className="size-3 text-zinc-400" />
-                          {isWfh ? "LAPORAN HASIL KERJA (SORE)" : "JURNAL WFO / HASIL KERJA"}
+                          {isWfh ? "END-OF-DAY REPORT" : "WFO JOURNAL / REPORT"}
                         </h4>
                         {isWfh && !hasCheckOut ? (
                           <div className="flex items-center gap-1.5 py-1 text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/20 rounded px-2.5 w-fit">
                             <AlertCircle className="size-3.5" />
-                            Sedang Berjalan / Belum Check-out
+                            In Progress / Not Checked Out
                           </div>
                         ) : (
                           <p className="text-sm text-zinc-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed">
-                            {record.wfhReport || (isWfh ? "Tidak menuliskan laporan hasil kerja." : "Tidak menuliskan jurnal WFO.")}
+                            {record.wfhReport || (isWfh ? "No end-of-day report submitted." : "No WFO journal submitted.")}
                           </p>
                         )}
                       </div>
@@ -324,18 +330,18 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
       <Dialog open={!!editingRecord} onOpenChange={(open) => !open && closeEditModal()}>
         <DialogContent className="sm:max-w-[500px] border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
           <DialogHeader>
-            <DialogTitle className="text-zinc-900 dark:text-zinc-50">Edit Jurnal Kerja</DialogTitle>
+            <DialogTitle className="text-zinc-900 dark:text-zinc-50">Edit Work Journal</DialogTitle>
             <DialogDescription className="text-zinc-500 dark:text-zinc-400">
-              Perbarui rencana atau laporan kerja Anda pada {editingRecord && formatDate(editingRecord.attendanceDate)}.
+              Update your work plan or report for {editingRecord && formatDate(editingRecord.attendanceDate)}.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             {editingRecord?.workMode === "WFH" && (
               <div className="space-y-2">
-                <Label htmlFor="client-plan" className="text-xs font-semibold text-zinc-650 dark:text-zinc-400">Rencana Kerja (Pagi)</Label>
+                <Label htmlFor="client-plan" className="text-xs font-semibold text-zinc-650 dark:text-zinc-400">Morning Work Plan</Label>
                 <Textarea
                   id="client-plan"
-                  placeholder="Tulis rencana kerja pagi Anda..."
+                  placeholder="Write your morning work plan..."
                   value={planVal}
                   onChange={(e) => setPlanVal(e.target.value)}
                   rows={4}
@@ -345,11 +351,11 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
             )}
             <div className="space-y-2">
               <Label htmlFor="client-report" className="text-xs font-semibold text-zinc-650 dark:text-zinc-400">
-                {editingRecord?.workMode === "WFH" ? "Laporan Hasil Kerja (Sore)" : "Jurnal WFO / Hasil Kerja"}
+                {editingRecord?.workMode === "WFH" ? "End-of-Day Report" : "WFO Journal / Report"}
               </Label>
               <Textarea
                 id="client-report"
-                placeholder={editingRecord?.workMode === "WFH" ? "Tulis laporan hasil kerja sore Anda..." : "Tulis jurnal kegiatan WFO Anda..."}
+                placeholder={editingRecord?.workMode === "WFH" ? "Write your end-of-day report..." : "Write your WFO journal..."}
                 value={reportVal}
                 onChange={(e) => setReportVal(e.target.value)}
                 rows={4}
@@ -359,10 +365,10 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={closeEditModal} disabled={isSubmitting} className="border-zinc-200 dark:border-zinc-800">
-              Batal
+              Cancel
             </Button>
             <Button onClick={handleSave} disabled={isSubmitting} className="bg-blue-700 hover:bg-blue-800 text-white dark:bg-blue-600 dark:hover:bg-blue-700">
-              {isSubmitting ? "Menyimpan..." : "Simpan Perubahan"}
+              {isSubmitting ? "Saving..." : "Save Changes"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -372,14 +378,14 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
       <Dialog open={createOpen} onOpenChange={(open) => !open && setCreateOpen(false)}>
         <DialogContent className="sm:max-w-[500px] border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
           <DialogHeader>
-            <DialogTitle className="text-zinc-900 dark:text-zinc-50">Buat Jurnal Kerja Baru</DialogTitle>
+            <DialogTitle className="text-zinc-900 dark:text-zinc-50">Create New Work Journal</DialogTitle>
             <DialogDescription className="text-zinc-500 dark:text-zinc-400">
-              Buat jurnal kerja untuk hari kemarin atau hari tertentu jika Anda lupa mengisi.
+              Create a work journal for past days if you forgot to fill it.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="create-date" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Pilih Tanggal</Label>
+              <Label htmlFor="create-date" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Select Date</Label>
               <Input
                 id="create-date"
                 type="date"
@@ -388,24 +394,14 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
                 className="border-zinc-200 dark:border-zinc-800 focus-visible:ring-blue-500"
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="create-mode" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Mode Kerja</Label>
-              <select
-                id="create-mode"
-                value={createMode}
-                onChange={(e) => setCreateMode(e.target.value as "WFO" | "WFH")}
-                className="h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 px-3 text-sm focus:outline-none"
-              >
-                <option value="WFO">WFO (Work From Office)</option>
-                <option value="WFH">WFH (Work From Home)</option>
-              </select>
-            </div>
-            {createMode === "WFH" && (
+            {(resolvedCreateMode === "WFH" || resolvedCreateMode === null) && (
               <div className="space-y-2">
-                <Label htmlFor="create-plan" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Rencana Kerja (Pagi)</Label>
+                <Label htmlFor="create-plan" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                  Morning Work Plan {resolvedCreateMode === null && <span className="text-zinc-400 font-normal">(WFH only)</span>}
+                </Label>
                 <Textarea
                   id="create-plan"
-                  placeholder="Tulis rencana kerja pagi..."
+                  placeholder="Write your morning work plan (leave empty for WFO)..."
                   value={createPlan}
                   onChange={(e) => setCreatePlan(e.target.value)}
                   rows={3}
@@ -415,11 +411,11 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
             )}
             <div className="space-y-2">
               <Label htmlFor="create-report" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">
-                {createMode === "WFH" ? "Laporan Hasil Kerja (Sore)" : "Jurnal WFO / Hasil Kerja"}
+                {resolvedCreateMode === "WFH" ? "End-of-Day Report" : "Journal / Report"}
               </Label>
               <Textarea
                 id="create-report"
-                placeholder={createMode === "WFH" ? "Tulis laporan hasil kerja sore..." : "Tulis jurnal kegiatan WFO..."}
+                placeholder={resolvedCreateMode === "WFH" ? "Write your end-of-day report..." : "Write your journal/report..."}
                 value={createReport}
                 onChange={(e) => setCreateReport(e.target.value)}
                 rows={4}
@@ -429,10 +425,10 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setCreateOpen(false)} disabled={isSubmitting} className="border-zinc-200 dark:border-zinc-800">
-              Batal
+              Cancel
             </Button>
             <Button onClick={handleCreateSubmit} disabled={isSubmitting} className="bg-blue-700 hover:bg-blue-800 text-white dark:bg-blue-600 dark:hover:bg-blue-700">
-              {isSubmitting ? "Menyimpan..." : "Simpan Jurnal"}
+              {isSubmitting ? "Saving..." : "Save Journal"}
             </Button>
           </DialogFooter>
         </DialogContent>
