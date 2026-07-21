@@ -107,6 +107,11 @@ export function RequestFormClient({ canRequestReplacementDay }: Props) {
         </div>
       )}
 
+      <div className="flex gap-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/40 p-2.5 text-xs text-zinc-600 dark:text-zinc-400">
+        <AlertCircle className="size-4 shrink-0 mt-0.5 text-zinc-500" />
+        <span>If you cannot attend, please contact your mentor or lead first.</span>
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="start-date" className="text-sm font-medium">

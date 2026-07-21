@@ -4,7 +4,6 @@ import React, { useMemo, useState } from "react";
 import {
   CheckCircle2,
   XCircle,
-  Paperclip,
   ArrowUpDown,
   Search,
   ClipboardList,
@@ -163,17 +162,6 @@ function formatDate(date: Date | string | null | undefined) {
   }).format(new Date(date));
 }
 
-function formatDateTime(date: Date | string | null | undefined) {
-  if (!date) return "-";
-  return new Intl.DateTimeFormat("en-US", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "Asia/Jakarta",
-  }).format(new Date(date));
-}
 
 export function ApprovalsTabsClient({
   currentUser,
@@ -785,13 +773,14 @@ export function ApprovalsTabsClient({
                       </div>
                     </TableHead>
                     <TableHead>Correction Reason</TableHead>
+                    <TableHead>Attachment</TableHead>
                     <TableHead className="text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {sortedAndFilteredPendingCorr.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="h-24 text-center text-sm text-zinc-500">
+                      <TableCell colSpan={8} className="h-24 text-center text-sm text-zinc-500">
                         No pending attendance corrections at this time.
                       </TableCell>
                     </TableRow>
@@ -863,9 +852,20 @@ export function ApprovalsTabsClient({
                                   <p className="text-xs font-semibold text-zinc-400">Full Reason</p>
                                   <p className="mt-1 whitespace-pre-wrap leading-relaxed text-zinc-850 dark:text-zinc-200">{corr.reason}</p>
                                 </div>
+                                {corr.attachmentUrl && (
+                                  <div>
+                                    <p className="text-xs font-semibold text-zinc-400">Attachment</p>
+                                    <div className="mt-1">
+                                      <AttachmentViewer url={corr.attachmentUrl} />
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             </DialogContent>
                           </Dialog>
+                        </TableCell>
+                        <TableCell>
+                          <AttachmentViewer url={corr.attachmentUrl} />
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
@@ -947,6 +947,7 @@ export function ApprovalsTabsClient({
                       </div>
                     </TableHead>
                     <TableHead>Correction Reason</TableHead>
+                    <TableHead>Attachment</TableHead>
                     <TableHead onClick={() => handleSortHistoryCorr("status")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                       <div className="flex items-center gap-1">
                         Status <ArrowUpDown className="size-3 text-zinc-400" />
@@ -964,7 +965,7 @@ export function ApprovalsTabsClient({
                   {sortedAndFilteredHistoryCorr.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={currentUser.role === "SUPER_ADMIN" ? 9 : 8}
+                        colSpan={currentUser.role === "SUPER_ADMIN" ? 10 : 9}
                         className="h-24 text-center text-sm text-zinc-500"
                       >
                         No correction history found.
@@ -1038,6 +1039,14 @@ export function ApprovalsTabsClient({
                                   <p className="text-xs font-semibold text-zinc-400">Full Reason</p>
                                   <p className="mt-1 whitespace-pre-wrap leading-relaxed text-zinc-850 dark:text-zinc-200">{corr.reason}</p>
                                 </div>
+                                {corr.attachmentUrl && (
+                                  <div>
+                                    <p className="text-xs font-semibold text-zinc-400">Attachment</p>
+                                    <div className="mt-1">
+                                      <AttachmentViewer url={corr.attachmentUrl} />
+                                    </div>
+                                  </div>
+                                )}
                                 <div>
                                   <p className="text-xs font-semibold text-zinc-400">Request Status</p>
                                   <Badge className={`mt-1 ${requestStatusColor[corr.status]}`}>
@@ -1047,6 +1056,9 @@ export function ApprovalsTabsClient({
                               </div>
                             </DialogContent>
                           </Dialog>
+                        </TableCell>
+                        <TableCell>
+                          <AttachmentViewer url={corr.attachmentUrl} />
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className={`text-[10px] ${requestStatusColor[corr.status]}`}>

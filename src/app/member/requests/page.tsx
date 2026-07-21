@@ -1,6 +1,5 @@
 import {
   FileText,
-  Paperclip,
   PlusCircle,
   Trash2,
 } from "lucide-react";
@@ -97,13 +96,8 @@ const errorMessages: Record<string, string> = {
   unauthorized: "You do not have authorization to cancel this request.",
 };
 
-export default async function MemberRequestsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ success?: string; error?: string }>;
-}) {
+export default async function MemberRequestsPage() {
   const currentUser = await requireAnyRole(["ADMIN", "MEMBER"]);
-  const params = await searchParams;
   const canRequestReplacementDay = currentUser.memberStatus === "TEAM";
 
   const userWithBalance = await prisma.user.findUnique({

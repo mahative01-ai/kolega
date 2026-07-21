@@ -346,6 +346,7 @@ model AttendanceCorrection {
   proposedCheckInTime String?
   proposedCheckOutTime String?
   reason             String
+  attachmentUrl      String?
   status             RequestStatus    @default(PENDING)
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt

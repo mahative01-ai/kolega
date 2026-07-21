@@ -172,7 +172,7 @@ export async function reviewCorrectionAction(formData: FormData) {
       });
 
       const hasAttachment = (correction.previousStatus === "SICK" || correction.newStatus === "SICK")
-        ? await checkSickAttachment(correction.requestedById, correction.attendanceRecord.attendanceDate)
+        ? (Boolean(correction.attachmentUrl) || await checkSickAttachment(correction.requestedById, correction.attendanceRecord.attendanceDate))
         : false;
 
       const { workdayBalanceDelta, annualLeaveBalanceDelta } = getCorrectionBalanceImpact(
@@ -356,7 +356,7 @@ export async function quickReviewCorrectionAction(correctionId: string, approve:
       });
 
       const hasAttachment = (correction.previousStatus === "SICK" || correction.newStatus === "SICK")
-        ? await checkSickAttachment(correction.requestedById, correction.attendanceRecord.attendanceDate)
+        ? (Boolean(correction.attachmentUrl) || await checkSickAttachment(correction.requestedById, correction.attendanceRecord.attendanceDate))
         : false;
 
       const { workdayBalanceDelta, annualLeaveBalanceDelta } = getCorrectionBalanceImpact(
@@ -424,7 +424,7 @@ export async function deleteCorrectionAction(formData: FormData) {
       });
 
       const hasAttachment = (correction.previousStatus === "SICK" || correction.newStatus === "SICK")
-        ? await checkSickAttachment(correction.requestedById, correction.attendanceRecord.attendanceDate)
+        ? (Boolean(correction.attachmentUrl) || await checkSickAttachment(correction.requestedById, correction.attendanceRecord.attendanceDate))
         : false;
 
       // Reversing means previous = newStatus, new = previousStatus

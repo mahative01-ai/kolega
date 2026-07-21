@@ -19,7 +19,46 @@ type Props = {
   preselectedRecord: RecordItem | null;
   statusLabel: Record<string, string>;
   statusColor: Record<string, string>;
+  memberStatus?: string;
   action: (formData: FormData) => void;
+};
+
+const CORRECTION_HELPER_TEXT: Record<string, { title: string; desc: string; variant: "amber" | "violet" | "emerald" | "blue" | "rose" }> = {
+  SICK: {
+    title: "Sick Leave",
+    desc: "Attachment is optional. Without an attachment, this still requires a replacement workday.",
+    variant: "violet",
+  },
+  PERMISSION: {
+    title: "Personal Leave",
+    desc: "This correction still requires a replacement workday.",
+    variant: "amber",
+  },
+  DISPENSATION: {
+    title: "Official Dispensation",
+    desc: "Requires an official support document and does not affect workday balance.",
+    variant: "emerald",
+  },
+  LEAVE: {
+    title: "Annual Leave",
+    desc: "Uses annual leave balance and does not create workday debt.",
+    variant: "rose",
+  },
+  ON_TIME: {
+    title: "On Time",
+    desc: "Corrects your attendance to present on time. Please provide estimated check-in/out times.",
+    variant: "blue",
+  },
+  LATE: {
+    title: "Late",
+    desc: "Corrects your attendance to late. Please provide estimated check-in/out times.",
+    variant: "amber",
+  },
+  WFH: {
+    title: "Work From Home",
+    desc: "Corrects your attendance to WFH mode.",
+    variant: "blue",
+  },
 };
 
 export function CorrectionFormClient({
@@ -27,6 +66,7 @@ export function CorrectionFormClient({
   preselectedRecord,
   statusLabel,
   statusColor,
+  memberStatus,
   action,
 }: Props) {
   const [newStatus, setNewStatus] = useState("ON_TIME");
@@ -48,9 +88,10 @@ export function CorrectionFormClient({
     ? new Date(selectedRecord.attendanceDate).toISOString().slice(0, 10)
     : "";
   const isPastRecord = Boolean(selectedDateKey && selectedDateKey < todayKey);
+  const helper = CORRECTION_HELPER_TEXT[newStatus];
 
   return (
-    <form action={action} method="POST" className="grid gap-4">
+    <form action={action} method="POST" encType="multipart/form-data" className="grid gap-4">
       <div className="flex flex-col gap-1.5">
         <label htmlFor="record-select" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
           Select Attendance Record / Date <span className="text-red-500">*</span>
@@ -102,14 +143,35 @@ export function CorrectionFormClient({
           className="h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 px-3 text-sm outline-none focus:border-zinc-950 dark:focus:border-zinc-300 focus:ring-1 focus:ring-zinc-950 dark:focus:ring-zinc-300"
           required
         >
-          <option value="ON_TIME">On Time (WFO)</option>
-          <option value="LATE">Late (WFO)</option>
-          <option value="WFH">WFH (Full Day)</option>
-          <option value="PERMISSION">Permission</option>
+          <option value="ON_TIME">On Time</option>
+          <option value="LATE">Late</option>
+          <option value="WFH">Work From Home (WFH)</option>
+          <option value="PERMISSION">Personal Leave</option>
           <option value="SICK">Sick Leave</option>
-          <option value="LEAVE">Replacement Leave</option>
+          <option value="DISPENSATION">Official Dispensation</option>
+          {memberStatus === "TEAM" && <option value="LEAVE">Annual Leave</option>}
         </select>
       </div>
+
+      {helper && (
+        <div
+          className={`flex gap-2 rounded-lg border p-3 text-xs leading-relaxed animate-in fade-in duration-200 ${
+            helper.variant === "amber"
+              ? "border-amber-200 bg-amber-50/50 text-amber-800 dark:border-amber-900/30 dark:bg-amber-950/10 dark:text-amber-300"
+              : helper.variant === "violet"
+              ? "border-violet-200 bg-violet-50/50 text-violet-800 dark:border-violet-900/30 dark:bg-violet-950/10 dark:text-violet-300"
+              : helper.variant === "emerald"
+              ? "border-emerald-200 bg-emerald-50/50 text-emerald-800 dark:border-emerald-900/30 dark:bg-emerald-950/10 dark:text-emerald-300"
+              : helper.variant === "rose"
+              ? "border-red-200 bg-red-50/50 text-red-800 dark:border-red-900/30 dark:bg-red-950/10 dark:text-red-300"
+              : "border-blue-200 bg-blue-50/50 text-blue-800 dark:border-blue-900/30 dark:bg-blue-950/10 dark:text-blue-300"
+          }`}
+        >
+          <div>
+            <span className="font-bold">{helper.title}:</span> {helper.desc}
+          </div>
+        </div>
+      )}
 
       {showTimeInput && (
         <div className="grid gap-3 animate-in fade-in slide-in-from-top-1 duration-150 sm:grid-cols-2">
@@ -147,6 +209,22 @@ export function CorrectionFormClient({
           </div>
         </div>
       )}
+
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="attachment" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+          Supporting Document / Attachment{" "}
+          <span className="text-xs font-normal text-zinc-500">
+            ({newStatus === "DISPENSATION" ? "required" : "optional"}, max 2MB)
+          </span>
+        </label>
+        <Input
+          id="attachment"
+          name="attachment"
+          type="file"
+          accept="image/*,application/pdf"
+          className="cursor-pointer file:mr-4 file:rounded-md file:border-0 file:bg-zinc-900 file:px-2.5 file:py-1 file:text-xs file:font-semibold file:text-white hover:file:bg-zinc-800"
+        />
+      </div>
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="reason" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">

@@ -23,12 +23,17 @@ export async function createCorrectionAction(formData: FormData) {
     "WFH",
     "PERMISSION",
     "SICK",
+    "DISPENSATION",
     "LEAVE",
     "ALPHA",
   ];
 
   if (!recordId || !validStatuses.includes(newStatus) || !reason) {
     redirect("/member/corrections?error=missing-fields");
+  }
+
+  if (newStatus === "LEAVE" && currentUser.memberStatus === "INTERN") {
+    redirect("/member/corrections?error=intern-leave");
   }
 
   const isPhysicalCorrection = newStatus === "ON_TIME" || newStatus === "LATE";
@@ -44,6 +49,29 @@ export async function createCorrectionAction(formData: FormData) {
   } else {
     proposedCheckInTime = null;
     proposedCheckOutTime = null;
+  }
+
+  // Handle optional file attachment (Base64 for serverless compatibility)
+  const file = formData.get("attachment") as File | null;
+  let attachmentUrl: string | null = null;
+
+  if (file && file.size > 0) {
+    if (file.size > 2 * 1024 * 1024) {
+      redirect("/member/corrections?error=file-size");
+    }
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const base64 = buffer.toString("base64");
+      attachmentUrl = `data:${file.type};base64,${base64}`;
+    } catch {
+      redirect("/member/corrections?error=upload-failed");
+    }
+  }
+
+  if (newStatus === "DISPENSATION" && !attachmentUrl) {
+    redirect("/member/corrections?error=attachment-required");
   }
 
   // Fetch the attendance record
@@ -97,6 +125,7 @@ export async function createCorrectionAction(formData: FormData) {
       proposedCheckInTime,
       proposedCheckOutTime,
       reason,
+      attachmentUrl,
       status: "PENDING",
     },
   });

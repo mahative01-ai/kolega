@@ -4,45 +4,14 @@ import { useMemo, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AttendanceTableBodyClient } from "./attendance-table-body-client";
-import { FileText, Home, ArrowUpDown, Edit2 } from "lucide-react";
+import { FileText, Home, ArrowUpDown } from "lucide-react";
 import { getMood } from "@/lib/moods";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { updateJournalAction } from "./actions";
-import { toast } from "sonner";
+import { AttendanceDetailDialog, type DetailRecord } from "./attendance-detail-dialog";
 
 
-type SerializedRecord = {
-  id: string;
-  attendanceDate: string;
-  workMode: string;
-  status: string;
-  checkInAt: string | null;
-  checkOutAt: string | null;
-  lateMinutes: number;
-  earlyCheckoutMinutes: number;
-  locationValidationStatus: string;
-  distanceMeters: number | null;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    role: string;
-    currentMood?: string | null;
-  };
-  ownerStudio: {
-    name: string;
-  };
-  locationStudio: {
-    name: string;
-  } | null;
-  wfhPlan: string | null;
-  wfhReport: string | null;
-};
+type SerializedRecord = DetailRecord;
 
 type Props = {
   records: SerializedRecord[];
@@ -59,15 +28,6 @@ function formatDate(dateStr: string) {
     year: "numeric",
     timeZone: "UTC",
   }).format(new Date(dateStr));
-}
-
-function formatTime(timeStr: string | null) {
-  if (!timeStr) return "-";
-  return new Intl.DateTimeFormat("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "Asia/Jakarta",
-  }).format(new Date(timeStr));
 }
 
 export function LaporanPresensiTabsClient({
@@ -87,44 +47,12 @@ export function LaporanPresensiTabsClient({
   const journalPageSize = 25;
   const [searchQuery, setSearchQuery] = useState("");
 
-  const [editingRecord, setEditingRecord] = useState<SerializedRecord | null>(null);
-  const [planVal, setPlanVal] = useState("");
-  const [reportVal, setReportVal] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedRecordForDetail, setSelectedRecordForDetail] = useState<DetailRecord | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
-  const openEditModal = (record: SerializedRecord) => {
-    setEditingRecord(record);
-    setPlanVal(record.wfhPlan || "");
-    setReportVal(record.wfhReport || "");
-  };
-
-  const closeEditModal = () => {
-    setEditingRecord(null);
-    setPlanVal("");
-    setReportVal("");
-  };
-
-  const handleSave = async () => {
-    if (!editingRecord) return;
-    setIsSubmitting(true);
-    try {
-      const res = await updateJournalAction(editingRecord.id, planVal, reportVal);
-      if (res.success) {
-        toast.success(res.message);
-        
-        // Update local object properties directly for instant local feedback
-        editingRecord.wfhPlan = planVal.trim() || null;
-        editingRecord.wfhReport = reportVal.trim() || null;
-
-        closeEditModal();
-      } else {
-        toast.error("Failed to update journal.");
-      }
-    } catch (err: any) {
-      toast.error(err.message || "An error occurred.");
-    } finally {
-      setIsSubmitting(false);
-    }
+  const openDetailModal = (record: DetailRecord) => {
+    setSelectedRecordForDetail(record);
+    setIsDetailOpen(true);
   };
 
   const handleSort = (field: string) => {
@@ -282,10 +210,9 @@ export function LaporanPresensiTabsClient({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[30px]"></TableHead>
                     <TableHead>
                       <button type="button" onClick={() => handleSort("name")} className="flex items-center gap-1 hover:text-zinc-950 dark:hover:text-zinc-50 transition-colors">
-                        Name
+                        Member
                         <ArrowUpDown className="size-3" />
                       </button>
                     </TableHead>
@@ -297,7 +224,7 @@ export function LaporanPresensiTabsClient({
                     </TableHead>
                     <TableHead>
                       <button type="button" onClick={() => handleSort("studio")} className="flex items-center gap-1 hover:text-zinc-950 dark:hover:text-zinc-50 transition-colors">
-                        Default Studio
+                        Studio
                         <ArrowUpDown className="size-3" />
                       </button>
                     </TableHead>
@@ -315,40 +242,24 @@ export function LaporanPresensiTabsClient({
                     </TableHead>
                     <TableHead>
                       <button type="button" onClick={() => handleSort("checkin")} className="flex items-center gap-1 hover:text-zinc-950 dark:hover:text-zinc-50 transition-colors">
-                        In Time
+                        In
                         <ArrowUpDown className="size-3" />
                       </button>
                     </TableHead>
                     <TableHead>
                       <button type="button" onClick={() => handleSort("checkout")} className="flex items-center gap-1 hover:text-zinc-950 dark:hover:text-zinc-50 transition-colors">
-                        Out Time
+                        Out
                         <ArrowUpDown className="size-3" />
                       </button>
                     </TableHead>
-                    <TableHead>
-                      <button type="button" onClick={() => handleSort("late")} className="flex items-center gap-1 hover:text-zinc-950 dark:hover:text-zinc-50 transition-colors">
-                        Late
-                        <ArrowUpDown className="size-3" />
-                      </button>
-                    </TableHead>
-                    <TableHead>
-                      <button type="button" onClick={() => handleSort("early")} className="flex items-center gap-1 hover:text-zinc-950 dark:hover:text-zinc-50 transition-colors">
-                        Early Out
-                        <ArrowUpDown className="size-3" />
-                      </button>
-                    </TableHead>
-                    <TableHead>
-                      <button type="button" onClick={() => handleSort("validation")} className="flex items-center gap-1 hover:text-zinc-950 dark:hover:text-zinc-50 transition-colors">
-                        Validation
-                        <ArrowUpDown className="size-3" />
-                      </button>
-                    </TableHead>
+                    <TableHead>Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <AttendanceTableBodyClient
                   records={paginatedAttendanceRecords}
                   statusColor={statusColor}
                   statusLabel={statusLabel}
+                  onSelectRecord={openDetailModal}
                 />
               </Table>
             </CardContent>
@@ -453,6 +364,14 @@ export function LaporanPresensiTabsClient({
           </Card>
         </TabsContent>
       </Tabs>
+
+      <AttendanceDetailDialog
+        record={selectedRecordForDetail}
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+        statusColor={statusColor}
+        statusLabel={statusLabel}
+      />
     </div>
   );
 }

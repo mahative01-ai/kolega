@@ -30,14 +30,17 @@ import { CorrectionFormClient } from "./correction-form-client";
 
 export const dynamic = "force-dynamic";
 
+import { AttachmentViewer } from "@/components/attachment-viewer";
+
 const statusLabel: Record<string, string> = {
   PRESENT: "Present",
   ON_TIME: "On Time",
   LATE: "Late",
   WFH: "WFH",
-  PERMISSION: "Permission",
+  PERMISSION: "Personal Leave",
   SICK: "Sick Leave",
-  LEAVE: "Replacement Leave",
+  DISPENSATION: "Official Dispensation",
+  LEAVE: "Annual Leave",
   ALPHA: "Absent",
   HOLIDAY: "Holiday",
   OFF_DAY: "Off Day",
@@ -50,6 +53,7 @@ const statusColor: Record<string, string> = {
   WFH: "bg-blue-100 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-900/50",
   PERMISSION: "bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-900/50",
   SICK: "bg-violet-100 dark:bg-violet-950/50 text-violet-800 dark:text-violet-300 border-violet-200 dark:border-violet-900/50",
+  DISPENSATION: "bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900/50",
   LEAVE: "bg-sky-100 dark:bg-sky-950/50 text-sky-800 dark:text-sky-300 border-sky-200 dark:border-sky-900/50",
   ALPHA: "bg-red-100 dark:bg-red-950/50 text-red-800 dark:text-red-300 border-red-200 dark:border-red-900/50",
   HOLIDAY: "bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-300 dark:border-zinc-700",
@@ -89,6 +93,10 @@ const errorMessages: Record<string, string> = {
   "already-pending": "This attendance record already has a pending correction request.",
   "out-of-range": "Correction requests can only be submitted for dates between today and 7 days ago.",
   "already-processed": "The request cannot be cancelled because it has already been reviewed by an Admin.",
+  "attachment-required": "An official support document is required for dispensation.",
+  "intern-leave": "Interns are not allowed to request annual leave.",
+  "file-size": "Attachment file size is too large (maximum 2MB).",
+  "upload-failed": "Failed to process the file attachment.",
 };
 
 export default async function MemberCorrectionsPage({
@@ -163,6 +171,7 @@ export default async function MemberCorrectionsPage({
     previousStatus: string | null;
     newStatus: string | null;
     reason: string;
+    attachmentUrl: string | null;
     status: string;
     approvedBy: { name: string } | null;
     attendanceRecord: { id: string; attendanceDate: Date } | null;
@@ -172,7 +181,14 @@ export default async function MemberCorrectionsPage({
     const correctionRows = await prisma.attendanceCorrection.findMany({
       where: { requestedById: currentUser.id },
       orderBy: { createdAt: "desc" },
-      include: {
+      select: {
+        id: true,
+        attendanceRecordId: true,
+        previousStatus: true,
+        newStatus: true,
+        reason: true,
+        attachmentUrl: true,
+        status: true,
         approvedBy: {
           select: { name: true },
         },
@@ -239,6 +255,7 @@ export default async function MemberCorrectionsPage({
               preselectedRecord={preselectedRecord}
               statusLabel={statusLabel}
               statusColor={statusColor}
+              memberStatus={currentUser.memberStatus}
               action={createCorrectionAction}
             />
           </CardContent>
@@ -261,6 +278,7 @@ export default async function MemberCorrectionsPage({
                   <TableHead>Previous Status</TableHead>
                   <TableHead>New Status</TableHead>
                   <TableHead>Member Reason</TableHead>
+                  <TableHead>Attachment</TableHead>
                   <TableHead>Request Status</TableHead>
                   <TableHead>Reviewer</TableHead>
                   <TableHead className="text-right">Action</TableHead>
@@ -270,7 +288,7 @@ export default async function MemberCorrectionsPage({
                 {corrections.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={7}
+                      colSpan={8}
                       className="h-24 text-center text-sm text-zinc-500"
                     >
                       No attendance correction requests submitted yet.
@@ -304,6 +322,9 @@ export default async function MemberCorrectionsPage({
                       </TableCell>
                       <TableCell className="max-w-[200px] truncate" title={corr.reason}>
                         {corr.reason}
+                      </TableCell>
+                      <TableCell>
+                        <AttachmentViewer url={corr.attachmentUrl} />
                       </TableCell>
                       <TableCell>
                         <Badge
