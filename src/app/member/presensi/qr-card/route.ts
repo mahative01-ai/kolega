@@ -81,7 +81,7 @@ export async function GET(request: Request) {
   <rect width="720" height="460" rx="28" fill="#ffffff"/>
   <rect x="24" y="24" width="672" height="412" rx="24" fill="#f8fafc" stroke="#d4d4d8"/>
   <rect x="48" y="48" width="624" height="76" rx="18" fill="#09090b"/>
-  <text x="76" y="82" fill="#ffffff" font-size="24" font-weight="700">${studio}</text>
+  <text x="76" y="86" fill="#ffffff" font-size="24" font-weight="700" dominant-baseline="middle">${studio}</text>
   <g transform="translate(54 150)">
     ${qrSvg.replace("<svg", '<svg x="0" y="0"')}
   </g>
