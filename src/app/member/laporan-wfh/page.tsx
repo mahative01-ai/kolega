@@ -85,8 +85,8 @@ export default async function MemberLaporanWfhPage({
       user={user}
       currentPath="/member/laporan-wfh"
       badge="Work Journal"
-      title="My Work Journal & Reports"
-      description="Morning work plans (WFH) and evening work reports (WFO & WFH)."
+      title="Work Journal & Attendance Reports"
+      description="Morning work plans (WFH) and daily work reports (WFO & WFH)."
     >
       <LaporanWfhClient
         initialRecords={serializedRecords}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { Building2, Edit, Eye, Mail, Search, UserCog, UserPlus, Loader2, ArrowUpDown, Cake, Plus, Trash2, BarChart3, Calendar, CheckCircle2, Home, RefreshCw } from "lucide-react";
+import { Building2, Edit, Eye, Mail, Search, UserCog, UserPlus, Loader2, ArrowUpDown, Cake, Plus, Trash2, BarChart3, Calendar, CheckCircle2, Home, RefreshCw, ChevronLeft, ChevronRight, Briefcase } from "lucide-react";
 import { Combobox } from "@/components/ui/combobox";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ROLE_LABEL } from "@/lib/roles";
-import { createUserAction, updateUserAction, resetAllTeamLeavesAction } from "./actions";
+import { createUserAction, updateUserAction } from "./actions";
 import { getMood } from "@/lib/moods";
 
 type UserWithRelations = {
@@ -144,14 +144,17 @@ export function RolesClient({
   const [viewOpen, setViewOpen] = useState(false);
   const [viewUser, setViewUser] = useState<UserWithRelations | null>(null);
   const [page, setPage] = useState(1);
+  const [historyPage, setHistoryPage] = useState(1);
   const [detailScope, setDetailScope] = useState<"ALL" | "MONTH">("MONTH");
   const [detailMonth, setDetailMonth] = useState(() => new Date().toISOString().slice(0, 7));
   const pageSize = 10;
+  const historyPageSize = 10;
 
   const handleOpenView = (user: UserWithRelations) => {
     setViewUser(user);
     setDetailScope("MONTH");
     setDetailMonth(new Date().toISOString().slice(0, 7));
+    setHistoryPage(1);
     setViewOpen(true);
   };
 
@@ -196,20 +199,7 @@ export function RolesClient({
     setEditOpen(true);
   };
 
-  const handleBulkResetLeaves = () => {
-    if (!confirm("Are you sure you want to reset the annual leave balance of all active Team members to 12 days for this year?")) {
-      return;
-    }
 
-    startTransition(async () => {
-      const res = await resetAllTeamLeavesAction();
-      if (!res.success) {
-        alert(res.error || "Failed to reset leave balances.");
-      } else {
-        alert(res.message || "Leave balances successfully reset.");
-      }
-    });
-  };
 
   const filteredUsers = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -451,18 +441,6 @@ export function RolesClient({
             </div>
 
             <div className="ml-auto flex items-center gap-2">
-              {isSuperAdmin && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleBulkResetLeaves}
-                  disabled={isPending}
-                  className="border-red-200 hover:bg-red-50 hover:text-red-750 dark:border-red-900/30 dark:hover:bg-red-950/20"
-                >
-                  <RefreshCw className="size-3.5 mr-1" />
-                  Reset All Team Leaves
-                </Button>
-              )}
               {(isSuperAdmin || currentUser.role === "ADMIN") && (
                 <Button
                   size="sm"
@@ -718,6 +696,20 @@ export function RolesClient({
                 </select>
               </div>
             </div>
+
+            {addMemberStatus === "TEAM" && (
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold">Annual Leave Balance</label>
+                <Input
+                  name="annualLeaveBalance"
+                  type="number"
+                  defaultValue={12}
+                  min={0}
+                  placeholder="Default 12 days"
+                />
+                <p className="text-[10px] text-zinc-500">Default annual leave quota for team member.</p>
+              </div>
+            )}
 
             {addMemberStatus === "INTERN" && (
               <div className="flex flex-col gap-1.5">
@@ -1094,11 +1086,6 @@ export function RolesClient({
                         <Badge variant="outline" className={workDayBalanceClass(viewUser.workDayBalance)}>
                           {workDayBalanceText(viewUser.workDayBalance)}
                         </Badge>
-                        {viewUser.memberStatus === "TEAM" && (
-                          <Badge variant="outline" className="border-sky-500/30 bg-sky-50/50 dark:bg-sky-950/20 text-sky-700 dark:text-sky-300">
-                            Leave: {viewUser.annualLeaveBalance} Days
-                          </Badge>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -1182,9 +1169,9 @@ export function RolesClient({
 
                   <div className="rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/70 dark:bg-zinc-950/50 p-3 flex items-center justify-between">
                     <div>
-                      <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">On Time</p>
-                      <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                        {detailStats.onTime} <span className="text-xs font-normal text-zinc-400 dark:text-zinc-500">({detailStats.total > 0 ? ((detailStats.onTime / detailStats.total) * 100).toFixed(0) : 0}%)</span>
+                      <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">Workday Balance</p>
+                      <p className="text-xl font-bold text-zinc-900 dark:text-zinc-50 mt-0.5">
+                        {workDayBalanceText(viewUser.workDayBalance)}
                       </p>
                     </div>
                     <div className="flex size-9 items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
@@ -1194,13 +1181,13 @@ export function RolesClient({
 
                   <div className="rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/70 dark:bg-zinc-950/50 p-3 flex items-center justify-between">
                     <div>
-                      <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">Work From Home (WFH)</p>
+                      <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">Annual Leave Balance</p>
                       <p className="text-2xl font-bold text-sky-600 dark:text-sky-400 mt-0.5">
-                        {detailStats.wfh} <span className="text-xs font-normal text-zinc-400 dark:text-zinc-500">days</span>
+                        {viewUser.memberStatus === "TEAM" ? `${viewUser.annualLeaveBalance} Days` : "-"}
                       </p>
                     </div>
                     <div className="flex size-9 items-center justify-center rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-600 dark:text-sky-400">
-                      <Home className="size-4" />
+                      <Briefcase className="size-4" />
                     </div>
                   </div>
                 </div>
@@ -1336,24 +1323,61 @@ export function RolesClient({
                         <TableRow className="border-zinc-200 dark:border-zinc-800">
                           <TableCell colSpan={3} className="h-20 text-center text-zinc-400 dark:text-zinc-500 text-xs">No attendance records found.</TableCell>
                         </TableRow>
-                      ) : detailRecords.slice(0, 20).map((record) => (
-                        <TableRow key={record.id} className="border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900/60">
-                          <TableCell className="text-xs font-medium text-zinc-900 dark:text-zinc-100">
-                            {formatDate(record.attendanceDate)}
-                          </TableCell>
-                          <TableCell className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
-                            {formatTime(record.checkInAt)} - {formatTime(record.checkOutAt)}
-                          </TableCell>
-                          <TableCell>
-                            <Badge className="border-indigo-500/30 bg-indigo-500/15 text-indigo-700 dark:text-indigo-300">
-                              {record.status.replace("_", " ")}
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      ) : (
+                        detailRecords
+                          .slice((historyPage - 1) * historyPageSize, historyPage * historyPageSize)
+                          .map((record) => (
+                            <TableRow key={record.id} className="border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900/60">
+                              <TableCell className="text-xs font-medium text-zinc-900 dark:text-zinc-100">
+                                {formatDate(record.attendanceDate)}
+                              </TableCell>
+                              <TableCell className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                                {formatTime(record.checkInAt)} - {formatTime(record.checkOutAt)}
+                              </TableCell>
+                              <TableCell>
+                                <Badge className="border-indigo-500/30 bg-indigo-500/15 text-indigo-700 dark:text-indigo-300">
+                                  {record.status.replace("_", " ")}
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                      )}
                     </TableBody>
                   </Table>
                 </div>
+
+                {detailRecords.length > historyPageSize && (
+                  <div className="flex items-center justify-between pt-1">
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                      Showing {(historyPage - 1) * historyPageSize + 1} to {Math.min(historyPage * historyPageSize, detailRecords.length)} of {detailRecords.length} records
+                    </p>
+                    <div className="flex items-center gap-1.5">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={historyPage <= 1}
+                        onClick={() => setHistoryPage((p) => Math.max(1, p - 1))}
+                        className="h-7 px-2.5 text-xs"
+                      >
+                        <ChevronLeft className="size-3.5 mr-1" /> Prev
+                      </Button>
+                      <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400 px-1">
+                        {historyPage} / {Math.ceil(detailRecords.length / historyPageSize)}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={historyPage >= Math.ceil(detailRecords.length / historyPageSize)}
+                        onClick={() => setHistoryPage((p) => p + 1)}
+                        className="h-7 px-2.5 text-xs"
+                      >
+                        Next <ChevronRight className="size-3.5 ml-1" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}

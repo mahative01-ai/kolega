@@ -259,7 +259,20 @@ export function CalendarGridClient({
                 Sync Calendar
               </Button>
             )}
-            <div className="flex items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <Input
+                type="date"
+                title="Pick Date"
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val) {
+                    const monthKey = val.slice(0, 7);
+                    window.location.href = `?month=${monthKey}${activeStudioId ? `&studioId=${activeStudioId}` : ""}`;
+                  }
+                }}
+                className="h-8 w-32 text-xs border-zinc-200 dark:border-zinc-800"
+              />
+
               <select
                 value={String(month).padStart(2, "0")}
                 onChange={(e) => {

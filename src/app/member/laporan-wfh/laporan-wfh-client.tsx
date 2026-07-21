@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Home, Calendar, Clock, BookOpen, CheckCircle, AlertCircle, Edit2, Trash2 } from "lucide-react";
+import { Home, Calendar, Clock, BookOpen, CheckCircle, AlertCircle, Edit2, Trash2, ChevronLeft, ChevronRight, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { updateOwnJournalAction, createOwnJournalAction, deleteOwnJournalAction } from "./actions";
+import { updateOwnJournalAction, deleteOwnJournalAction } from "./actions";
 import { toast } from "sonner";
 
 type SerializedRecord = {
@@ -93,60 +93,21 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
   const [reportVal, setReportVal] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Create Modal State
-  const [createOpen, setCreateOpen] = useState(false);
-  const [createDate, setCreateDate] = useState(() => {
-    const today = new Date();
-    return today.toLocaleDateString("en-CA"); // YYYY-MM-DD format in local time
-  });
-  const [createPlan, setCreatePlan] = useState("");
-  const [createReport, setCreateReport] = useState("");
+  // Filter & Pagination state
+  const [selectedDate, setSelectedDate] = useState("");
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
 
-  const existingRecordForCreateDate = useMemo(() => {
-    return records.find(
-      (r) => r.attendanceDate.split("T")[0] === createDate
-    );
-  }, [records, createDate]);
+  const filteredRecords = useMemo(() => {
+    if (!selectedDate) return records;
+    return records.filter((r) => r.attendanceDate.split("T")[0] === selectedDate);
+  }, [records, selectedDate]);
 
-  const resolvedCreateMode = useMemo(() => {
-    return existingRecordForCreateDate ? existingRecordForCreateDate.workMode : null;
-  }, [existingRecordForCreateDate]);
-
-  const createDateStatus = existingRecordForCreateDate?.status || null;
-
-  const isCreateDateNonWorking = useMemo(() => {
-    if (!createDateStatus) return false;
-    return ["ALPHA", "SICK", "LEAVE", "PERMISSION"].includes(createDateStatus);
-  }, [createDateStatus]);
-
-  const handleCreateSubmit = async () => {
-    if (!createDate) {
-      toast.error("Date is required.");
-      return;
-    }
-    if (!createReport.trim()) {
-      toast.error("Report/Journal is required.");
-      return;
-    }
-    setIsSubmitting(true);
-    try {
-      const res = await createOwnJournalAction(createDate, createPlan, createReport);
-      if (res.success) {
-        toast.success(res.message);
-        setCreateOpen(false);
-        setCreatePlan("");
-        setCreateReport("");
-        // Reload to update RSC query
-        window.location.reload();
-      } else {
-        toast.error("Failed to create journal.");
-      }
-    } catch (err: any) {
-      toast.error(err.message || "An error occurred.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const totalPages = Math.max(1, Math.ceil(filteredRecords.length / pageSize));
+  const paginatedRecords = useMemo(() => {
+    const safePage = Math.min(page, totalPages);
+    return filteredRecords.slice((safePage - 1) * pageSize, safePage * pageSize);
+  }, [filteredRecords, page, totalPages]);
 
   const handleDelete = async (recordId: string) => {
     if (!confirm("Are you sure you want to delete the journal for this date? The work plan and report will be cleared.")) return;
@@ -214,33 +175,59 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
             <Calendar className="size-4 text-blue-700 dark:text-blue-400" />
-            Select Report Month
+            Work Journal Filter
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap items-end justify-between gap-3">
-            <form method="GET" className="flex flex-wrap items-end gap-3">
-              <div className="grid gap-1.5">
-                <select
-                  name="month"
-                  defaultValue={monthKey}
-                  className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 px-3 text-sm focus:outline-none"
-                >
-                  {monthOptions.map((opt) => (
-                    <option key={opt.key} value={opt.key}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
+            <div className="flex flex-wrap items-end gap-3">
+              <form method="GET" className="flex items-end gap-2">
+                <div className="grid gap-1">
+                  <label className="text-[11px] font-medium text-zinc-500">Select Month</label>
+                  <select
+                    name="month"
+                    defaultValue={monthKey}
+                    className="h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 px-3 text-sm focus:outline-none"
+                  >
+                    {monthOptions.map((opt) => (
+                      <option key={opt.key} value={opt.key}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <Button type="submit">Show Month</Button>
+              </form>
+
+              <div className="grid gap-1">
+                <label className="text-[11px] font-medium text-zinc-500">Pick Date</label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => {
+                      setSelectedDate(e.target.value);
+                      setPage(1);
+                    }}
+                    className="h-9 w-40 text-xs border-zinc-200 dark:border-zinc-800"
+                  />
+                  {selectedDate && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedDate("");
+                        setPage(1);
+                      }}
+                      className="h-9 text-xs"
+                    >
+                      Reset Date
+                    </Button>
+                  )}
+                </div>
               </div>
-              <Button type="submit">Show</Button>
-            </form>
-            <Button
-              onClick={() => setCreateOpen(true)}
-              className="bg-blue-700 hover:bg-blue-800 text-white dark:bg-blue-600 dark:hover:bg-blue-700"
-            >
-              + Create New Journal
-            </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -250,21 +237,21 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
         <CardHeader className="pb-3 border-b border-zinc-100 dark:border-zinc-800">
           <CardTitle className="text-base flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
             <Home className="size-5 text-blue-700 dark:text-blue-400" />
-            WFO & WFH Work Journal History ({monthLabel})
+            WFO & WFH Work Journal ({monthLabel})
           </CardTitle>
           <CardDescription className="text-zinc-500 dark:text-zinc-400">
-            Found {records.length} attendance records this month.
+            Found {filteredRecords.length} attendance & journal records.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          {records.length === 0 ? (
+          {filteredRecords.length === 0 ? (
             <div className="text-center py-12">
               <BookOpen className="size-8 text-zinc-300 dark:text-zinc-700 mx-auto mb-2" />
-              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">No attendance history found for this month.</p>
+              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">No attendance history found for this filter.</p>
             </div>
           ) : (
             <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
-              {records.map((record) => {
+              {paginatedRecords.map((record) => {
                 const isWfh = record.workMode === "WFH";
                 const hasCheckOut = !!record.checkOutAt;
                 const isNonWorking = ["ALPHA", "SICK", "LEAVE", "PERMISSION"].includes(record.status);
@@ -412,6 +399,37 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
               })}
             </div>
           )}
+
+          {filteredRecords.length > pageSize && (
+            <div className="flex items-center justify-between p-4 border-t border-zinc-100 dark:border-zinc-800">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, filteredRecords.length)} of {filteredRecords.length} entries
+              </p>
+              <div className="flex items-center gap-1.5">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className="h-8 px-3 text-xs"
+                >
+                  <ChevronLeft className="size-3.5 mr-1" /> Prev
+                </Button>
+                <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400 px-1">
+                  Page {page} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page >= totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                  className="h-8 px-3 text-xs"
+                >
+                  Next <ChevronRight className="size-3.5 ml-1" />
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -462,84 +480,7 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Create Modal Dialog */}
-      <Dialog open={createOpen} onOpenChange={(open) => !open && setCreateOpen(false)}>
-        <DialogContent className="sm:max-w-[500px] border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
-          <DialogHeader>
-            <DialogTitle className="text-zinc-900 dark:text-zinc-50">Create New Work Journal</DialogTitle>
-            <DialogDescription className="text-zinc-500 dark:text-zinc-400">
-              Create a work journal for past days if you forgot to fill it.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="create-date" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Select Date</Label>
-              <Input
-                id="create-date"
-                type="date"
-                value={createDate}
-                onChange={(e) => setCreateDate(e.target.value)}
-                className="border-zinc-200 dark:border-zinc-800 focus-visible:ring-blue-500"
-              />
-            </div>
-            {isCreateDateNonWorking && (
-              <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50/50 p-3 text-xs text-red-800 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300">
-                <AlertCircle className="size-4 shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-semibold text-red-800 dark:text-red-300">Cannot Create Journal</p>
-                  <p className="mt-0.5 leading-relaxed text-red-650 dark:text-red-400">
-                    You are recorded as <strong>{STATUS_LABELS[createDateStatus!] || createDateStatus}</strong> on this date.
-                    You cannot submit a work journal for non-working days. Please request an attendance correction first if you actually worked.
-                  </p>
-                </div>
-              </div>
-            )}
-            {(resolvedCreateMode === "WFH" || resolvedCreateMode === null) && (
-              <div className="space-y-2">
-                <Label htmlFor="create-plan" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">
-                  Morning Work Plan {resolvedCreateMode === null && <span className="text-zinc-400 font-normal">(WFH only)</span>}
-                </Label>
-                <Textarea
-                  id="create-plan"
-                  placeholder="Write your morning work plan (leave empty for WFO)..."
-                  value={createPlan}
-                  onChange={(e) => setCreatePlan(e.target.value)}
-                  rows={3}
-                  className="resize-none border-zinc-200 dark:border-zinc-800 text-zinc-850 dark:text-zinc-200 focus-visible:ring-blue-500"
-                  disabled={isCreateDateNonWorking}
-                />
-              </div>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="create-report" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400">
-                {resolvedCreateMode === "WFH" ? "End-of-Day Report" : "Journal / Report"}
-              </Label>
-              <Textarea
-                id="create-report"
-                placeholder={resolvedCreateMode === "WFH" ? "Write your end-of-day report..." : "Write your journal/report..."}
-                value={createReport}
-                onChange={(e) => setCreateReport(e.target.value)}
-                rows={4}
-                className="resize-none border-zinc-200 dark:border-zinc-800 text-zinc-850 dark:text-zinc-200 focus-visible:ring-blue-500"
-                disabled={isCreateDateNonWorking}
-              />
-            </div>
-          </div>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setCreateOpen(false)} disabled={isSubmitting} className="border-zinc-200 dark:border-zinc-800">
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleCreateSubmit} 
-              disabled={isSubmitting || isCreateDateNonWorking} 
-              className="bg-blue-700 hover:bg-blue-800 text-white dark:bg-blue-600 dark:hover:bg-blue-700"
-            >
-              {isSubmitting ? "Saving..." : "Save Journal"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
+

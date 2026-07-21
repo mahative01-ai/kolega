@@ -169,6 +169,18 @@ export async function reviewCorrectionAction(formData: FormData) {
           updatedAt: new Date(),
         },
       });
+
+      if (correction.previousStatus === "ALPHA" && correction.newStatus !== "ALPHA") {
+        await tx.user.update({
+          where: { id: correction.requestedById },
+          data: { workDayBalance: { increment: 1 } },
+        });
+      } else if (correction.previousStatus !== "ALPHA" && correction.newStatus === "ALPHA") {
+        await tx.user.update({
+          where: { id: correction.requestedById },
+          data: { workDayBalance: { decrement: 1 } },
+        });
+      }
     }
   });
 
@@ -333,6 +345,18 @@ export async function quickReviewCorrectionAction(correctionId: string, approve:
           updatedAt: new Date(),
         },
       });
+
+      if (correction.previousStatus === "ALPHA" && correction.newStatus !== "ALPHA") {
+        await tx.user.update({
+          where: { id: correction.requestedById },
+          data: { workDayBalance: { increment: 1 } },
+        });
+      } else if (correction.previousStatus !== "ALPHA" && correction.newStatus === "ALPHA") {
+        await tx.user.update({
+          where: { id: correction.requestedById },
+          data: { workDayBalance: { decrement: 1 } },
+        });
+      }
     }
   });
 
@@ -381,6 +405,18 @@ export async function deleteCorrectionAction(formData: FormData) {
           updatedAt: new Date(),
         },
       });
+
+      if (correction.previousStatus === "ALPHA" && correction.newStatus !== "ALPHA") {
+        await tx.user.update({
+          where: { id: correction.requestedById },
+          data: { workDayBalance: { decrement: 1 } },
+        });
+      } else if (correction.previousStatus !== "ALPHA" && correction.newStatus === "ALPHA") {
+        await tx.user.update({
+          where: { id: correction.requestedById },
+          data: { workDayBalance: { increment: 1 } },
+        });
+      }
     }
 
     // Delete the correction request

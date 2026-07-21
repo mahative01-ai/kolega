@@ -490,39 +490,3 @@ export async function updateUserAction(formData: FormData) {
   }
 }
 
-export async function resetAllTeamLeavesAction() {
-  const actor = await requireAnyRole(["SUPER_ADMIN"]);
-
-  try {
-    const currentYear = getCurrentAnnualLeaveYear();
-
-    await prisma.user.updateMany({
-      where: {
-        memberStatus: "TEAM",
-        accountStatus: "ACTIVE",
-        role: "MEMBER",
-      },
-      data: {
-        annualLeaveBalance: 12,
-        annualLeaveYear: currentYear,
-      },
-    });
-
-    // Create audit log
-    await prisma.auditLog.create({
-      data: {
-        actorId: actor.id,
-        entity: "User",
-        action: "BULK_ANNUAL_LEAVE_RESET",
-        metadata: {
-          year: currentYear,
-        },
-      },
-    });
-
-    revalidatePath("/roles");
-    return { success: true, message: "Annual leave balance of all active Team members has been successfully reset to 12 days." };
-  } catch (err: unknown) {
-    return { success: false, error: err instanceof Error ? err.message : "Failed to reset leave balances." };
-  }
-}

@@ -124,6 +124,17 @@ export async function materializeDailyAlpha(now = new Date()) {
       skipDuplicates: true,
     });
 
+    if (result.count > 0) {
+      await prisma.user.updateMany({
+        where: { id: { in: absentUsers.map((user) => user.id) } },
+        data: {
+          workDayBalance: {
+            decrement: 1,
+          },
+        },
+      });
+    }
+
     createdCount += result.count;
     processedStudioCount += 1;
   }

@@ -195,12 +195,12 @@ export function NavUser({ user }: { user: SidebarUser }) {
 
             <div className="space-y-1.5">
               <label htmlFor="mood-note" className="text-xs font-semibold text-zinc-500">
-                Short Status Message (Max 50 characters)
+                Status Message
               </label>
               <Input
                 id="mood-note"
                 value={moodNote}
-                onChange={(e) => setMoodNote(e.target.value.slice(0, 50))}
+                onChange={(e) => setMoodNote(e.target.value)}
                 placeholder="Focused on coding... / Coffee first"
                 className="h-9"
               />
