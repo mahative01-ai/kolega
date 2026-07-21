@@ -7,6 +7,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { resetPasswordAction } from "./actions";
+import { ToastNotificationListener } from "@/components/toast-notification-listener";
 
 const errorMessages: Record<string, string> = {
   invalid: "Link reset tidak valid, sudah digunakan, atau sudah kedaluwarsa.",
@@ -36,11 +37,7 @@ export default async function ResetPasswordPage({
           </p>
         </div>
 
-        {errorMessage && (
-          <p className="mb-4 rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-400">
-            {errorMessage}
-          </p>
-        )}
+        <ToastNotificationListener errorMessages={errorMessages} />
 
         {!token || params.error === "invalid" ? (
           <Link

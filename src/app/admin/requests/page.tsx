@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ApprovalsTabsClient } from "./approvals-tabs-client";
 import { ConfettiTrigger } from "@/components/confetti-trigger";
+import { ToastNotificationListener } from "@/components/toast-notification-listener";
 
 export const dynamic = "force-dynamic";
 
@@ -196,14 +197,8 @@ export default async function AdminApprovalsPage({
           : `Kelola perizinan member dan permintaan koreksi presensi untuk studio ${currentUser.defaultStudio?.name ?? ""}.`
       }
     >
-      {params.success && successMessages[params.success] ? (
-        <>
-          {params.success === "approve" && <ConfettiTrigger />}
-          <div className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 mb-4">
-            {successMessages[params.success]}
-          </div>
-        </>
-      ) : null}
+      {params.success === "approve" && <ConfettiTrigger />}
+      <ToastNotificationListener successMessages={successMessages} />
 
       <ApprovalsTabsClient
         currentUser={currentUser}

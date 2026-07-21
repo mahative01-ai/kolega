@@ -9,6 +9,7 @@ import { getJakartaDateKey, dateOnlyFromKey } from "@/lib/attendance-time";
 import { formatMinutesAsClock, getCheckoutEligibility } from "@/lib/checkout-policy";
 import { loginAction } from "./actions";
 import { QrLoginScanner } from "./qr-login-scanner";
+import { ToastNotificationListener } from "@/components/toast-notification-listener";
 import { Terminal } from "lucide-react";
 import {
   Field,
@@ -179,23 +180,10 @@ export default async function LoginPage({
         </div>
 
         {/* Action Messages */}
-        {errorMessage && (
-          <p className="rounded-lg bg-red-50 dark:bg-red-950/20 px-3 py-2 text-xs text-red-700 dark:text-red-400 border border-red-100 dark:border-red-900/50">
-            {errorMessage}
-          </p>
-        )}
-
-        {isRegistered && (
-          <p className="rounded-lg bg-emerald-50 dark:bg-emerald-950/20 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/50">
-            Registration successful. Please sign in.
-          </p>
-        )}
-
-        {successMessage && (
-          <p className="rounded-lg bg-emerald-50 dark:bg-emerald-950/20 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/50">
-            {successMessage}
-          </p>
-        )}
+        <ToastNotificationListener
+          successMessages={successMessages}
+          errorMessages={errorMessages}
+        />
 
         {/* Content Tabs / Scanner */}
         {currentUser ? (

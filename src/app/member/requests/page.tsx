@@ -22,6 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { ToastNotificationListener } from "@/components/toast-notification-listener";
 import { requireAnyRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { cancelRequestAction } from "./actions";
@@ -140,17 +141,10 @@ export default async function MemberRequestsPage({
       title="Submit Leave, Sick, Dispensation, Replacement, or WFH Request"
       description="Submit personal leave, official sick leave, dispensation, replacement leave, or WFH requests here."
     >
-      {params.success && successMessages[params.success] ? (
-        <div className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          {successMessages[params.success]}
-        </div>
-      ) : null}
-
-      {params.error && errorMessages[params.error] ? (
-        <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {errorMessages[params.error]}
-        </div>
-      ) : null}
+      <ToastNotificationListener
+        successMessages={successMessages}
+        errorMessages={errorMessages}
+      />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_2fr]">
         <Card className="h-fit">
@@ -206,35 +200,32 @@ export default async function MemberRequestsPage({
               <TableBody>
                 {requests.length === 0 ? (
                   <TableRow>
-                    <TableCell
-                      colSpan={8}
-                      className="h-24 text-center text-sm text-zinc-500"
-                    >
-                      No requests submitted yet.
+                    <TableCell colSpan={8} className="text-center text-zinc-500">
+                      No request history found.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  requests.map((req) => (
-                    <TableRow key={req.id}>
-                      <TableCell className="font-medium">
+                  requests.map((request) => (
+                    <TableRow key={request.id}>
+                      <TableCell>
                         <Badge
                           variant="secondary"
-                          className={requestTypeColor[req.type]}
+                          className={requestTypeColor[request.type]}
                         >
-                          {requestTypeLabel[req.type] ?? req.type}
+                          {requestTypeLabel[request.type] ?? request.type}
                         </Badge>
                       </TableCell>
-                      <TableCell>{formatDate(req.startDate)}</TableCell>
-                      <TableCell>{formatDate(req.endDate)}</TableCell>
-                      <TableCell className="max-w-[200px] truncate" title={req.reason}>
-                        {req.reason}
+                      <TableCell>{formatDate(request.startDate)}</TableCell>
+                      <TableCell>{formatDate(request.endDate)}</TableCell>
+                      <TableCell className="max-w-[200px] truncate">
+                        {request.reason}
                       </TableCell>
                       <TableCell>
-                        {req.attachmentUrl ? (
+                        {request.attachmentUrl ? (
                           <a
-                            href={req.attachmentUrl}
+                            href={request.attachmentUrl}
                             target="_blank"
-                            rel="noopener noreferrer"
+                            rel="noreferrer"
                             className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline"
                           >
                             <Paperclip className="size-3" />
@@ -247,21 +238,26 @@ export default async function MemberRequestsPage({
                       <TableCell>
                         <Badge
                           variant="outline"
-                          className={requestStatusColor[req.status]}
+                          className={requestStatusColor[request.status]}
                         >
-                          {requestStatusLabel[req.status] ?? req.status}
+                          {requestStatusLabel[request.status] ?? request.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-zinc-650">
-                        {req.reviewer?.name ?? <span className="text-zinc-400">-</span>}
+                      <TableCell className="text-xs text-zinc-600">
+                        {request.reviewer?.name ?? "-"}
                       </TableCell>
                       <TableCell className="text-right">
-                        {req.status === "PENDING" ? (
-                          <form action={cancelRequestAction} method="POST">
-                            <input type="hidden" name="requestId" value={req.id} />
-                            <Button type="submit" size="sm" variant="ghost" className="text-red-650 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 h-8 px-2">
-                              <Trash2 className="size-4 mr-1" />
-                              Cancel
+                        {request.status === "PENDING" ? (
+                          <form action={cancelRequestAction}>
+                            <input type="hidden" name="requestId" value={request.id} />
+                            <Button
+                              type="submit"
+                              variant="ghost"
+                              size="icon"
+                              className="size-8 text-zinc-500 hover:text-red-600"
+                              title="Cancel Request"
+                            >
+                              <Trash2 className="size-4" />
                             </Button>
                           </form>
                         ) : (

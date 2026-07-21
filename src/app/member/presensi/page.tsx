@@ -10,6 +10,7 @@ import { getJakartaDateKey, dateOnlyFromKey } from "@/lib/attendance-time";
 import { cn } from "@/lib/utils";
 import { QrScannerForm } from "./qr-scanner-form";
 import { ConfettiTrigger } from "@/components/confetti-trigger";
+import { ToastNotificationListener } from "@/components/toast-notification-listener";
 
 export const dynamic = "force-dynamic";
 
@@ -114,27 +115,11 @@ export default async function MemberPresensiPage({
       description="Scan your QR Card using your camera to Check-in or Check-out for WFO."
     >
       <div className="max-w-2xl mx-auto space-y-6">
-        {params.success && successMessages[params.success] ? (
-          <>
-            <ConfettiTrigger />
-            <div className="rounded-md border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/20 px-4 py-3 text-sm text-emerald-800 dark:text-emerald-400">
-              {successMessages[params.success]}
-            </div>
-          </>
-        ) : null}
-
-        {params.error ? (
-          <div className="rounded-md border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/20 px-4 py-3 text-sm text-red-700 dark:text-red-400">
-            {params.error === "checkout-too-early" ? (
-              <span>
-                Check-out opens at <strong>{params.time}</strong>
-                {params.remaining ? `, ${params.remaining} minutes remaining.` : "."}
-              </span>
-            ) : (
-              errorMessages[params.error] || "An error occurred while processing attendance."
-            )}
-          </div>
-        ) : null}
+        {params.success && <ConfettiTrigger />}
+        <ToastNotificationListener
+          successMessages={successMessages}
+          errorMessages={errorMessages}
+        />
         <Link
           href={dashboardPath}
           className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "flex items-center gap-1.5 w-fit")}

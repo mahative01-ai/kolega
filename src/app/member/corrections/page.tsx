@@ -21,6 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { ToastNotificationListener } from "@/components/toast-notification-listener";
 import { requireAnyRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createCorrectionAction, cancelCorrectionAction } from "./actions";
@@ -210,17 +211,10 @@ export default async function MemberCorrectionsPage({
       title="Submit Past Attendance Correction"
       description="Use this module to correct past attendance records, such as forgotten check-ins or check-outs."
     >
-      {params.success && successMessages[params.success] ? (
-        <div className="rounded-md border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/20 px-4 py-3 text-sm text-emerald-800 dark:text-emerald-400">
-          {successMessages[params.success]}
-        </div>
-      ) : null}
-
-      {params.error && errorMessages[params.error] ? (
-        <div className="rounded-md border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/20 px-4 py-3 text-sm text-red-700 dark:text-red-400">
-          {errorMessages[params.error]}
-        </div>
-      ) : null}
+      <ToastNotificationListener
+        successMessages={successMessages}
+        errorMessages={errorMessages}
+      />
 
       {loadErrors.length > 0 ? (
         <div className="rounded-md border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/20 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
