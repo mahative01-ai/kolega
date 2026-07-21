@@ -41,9 +41,12 @@ const SYARAT_KETERANGAN: Record<string, { title: string; desc: string; variant: 
 
 export function RequestFormClient({ canRequestReplacementDay }: Props) {
   const [selectedType, setSelectedType] = useState<string>("PERMISSION");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [loading, setLoading] = useState(false);
 
   const guide = SYARAT_KETERANGAN[selectedType];
+  const durationLabel = getDurationLabel(startDate, endDate);
 
   return (
     <form
@@ -109,15 +112,41 @@ export function RequestFormClient({ canRequestReplacementDay }: Props) {
           <label htmlFor="start-date" className="text-sm font-medium">
             Start Date <span className="text-red-500">*</span>
           </label>
-          <Input id="start-date" name="startDate" type="date" required />
+          <Input
+            id="start-date"
+            name="startDate"
+            type="date"
+            value={startDate}
+            onChange={(event) => setStartDate(event.target.value)}
+            required
+          />
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="end-date" className="text-sm font-medium">
-            End Date <span className="text-red-500">*</span>
+            End Date <span className="text-xs font-normal text-zinc-500">(optional)</span>
           </label>
-          <Input id="end-date" name="endDate" type="date" required />
+          <Input
+            id="end-date"
+            name="endDate"
+            type="date"
+            value={endDate}
+            onChange={(event) => setEndDate(event.target.value)}
+            min={startDate || undefined}
+          />
         </div>
       </div>
+
+      {durationLabel ? (
+        <p
+          className={`-mt-2 text-xs font-medium ${
+            durationLabel === "Invalid date range"
+              ? "text-red-600"
+              : "text-zinc-500 dark:text-zinc-400"
+          }`}
+        >
+          {durationLabel}
+        </p>
+      ) : null}
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="reason" className="text-sm font-medium">
@@ -154,4 +183,22 @@ export function RequestFormClient({ canRequestReplacementDay }: Props) {
       </Button>
     </form>
   );
+}
+
+function getDurationLabel(startDate: string, endDate: string) {
+  if (!startDate) {
+    return "";
+  }
+
+  const start = new Date(`${startDate}T00:00:00.000Z`);
+  const end = new Date(`${endDate || startDate}T00:00:00.000Z`);
+
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) {
+    return "Invalid date range";
+  }
+
+  const days =
+    Math.floor((end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000)) + 1;
+
+  return `${days} ${days === 1 ? "Day" : "Days"}`;
 }

@@ -11,7 +11,8 @@ export async function createRequestAction(formData: FormData) {
 
   const requestedType = String(formData.get("type") ?? "");
   const startDateStr = String(formData.get("startDate") ?? "");
-  const endDateStr = String(formData.get("endDate") ?? "");
+  const rawEndDateStr = String(formData.get("endDate") ?? "");
+  const endDateStr = rawEndDateStr || startDateStr;
   const reason = String(formData.get("reason") ?? "").trim();
 
   // Validate fields
@@ -19,7 +20,7 @@ export async function createRequestAction(formData: FormData) {
     redirect("/member/requests?error=invalid-type");
   }
 
-  if (!startDateStr || !endDateStr || !reason) {
+  if (!startDateStr || !reason) {
     redirect("/member/requests?error=missing-fields");
   }
 
@@ -135,7 +136,7 @@ export async function createRequestAction(formData: FormData) {
     }
   }
 
-  let type = requestedType as "PERMISSION" | "SICK" | "DISPENSATION" | "LEAVE" | "WFH";
+  const type = requestedType as "PERMISSION" | "SICK" | "DISPENSATION" | "LEAVE" | "WFH";
 
   if (requestedType === "DISPENSATION" && !attachmentUrl) {
     redirect("/member/requests?error=attachment-required");
