@@ -12,11 +12,11 @@ type Props = {
 };
 
 const eventTypeLabels: Record<string, string> = {
-  NATIONAL_HOLIDAY: "Hari Libur Nasional",
-  COMPANY_LEAVE: "Cuti Bersama",
-  REGULAR_OFF_DAY: "Hari Off Studio",
-  REPLACEMENT_WORKDAY: "Hari Kerja Pengganti",
-  STUDIO_EVENT: "Event Studio",
+  NATIONAL_HOLIDAY: "National Holiday",
+  COMPANY_LEAVE: "Company Leave",
+  REGULAR_OFF_DAY: "Regular Off Day",
+  REPLACEMENT_WORKDAY: "Replacement Workday",
+  STUDIO_EVENT: "Studio Event",
 };
 
 export function DailySignalsBanner({ signals, currentUserId, className }: Props) {
@@ -63,7 +63,7 @@ export function DailySignalsBanner({ signals, currentUserId, className }: Props)
               ))}
             </div>
             <p className="text-[11px] text-pink-700 dark:text-pink-400 mt-1.5 italic">
-              Jangan lupa berikan ucapan hangat untuk rekan kerja Anda hari ini! 🎉
+              Don&apos;t forget to send them your warm wishes today! 🎉
             </p>
           </div>
         </div>
@@ -75,7 +75,7 @@ export function DailySignalsBanner({ signals, currentUserId, className }: Props)
           <Calendar className="size-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
             <h4 className="font-bold text-sm text-amber-950 dark:text-amber-100">
-              Agenda & Event Studio Hari Ini
+              Today&apos;s Studio Agenda & Events
             </h4>
             <div className="mt-1.5 space-y-1">
               {events.map((e) => (
@@ -102,14 +102,14 @@ export function DailySignalsBanner({ signals, currentUserId, className }: Props)
           <div className="flex items-center gap-2">
             <Smile className="size-4 text-blue-600 dark:text-blue-400 shrink-0" />
             <span>
-              <strong>{moodSummary.sharedMoodCount}</strong> dari {moodSummary.totalCheckedIn} rekan presensi telah membagikan mood.
+              <strong>{moodSummary.sharedMoodCount}</strong> out of {moodSummary.totalCheckedIn} checked-in colleagues shared their mood.
             </span>
           </div>
           {(() => {
             const moodDef = getMood(moodSummary.mostCommonMood);
             return (
               <div className="flex items-center gap-1.5 shrink-0">
-                <span className="text-zinc-500 text-[10px] uppercase font-bold">Terbanyak:</span>
+                <span className="text-zinc-500 text-[10px] uppercase font-bold">Most common:</span>
                 <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded border text-[11px] font-semibold ${moodDef.bgColor} ${moodDef.borderColor} ${moodDef.textColor}`}>
                   <span>{moodDef.emoji}</span>
                   <span>{moodDef.label}</span>
