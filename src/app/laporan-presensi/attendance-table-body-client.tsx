@@ -19,6 +19,8 @@ type SerializedRecord = {
   earlyCheckoutMinutes: number;
   locationValidationStatus: string;
   distanceMeters: number | null;
+  mood?: string | null;
+  moodNote?: string | null;
   wfhPlan?: string | null;
   wfhReport?: string | null;
   user: {
@@ -92,14 +94,15 @@ export function AttendanceTableBodyClient({ records, statusColor, statusLabel }:
         const isWfh = record.workMode === "WFH";
         const hasDetails = isWfh ? (!!record.wfhPlan || !!record.wfhReport) : (record.workMode === "WFO" && !!record.wfhReport);
         const isExpanded = expandedId === record.id;
+        const mood = getMood(record.mood || record.user.currentMood);
 
         return (
           <Fragment key={record.id}>
             <TableRow className={cn(isExpanded && "bg-zinc-50/50 dark:bg-zinc-900/10")}>
               <TableCell className="font-medium">
                 <div className="flex items-center gap-2">
-                  <div className={`size-8 rounded-full flex items-center justify-center text-lg shrink-0 border select-none ${getMood(record.user.currentMood).bgColor} ${getMood(record.user.currentMood).borderColor}`} title={getMood(record.user.currentMood).label}>
-                    {getMood(record.user.currentMood).emoji}
+                  <div className={`size-8 rounded-full flex items-center justify-center text-lg shrink-0 border select-none ${mood.bgColor} ${mood.borderColor}`} title={mood.label}>
+                    {mood.emoji}
                   </div>
                   <div>
                     <div>{record.user.name}</div>

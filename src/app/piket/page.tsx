@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { dateOnlyFromKey, getJakartaDateKey } from "@/lib/attendance-time";
 import { PicketBoardClient } from "./picket-board-client";
 
 export const dynamic = "force-dynamic";
@@ -20,6 +21,9 @@ export default async function PicketPage({
   const isSuperAdmin = user.role === "SUPER_ADMIN";
   const isAdmin = user.role === "ADMIN";
   const isManager = isSuperAdmin || isAdmin;
+
+  const todayKey = getJakartaDateKey(new Date());
+  const todayDate = dateOnlyFromKey(todayKey);
 
   // Ambil daftar studio aktif
   const studios = await prisma.studio.findMany({
@@ -53,10 +57,23 @@ export default async function PicketPage({
           name: true,
         },
       },
-      currentMood: true,
+      attendanceRecords: {
+        where: {
+          attendanceDate: todayDate,
+        },
+        select: {
+          mood: true,
+        },
+        take: 1,
+      },
     },
     orderBy: { name: "asc" },
   });
+
+  const mappedMembers = members.map((m) => ({
+    ...m,
+    currentMood: m.attendanceRecords[0]?.mood ?? "NEUTRAL",
+  }));
 
   return (
     <DashboardShell
@@ -92,7 +109,7 @@ export default async function PicketPage({
             <CalendarRange className="size-5 text-blue-700 dark:text-blue-400" />
             Weekly Routine Picket Schedule
           </h2>
-          <PicketBoardClient members={members} isManager={isManager} />
+          <PicketBoardClient members={mappedMembers} isManager={isManager} />
         </div>
       </div>
     </DashboardShell>

@@ -113,6 +113,8 @@ export default async function AttendanceReportPage({
         earlyCheckoutMinutes: true,
         locationValidationStatus: true,
         distanceMeters: true,
+        mood: true,
+        moodNote: true,
         user: {
           select: { id: true, name: true, email: true, role: true, currentMood: true },
         },

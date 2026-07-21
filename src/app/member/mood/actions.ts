@@ -59,4 +59,8 @@ export async function submitAttendanceMoodAction(formData: FormData) {
   revalidatePath("/member/presensi/riwayat");
   revalidatePath("/settings");
   revalidatePath("/member/mood");
+  revalidatePath("/roles");
+  revalidatePath("/piket");
+
+  return { success: true };
 }

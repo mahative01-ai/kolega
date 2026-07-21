@@ -2,6 +2,7 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { prisma } from "@/lib/prisma";
 import { requireAnyRole } from "@/lib/auth";
 import { ensureAnnualLeaveForActiveTeams } from "@/lib/annual-leave";
+import { dateOnlyFromKey, getJakartaDateKey } from "@/lib/attendance-time";
 import { RolesClient } from "./roles-client";
 
 export const dynamic = "force-dynamic";
@@ -10,7 +11,9 @@ async function getRoleData(actor: Awaited<ReturnType<typeof requireAnyRole>>) {
   await ensureAnnualLeaveForActiveTeams();
 
   const isSuperAdmin = actor.role === "SUPER_ADMIN";
-  
+  const todayKey = getJakartaDateKey(new Date());
+  const todayDate = dateOnlyFromKey(todayKey);
+
   const scopedWhere = isSuperAdmin
     ? {
         role: {
@@ -89,6 +92,7 @@ async function getRoleData(actor: Awaited<ReturnType<typeof requireAnyRole>>) {
             checkInAt: true,
             checkOutAt: true,
             lateMinutes: true,
+            mood: true,
           },
         },
       },
@@ -127,8 +131,18 @@ async function getRoleData(actor: Awaited<ReturnType<typeof requireAnyRole>>) {
         : Promise.resolve([]),
   ]);
 
+  const mappedUsers = users.map((u) => {
+    const todayAtt = u.attendanceRecords.find(
+      (r) => r.attendanceDate.getTime() === todayDate.getTime()
+    );
+    return {
+      ...u,
+      currentMood: todayAtt?.mood ?? "NEUTRAL",
+    };
+  });
+
   return {
-    users,
+    users: mappedUsers,
     studios,
     mentors,
   };
