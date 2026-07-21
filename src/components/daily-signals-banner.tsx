@@ -3,9 +3,11 @@ import type { DailySignals } from "@/lib/daily-signals";
 import { getMood } from "@/lib/moods";
 import { Calendar, Smile, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ConfettiTrigger } from "@/components/confetti-trigger";
 
 type Props = {
   signals: DailySignals;
+  currentUserId?: string;
   className?: string;
 };
 
@@ -17,21 +19,30 @@ const eventTypeLabels: Record<string, string> = {
   STUDIO_EVENT: "Event Studio",
 };
 
-export function DailySignalsBanner({ signals, className }: Props) {
-  const { birthdays, moodSummary, events } = signals;
+export function DailySignalsBanner({ signals, currentUserId, className }: Props) {
+  const { birthdays: rawBirthdays, moodSummary, events } = signals;
 
-  const hasBirthdays = birthdays.length > 0;
+  // Filter out current user to prevent duplicate birthday card if personal card is shown
+  const filteredBirthdays = currentUserId
+    ? rawBirthdays.filter((b) => b.id !== currentUserId)
+    : rawBirthdays;
+
+  const hasRawBirthdays = rawBirthdays.length > 0;
+  const hasFilteredBirthdays = filteredBirthdays.length > 0;
   const hasEvents = events.length > 0;
   const hasMoodSummary = moodSummary.sharedMoodCount > 0 && moodSummary.mostCommonMood;
 
-  if (!hasBirthdays && !hasEvents && !hasMoodSummary) {
+  if (!hasRawBirthdays && !hasEvents && !hasMoodSummary) {
     return null;
   }
 
   return (
     <div className={`space-y-3 mb-6 ${className ?? ""}`}>
-      {/* Birthday Signal Banner */}
-      {hasBirthdays && (
+      {/* Trigger confetti when any studio colleague has a birthday today */}
+      {hasRawBirthdays && <ConfettiTrigger preset="fireworks" />}
+
+      {/* Birthday Signal Banner for colleagues */}
+      {hasFilteredBirthdays && (
         <div className="rounded-xl border border-pink-200 dark:border-pink-900/60 bg-pink-50/80 dark:bg-pink-950/30 p-4 text-sm text-pink-900 dark:text-pink-200 flex items-start gap-3.5 shadow-xs transition-all">
           <span className="text-2xl select-none leading-none pt-0.5">🎂</span>
           <div className="flex-1 min-w-0">
@@ -40,7 +51,7 @@ export function DailySignalsBanner({ signals, className }: Props) {
               <Sparkles className="size-3.5 text-pink-600 dark:text-pink-400" />
             </h4>
             <div className="mt-1 text-xs text-pink-800 dark:text-pink-300 space-y-0.5">
-              {birthdays.map((b) => (
+              {filteredBirthdays.map((b) => (
                 <div key={b.id} className="flex items-center gap-2 flex-wrap">
                   <span className="font-semibold text-pink-950 dark:text-pink-100">{b.name}</span>
                   {b.defaultStudioName && (

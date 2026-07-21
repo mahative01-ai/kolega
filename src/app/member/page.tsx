@@ -485,7 +485,7 @@ export default async function MemberDashboardPage({
         </>
       )}
 
-      <DailySignalsBanner signals={data.dailySignals} />
+      <DailySignalsBanner signals={data.dailySignals} currentUserId={currentUser.id} />
 
       {data.announcement && (
         <AnnouncementBanner

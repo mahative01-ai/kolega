@@ -383,7 +383,7 @@ export default async function SuperAdminDashboardPage() {
         </>
       )}
 
-      <DailySignalsBanner signals={data.dailySignals} />
+      <DailySignalsBanner signals={data.dailySignals} currentUserId={currentUser.id} />
 
       <div className="space-y-6">
         {/* Metrics Grid */}

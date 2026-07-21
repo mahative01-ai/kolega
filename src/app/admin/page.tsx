@@ -389,7 +389,7 @@ export default async function AdminDashboardPage({
         </>
       )}
 
-      <DailySignalsBanner signals={data.dailySignals} />
+      <DailySignalsBanner signals={data.dailySignals} currentUserId={currentUser.id} />
 
       <AdminDashboardClient
         currentUser={currentUser}

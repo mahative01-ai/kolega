@@ -101,7 +101,7 @@ export default async function TeamMoodPage() {
       description="Lihat mood dan kondisi presensi rekan kerja Anda hari ini berdasarkan data presensi harian."
     >
       <div className="space-y-6">
-        <DailySignalsBanner signals={dailySignals} />
+        <DailySignalsBanner signals={dailySignals} currentUserId={currentUser.id} />
         {/* Mood Stats Overview Bar */}
         <Card className="shadow-none border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
           <CardHeader className="pb-3">
