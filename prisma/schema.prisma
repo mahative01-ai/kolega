@@ -314,6 +314,9 @@ model AttendanceRecord {
   distanceMeters           Float?
   wfhPlan                  String?
   wfhReport                String?
+  mood                     String?
+  moodNote                 String?
+  moodSubmittedAt          DateTime?
   lateMinutes              Int                      @default(0)
   earlyCheckoutMinutes     Int                      @default(0)
   isManualCorrection       Boolean                  @default(false)

@@ -143,6 +143,30 @@ export async function getCurrentUser() {
     return null;
   }
 
+  // Fetch today's attendance record mood
+  const { dateOnlyFromKey, getJakartaDateKey } = await import("@/lib/attendance-time");
+  const todayDate = dateOnlyFromKey(getJakartaDateKey(new Date()));
+  const todayRecord = await prisma.attendanceRecord.findUnique({
+    where: {
+      userId_attendanceDate: {
+        userId: user.id,
+        attendanceDate: todayDate,
+      },
+    },
+    select: {
+      mood: true,
+      moodNote: true,
+    },
+  });
+
+  if (todayRecord?.mood) {
+    user.currentMood = todayRecord.mood;
+    user.moodNote = todayRecord.moodNote;
+  } else {
+    user.currentMood = "NEUTRAL";
+    user.moodNote = null;
+  }
+
   return ensureAnnualLeaveForUser(user);
 }
 

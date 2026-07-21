@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { AdminDashboardClient } from "./admin-dashboard-client";
 import { ConfettiTrigger } from "@/components/confetti-trigger";
+import { DailySignalsBanner } from "@/components/daily-signals-banner";
+import { getDailySignals } from "@/lib/daily-signals";
 import {
   formatMonthLabel,
   getMonthRange,
@@ -291,33 +293,16 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
     });
   }
 
-  const studioColleagues = defaultStudioId
-    ? await prisma.user.findMany({
-        where: {
-          defaultStudioId: defaultStudioId,
-          accountStatus: "ACTIVE",
-          id: { not: userId },
-          birthDate: { not: null },
-        },
-        select: {
-          id: true,
-          name: true,
-          birthDate: true,
-        },
-      })
-    : [];
-
-  const today = new Date();
-  const colleaguesBirthdays = studioColleagues.filter((u) => {
-    if (!u.birthDate) return false;
-    const bd = new Date(u.birthDate);
-    return bd.getUTCDate() === today.getDate() && bd.getUTCMonth() === today.getMonth();
+  const dailySignals = await getDailySignals({
+    id: userId,
+    role: "ADMIN",
+    defaultStudioId,
   });
 
   return {
     studio,
     activeMembers,
-    colleaguesBirthdays,
+    dailySignals,
     personalWorkDayBalance: personalBalance?.workDayBalance ?? 0,
     summary: summarizeAttendanceStatuses(groups),
     personalSummary: summarizeAttendanceStatuses(personalGroups),
@@ -404,17 +389,7 @@ export default async function AdminDashboardPage({
         </>
       )}
 
-      {data.colleaguesBirthdays && data.colleaguesBirthdays.length > 0 && (
-        <div className="rounded-xl border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/20 p-4 text-sm text-blue-800 dark:text-blue-300 mb-6 flex items-center gap-3 shadow-sm">
-          <span className="text-2xl">🎉</span>
-          <div>
-            <h4 className="font-bold text-zinc-900 dark:text-zinc-100">Today your studio colleagues are celebrating their birthday:</h4>
-            <p className="text-xs text-blue-700 dark:text-blue-450 mt-0.5">
-              {data.colleaguesBirthdays.map((c) => c.name).join(", ")}. Don&apos;t forget to send them your best wishes! 🎂
-            </p>
-          </div>
-        </div>
-      )}
+      <DailySignalsBanner signals={data.dailySignals} />
 
       <AdminDashboardClient
         currentUser={currentUser}

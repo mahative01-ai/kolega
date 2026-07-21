@@ -32,6 +32,8 @@ import {
 import { DashboardShell } from "@/components/dashboard-shell";
 import { RecentAttendanceTableClient } from "./recent-attendance-table-client";
 import { ConfettiTrigger } from "@/components/confetti-trigger";
+import { DailySignalsBanner } from "@/components/daily-signals-banner";
+import { getDailySignals } from "@/lib/daily-signals";
 import {
   formatMonthLabel,
   getMonthRange,
@@ -280,6 +282,11 @@ async function getSuperAdminDashboardData() {
     })
   );
 
+  const dailySignals = await getDailySignals({
+    id: "super-admin",
+    role: "SUPER_ADMIN",
+  });
+
   return {
     attendanceSummary: summarizeAttendanceStatuses(attendanceGroups),
     outsideRadiusThisMonth,
@@ -289,6 +296,7 @@ async function getSuperAdminDashboardData() {
     picketToday,
     dailyTrend,
     workDayBalanceSummary,
+    dailySignals,
     monthLabel: formatMonthLabel(month),
   };
 }
@@ -370,11 +378,12 @@ export default async function SuperAdminDashboardPage() {
             <span className="text-3xl">🎂</span>
             <div>
               <h3 className="font-bold text-base text-pink-900 dark:text-pink-400">Happy Birthday, {currentUser.name}! 🎉</h3>
-              <p className="text-xs text-pink-700 dark:text-pink-400 mt-0.5">May your day be filled with joy and happiness. Thank you for your amazing contribution to the team!</p>
             </div>
           </div>
         </>
       )}
+
+      <DailySignalsBanner signals={data.dailySignals} />
 
       <div className="space-y-6">
         {/* Metrics Grid */}

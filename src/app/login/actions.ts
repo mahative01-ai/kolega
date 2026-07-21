@@ -387,7 +387,7 @@ export async function loginAndAttendWithQrAction(
     return {
       success: true,
       message: successMsg,
-      redirectUrl: getDashboardPath(user.role),
+      redirectUrl: "/member/mood",
     };
   } else {
     // Check-out WFO

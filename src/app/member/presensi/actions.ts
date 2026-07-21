@@ -437,7 +437,7 @@ export async function submitWfoAttendanceAction(formData: FormData) {
   }
 
   revalidatePersonalAttendance(currentUser.role);
-  redirect("/member/presensi?success=checkin");
+  redirect("/member/mood");
 }
 
 // ─── WFH Attendance Submission (Work plans & reports) ──────────────────────
@@ -542,7 +542,7 @@ export async function submitWfhAttendanceAction(formData: FormData) {
     }
 
     revalidatePersonalAttendance(currentUser.role);
-    redirect("/member/presensi?success=checkin");
+    redirect("/member/mood");
   } else {
     // Check-out WFH
     if (existingRecord.checkInAt && existingRecord.checkOutAt) {

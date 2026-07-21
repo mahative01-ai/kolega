@@ -40,3 +40,8 @@ export function getMood(key?: string | null): MoodDef {
   const normKey = (key || "NEUTRAL").toUpperCase() as MoodKey;
   return MOODS.find((m) => m.key === normKey) || MOODS[11];
 }
+
+export function isValidMoodKey(key: string): key is MoodKey {
+  return MOODS.some((m) => m.key === key.toUpperCase());
+}
+

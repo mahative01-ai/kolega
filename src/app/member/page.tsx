@@ -27,6 +27,8 @@ import { WfoJournalForm } from "@/app/member/presensi/wfo-journal-form";
 import { FileText } from "lucide-react";
 import { AnnouncementBanner } from "@/app/member/announcement-banner";
 import { ConfettiTrigger } from "@/components/confetti-trigger";
+import { DailySignalsBanner } from "@/components/daily-signals-banner";
+import { getDailySignals } from "@/lib/daily-signals";
 import {
   formatMonthLabel,
   getMonthRange,
@@ -99,31 +101,12 @@ async function getMemberDashboardData(userId: string, selectedMonthKey?: string)
 
   const userObj = await prisma.user.findUnique({
     where: { id: userId },
-    select: { defaultStudioId: true, workDayBalance: true, picketDay: true, annualLeaveBalance: true, memberStatus: true }
+    select: { id: true, role: true, defaultStudioId: true, workDayBalance: true, picketDay: true, annualLeaveBalance: true, memberStatus: true }
   });
 
-  const studioColleagues = userObj?.defaultStudioId
-    ? await prisma.user.findMany({
-        where: {
-          defaultStudioId: userObj.defaultStudioId,
-          accountStatus: "ACTIVE",
-          id: { not: userId },
-          birthDate: { not: null },
-        },
-        select: {
-          id: true,
-          name: true,
-          birthDate: true,
-        },
-      })
-    : [];
-
-  const today = new Date();
-  const colleaguesBirthdays = studioColleagues.filter((u) => {
-    if (!u.birthDate) return false;
-    const bd = new Date(u.birthDate);
-    return bd.getUTCDate() === today.getDate() && bd.getUTCMonth() === today.getMonth();
-  });
+  const dailySignals = userObj
+    ? await getDailySignals({ id: userId, role: userObj.role, defaultStudioId: userObj.defaultStudioId })
+    : { birthdays: [], moodSummary: { totalCheckedIn: 0, sharedMoodCount: 0, mostCommonMood: null }, events: [] };
 
   const [
     groups,
@@ -312,7 +295,7 @@ async function getMemberDashboardData(userId: string, selectedMonthKey?: string)
     attendancePolicy,
     monthLabel: formatMonthLabel(reportMonth),
     selectedMonth: month,
-    colleaguesBirthdays,
+    dailySignals,
   };
 }
 
@@ -502,17 +485,7 @@ export default async function MemberDashboardPage({
         </>
       )}
 
-      {data.colleaguesBirthdays && data.colleaguesBirthdays.length > 0 && (
-        <div className="rounded-xl border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/20 p-4 text-sm text-blue-800 dark:text-blue-300 mb-6 flex items-center gap-3 shadow-sm">
-          <span className="text-2xl">🎉</span>
-          <div>
-            <h4 className="font-bold text-zinc-900 dark:text-zinc-100">Today is your studio colleague&apos;s birthday:</h4>
-            <p className="text-xs text-blue-700 dark:text-blue-450 mt-0.5">
-              {data.colleaguesBirthdays.map((colleague) => colleague.name).join(", ")}. Don&apos;t forget to send them your best wishes! 🎂
-            </p>
-          </div>
-        </div>
-      )}
+      <DailySignalsBanner signals={data.dailySignals} />
 
       {data.announcement && (
         <AnnouncementBanner
