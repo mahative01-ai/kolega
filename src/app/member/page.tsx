@@ -28,6 +28,7 @@ import { FileText } from "lucide-react";
 import { AnnouncementBanner } from "@/app/member/announcement-banner";
 import { ConfettiTrigger } from "@/components/confetti-trigger";
 import { DailySignalsBanner } from "@/components/daily-signals-banner";
+import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import { getDailySignals } from "@/lib/daily-signals";
 import {
   formatMonthLabel,
@@ -501,36 +502,43 @@ export default async function MemberDashboardPage({
           const hasSubValue = 'subValue' in metric && metric.subValue;
 
           return (
-            <Card key={metric.label} className="shadow-none h-full flex flex-col justify-between overflow-hidden">
-              <CardHeader className="pb-2">
-                <CardDescription className="flex min-w-0 items-center gap-2 text-balance leading-snug">
-                  <Icon className={cn("size-4", metric.color)} />
-                  <span className="min-w-0 break-words">{metric.label}</span>
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-wrap items-center justify-between gap-2 pt-0">
-                <p className={cn("text-3xl font-semibold", metric.color)}>
-                  {metric.value.toLocaleString("id-ID")}
-                </p>
-                {hasSubValue && (
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "shrink-0 text-[10px] px-1.5 py-0",
-                      metric.label === "Workday Balance"
-                        ? data.workDayBalance < 0
-                          ? "bg-red-50 dark:bg-red-950/20 text-red-800 dark:text-red-300 border-red-200 dark:border-red-900"
-                          : data.workDayBalance > 0
-                            ? "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900"
-                            : "bg-zinc-50 dark:bg-zinc-900/50 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800"
-                        : "bg-orange-50 dark:bg-orange-950/20 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-900"
+            <HoverCard key={metric.label}>
+              <HoverCardTrigger asChild>
+                <Card className="shadow-none h-full flex flex-col justify-between overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm">
+                  <CardHeader className="pb-2">
+                    <CardDescription className="flex min-w-0 items-center gap-2 text-balance leading-snug">
+                      <Icon className={cn("size-4", metric.color)} />
+                      <span className="min-w-0 break-words">{metric.label}</span>
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex flex-wrap items-center justify-between gap-2 pt-0">
+                    <p className={cn("text-3xl font-semibold", metric.color)}>
+                      {metric.value.toLocaleString("id-ID")}
+                    </p>
+                    {hasSubValue && (
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "shrink-0 text-[10px] px-1.5 py-0",
+                          metric.label === "Workday Balance"
+                            ? data.workDayBalance < 0
+                              ? "bg-red-50 dark:bg-red-950/20 text-red-800 dark:text-red-300 border-red-200 dark:border-red-900"
+                              : data.workDayBalance > 0
+                                ? "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900"
+                                : "bg-zinc-50 dark:bg-zinc-900/50 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800"
+                            : "bg-orange-50 dark:bg-orange-950/20 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-900"
+                        )}
+                      >
+                        {metric.subValue}
+                      </Badge>
                     )}
-                  >
-                    {metric.subValue}
-                  </Badge>
-                )}
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
+              </HoverCardTrigger>
+              <HoverCardContent side="top" align="center" className="w-auto px-3 py-1.5 text-xs">
+                <span className="font-semibold">{metric.label}:</span> <span className={cn("font-bold", metric.color)}>{metric.value}</span> {hasSubValue ? `(${metric.subValue})` : ""}
+              </HoverCardContent>
+            </HoverCard>
           );
         })}
       </section>

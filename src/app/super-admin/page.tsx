@@ -33,6 +33,7 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { RecentAttendanceTableClient } from "./recent-attendance-table-client";
 import { ConfettiTrigger } from "@/components/confetti-trigger";
 import { DailySignalsBanner } from "@/components/daily-signals-banner";
+import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import { getDailySignals } from "@/lib/daily-signals";
 import {
   formatMonthLabel,
@@ -392,19 +393,26 @@ export default async function SuperAdminDashboardPage() {
             const Icon = metric.icon;
 
             return (
-              <Card key={metric.label} className="shadow-none h-full flex flex-col justify-between">
-                <CardHeader className="pb-2">
-                  <CardDescription className="flex items-center gap-2">
-                    <Icon className={cn("size-4", metric.color)} />
-                    {metric.label}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className={cn("text-3xl font-semibold", metric.color)}>
-                    {metric.value.toLocaleString("en-US")}
-                  </p>
-                </CardContent>
-              </Card>
+              <HoverCard key={metric.label}>
+                <HoverCardTrigger asChild>
+                  <Card className="shadow-none h-full flex flex-col justify-between cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm">
+                    <CardHeader className="pb-2">
+                      <CardDescription className="flex items-center gap-2">
+                        <Icon className={cn("size-4", metric.color)} />
+                        {metric.label}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p className={cn("text-3xl font-semibold", metric.color)}>
+                        {metric.value.toLocaleString("en-US")}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </HoverCardTrigger>
+                <HoverCardContent side="top" align="center" className="w-auto px-3 py-1.5 text-xs">
+                  <span className="font-semibold">{metric.label}:</span> <span className={cn("font-bold", metric.color)}>{metric.value}</span>
+                </HoverCardContent>
+              </HoverCard>
             );
           })}
         </section>

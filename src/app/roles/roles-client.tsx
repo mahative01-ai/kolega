@@ -32,6 +32,7 @@ import {
 import { ROLE_LABEL } from "@/lib/roles";
 import { createUserAction, updateUserAction } from "./actions";
 import { getMood } from "@/lib/moods";
+import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 
 type UserWithRelations = {
   id: string;
@@ -1207,46 +1208,82 @@ export function RolesClient({
                     ) : (
                       <>
                         {detailStats.onTime > 0 && (
-                          <div
-                            style={{ width: `${(detailStats.onTime / detailStats.total) * 100}%` }}
-                            className="h-full bg-emerald-500 hover:bg-emerald-400 transition-all duration-200 rounded-l-full first:rounded-l-full last:rounded-r-full relative group cursor-pointer"
-                            title={`On Time: ${detailStats.onTime} days (${((detailStats.onTime / detailStats.total) * 100).toFixed(1)}%)`}
-                          />
+                          <HoverCard>
+                            <HoverCardTrigger asChild>
+                              <div
+                                style={{ width: `${(detailStats.onTime / detailStats.total) * 100}%` }}
+                                className="h-full bg-emerald-500 hover:bg-emerald-400 transition-all duration-200 rounded-l-full first:rounded-l-full last:rounded-r-full relative cursor-pointer"
+                              />
+                            </HoverCardTrigger>
+                            <HoverCardContent side="top" align="center" className="w-auto px-3 py-1.5 text-xs">
+                              <span className="font-semibold text-emerald-600 dark:text-emerald-400">On Time:</span> {detailStats.onTime} days ({((detailStats.onTime / detailStats.total) * 100).toFixed(1)}%)
+                            </HoverCardContent>
+                          </HoverCard>
                         )}
                         {detailStats.late > 0 && (
-                          <div
-                            style={{ width: `${(detailStats.late / detailStats.total) * 100}%` }}
-                            className="h-full bg-orange-500 hover:bg-orange-400 transition-all duration-200 first:rounded-l-full last:rounded-r-full relative group cursor-pointer"
-                            title={`Late: ${detailStats.late} days (${((detailStats.late / detailStats.total) * 100).toFixed(1)}%)`}
-                          />
+                          <HoverCard>
+                            <HoverCardTrigger asChild>
+                              <div
+                                style={{ width: `${(detailStats.late / detailStats.total) * 100}%` }}
+                                className="h-full bg-orange-500 hover:bg-orange-400 transition-all duration-200 first:rounded-l-full last:rounded-r-full relative cursor-pointer"
+                              />
+                            </HoverCardTrigger>
+                            <HoverCardContent side="top" align="center" className="w-auto px-3 py-1.5 text-xs">
+                              <span className="font-semibold text-orange-600 dark:text-orange-400">Late:</span> {detailStats.late} days ({((detailStats.late / detailStats.total) * 100).toFixed(1)}%)
+                            </HoverCardContent>
+                          </HoverCard>
                         )}
                         {detailStats.sick > 0 && (
-                          <div
-                            style={{ width: `${(detailStats.sick / detailStats.total) * 100}%` }}
-                            className="h-full bg-purple-500 hover:bg-purple-400 transition-all duration-200 first:rounded-l-full last:rounded-r-full relative group cursor-pointer"
-                            title={`Sick: ${detailStats.sick} days (${((detailStats.sick / detailStats.total) * 100).toFixed(1)}%)`}
-                          />
+                          <HoverCard>
+                            <HoverCardTrigger asChild>
+                              <div
+                                style={{ width: `${(detailStats.sick / detailStats.total) * 100}%` }}
+                                className="h-full bg-purple-500 hover:bg-purple-400 transition-all duration-200 first:rounded-l-full last:rounded-r-full relative cursor-pointer"
+                              />
+                            </HoverCardTrigger>
+                            <HoverCardContent side="top" align="center" className="w-auto px-3 py-1.5 text-xs">
+                              <span className="font-semibold text-purple-600 dark:text-purple-400">Sick:</span> {detailStats.sick} days ({((detailStats.sick / detailStats.total) * 100).toFixed(1)}%)
+                            </HoverCardContent>
+                          </HoverCard>
                         )}
                         {detailStats.permission > 0 && (
-                          <div
-                            style={{ width: `${(detailStats.permission / detailStats.total) * 100}%` }}
-                            className="h-full bg-amber-400 hover:bg-amber-300 transition-all duration-200 first:rounded-l-full last:rounded-r-full relative group cursor-pointer"
-                            title={`Permission: ${detailStats.permission} days (${((detailStats.permission / detailStats.total) * 100).toFixed(1)}%)`}
-                          />
+                          <HoverCard>
+                            <HoverCardTrigger asChild>
+                              <div
+                                style={{ width: `${(detailStats.permission / detailStats.total) * 100}%` }}
+                                className="h-full bg-amber-400 hover:bg-amber-300 transition-all duration-200 first:rounded-l-full last:rounded-r-full relative cursor-pointer"
+                              />
+                            </HoverCardTrigger>
+                            <HoverCardContent side="top" align="center" className="w-auto px-3 py-1.5 text-xs">
+                              <span className="font-semibold text-amber-600 dark:text-amber-400">Permission:</span> {detailStats.permission} days ({((detailStats.permission / detailStats.total) * 100).toFixed(1)}%)
+                            </HoverCardContent>
+                          </HoverCard>
                         )}
                         {detailStats.alpha > 0 && (
-                          <div
-                            style={{ width: `${(detailStats.alpha / detailStats.total) * 100}%` }}
-                            className="h-full bg-red-500 hover:bg-red-400 transition-all duration-200 first:rounded-l-full last:rounded-r-full relative group cursor-pointer"
-                            title={`Alpha: ${detailStats.alpha} days (${((detailStats.alpha / detailStats.total) * 100).toFixed(1)}%)`}
-                          />
+                          <HoverCard>
+                            <HoverCardTrigger asChild>
+                              <div
+                                style={{ width: `${(detailStats.alpha / detailStats.total) * 100}%` }}
+                                className="h-full bg-red-500 hover:bg-red-400 transition-all duration-200 first:rounded-l-full last:rounded-r-full relative cursor-pointer"
+                              />
+                            </HoverCardTrigger>
+                            <HoverCardContent side="top" align="center" className="w-auto px-3 py-1.5 text-xs">
+                              <span className="font-semibold text-red-600 dark:text-red-400">Alpha:</span> {detailStats.alpha} days ({((detailStats.alpha / detailStats.total) * 100).toFixed(1)}%)
+                            </HoverCardContent>
+                          </HoverCard>
                         )}
                         {detailStats.wfh > 0 && (
-                          <div
-                            style={{ width: `${(detailStats.wfh / detailStats.total) * 100}%` }}
-                            className="h-full bg-sky-500 hover:bg-sky-400 transition-all duration-200 rounded-r-full first:rounded-l-full last:rounded-r-full relative group cursor-pointer"
-                            title={`WFH: ${detailStats.wfh} days (${((detailStats.wfh / detailStats.total) * 100).toFixed(1)}%)`}
-                          />
+                          <HoverCard>
+                            <HoverCardTrigger asChild>
+                              <div
+                                style={{ width: `${(detailStats.wfh / detailStats.total) * 100}%` }}
+                                className="h-full bg-sky-500 hover:bg-sky-400 transition-all duration-200 rounded-r-full first:rounded-l-full last:rounded-r-full relative cursor-pointer"
+                              />
+                            </HoverCardTrigger>
+                            <HoverCardContent side="top" align="center" className="w-auto px-3 py-1.5 text-xs">
+                              <span className="font-semibold text-sky-600 dark:text-sky-400">WFH:</span> {detailStats.wfh} days ({((detailStats.wfh / detailStats.total) * 100).toFixed(1)}%)
+                            </HoverCardContent>
+                          </HoverCard>
                         )}
                       </>
                     )}
@@ -1267,21 +1304,27 @@ export function RolesClient({
                     ].map((item) => {
                       const pct = detailStats.total > 0 && item.label !== "Total" ? ((item.count / detailStats.total) * 100).toFixed(0) : null;
                       return (
-                        <div
-                          key={item.label}
-                          className="flex items-center gap-2 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/70 dark:bg-zinc-950/60 p-2 transition-all hover:bg-zinc-100 dark:hover:bg-zinc-950"
-                        >
-                          <span className={`size-2.5 rounded-full ${item.colorBg} shrink-0 shadow-sm`} />
-                          <div className="min-w-0 flex-1">
-                            <p className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 truncate">{item.label}</p>
-                            <div className="flex items-baseline gap-1 mt-0.5">
-                              <span className={`text-xs font-bold ${item.textColor}`}>{item.count}</span>
-                              {pct !== null && (
-                                <span className="text-[9px] text-zinc-400 dark:text-zinc-500 font-medium">({pct}%)</span>
-                              )}
+                        <HoverCard key={item.label}>
+                          <HoverCardTrigger asChild>
+                            <div
+                              className="flex items-center gap-2 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/70 dark:bg-zinc-950/60 p-2 transition-all hover:bg-zinc-100 dark:hover:bg-zinc-950 cursor-pointer hover:scale-[1.03]"
+                            >
+                              <span className={`size-2.5 rounded-full ${item.colorBg} shrink-0 shadow-sm`} />
+                              <div className="min-w-0 flex-1">
+                                <p className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 truncate">{item.label}</p>
+                                <div className="flex items-baseline gap-1 mt-0.5">
+                                  <span className={`text-xs font-bold ${item.textColor}`}>{item.count}</span>
+                                  {pct !== null && (
+                                    <span className="text-[9px] text-zinc-400 dark:text-zinc-500 font-medium">({pct}%)</span>
+                                  )}
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        </div>
+                          </HoverCardTrigger>
+                          <HoverCardContent side="top" align="center" className="w-auto px-3 py-1.5 text-xs">
+                            <span className="font-semibold">{item.label}:</span> {item.count} {item.count === 1 ? "day" : "days"} {pct !== null ? `(${pct}% of total)` : ""}
+                          </HoverCardContent>
+                        </HoverCard>
                       );
                     })}
                   </div>
