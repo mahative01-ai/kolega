@@ -19,7 +19,7 @@ const SYARAT_KETERANGAN: Record<string, { title: string; desc: string; variant: 
   },
   SICK: {
     title: "Sick Leave Terms",
-    desc: "Requires uploading a valid official doctor's note. Can be submitted at latest on H+1 (before 07:00 AM). Without an attachment, status defaults to Personal Leave.",
+    desc: "Can be submitted on the same day only. Attachment is optional; without an attachment, it still requires a replacement workday.",
     variant: "violet",
   },
   DISPENSATION: {
