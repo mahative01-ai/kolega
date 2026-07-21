@@ -98,7 +98,7 @@ export default async function TeamMoodPage() {
       currentPath="/member/team"
       badge="Kolega Mood"
       title="Team Mood"
-      description="Lihat mood dan kondisi presensi rekan kerja Anda hari ini berdasarkan data presensi harian."
+      description="See how your colleagues are feeling today based on daily attendance records."
     >
       <div className="space-y-6">
         <DailySignalsBanner signals={dailySignals} currentUserId={currentUser.id} />
@@ -107,10 +107,10 @@ export default async function TeamMoodPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-bold flex items-center gap-1.5 text-zinc-900 dark:text-zinc-50">
               <Smile className="size-4 text-blue-700 dark:text-blue-400" />
-              Overview Mood Hari Ini
+              Today&apos;s Mood Overview
             </CardTitle>
             <CardDescription className="text-xs">
-              {sharingCount} dari {totalCount} rekan kerja membagikan mood presensi hari ini.
+              {sharingCount} out of {totalCount} colleagues shared their mood today.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -144,7 +144,7 @@ export default async function TeamMoodPage() {
           <div className="space-y-3">
             <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
               <Smile className="size-4 text-emerald-600" />
-              Mood Rekan Kerja Hari Ini ({sharedMoodUsers.length})
+              Colleagues&apos; Mood Today ({sharedMoodUsers.length})
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {sharedMoodUsers.map((u) => {
@@ -195,7 +195,7 @@ export default async function TeamMoodPage() {
           <div className="space-y-3 pt-2">
             <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
               <Clock className="size-4 text-amber-600" />
-              Sudah Presensi, belum membagikan mood ({pendingMoodUsers.length})
+              Checked In, Mood Not Shared Yet ({pendingMoodUsers.length})
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {pendingMoodUsers.map((u) => (
@@ -227,7 +227,7 @@ export default async function TeamMoodPage() {
           <div className="space-y-3 pt-2">
             <h3 className="text-sm font-bold text-zinc-500 dark:text-zinc-400 flex items-center gap-2">
               <UserX className="size-4" />
-              Belum Melakukan Presensi Hari Ini ({notCheckedInUsers.length})
+              Not Checked In Yet Today ({notCheckedInUsers.length})
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {notCheckedInUsers.map((u) => (

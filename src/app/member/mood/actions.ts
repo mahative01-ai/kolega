@@ -12,7 +12,7 @@ export async function submitAttendanceMoodAction(formData: FormData) {
   const moodNote = String(formData.get("moodNote") ?? "").trim().slice(0, 280) || null;
 
   if (!rawMood || !isValidMoodKey(rawMood)) {
-    throw new Error("Pilihan mood tidak valid.");
+    throw new Error("Invalid mood selection.");
   }
 
   const todayKey = getJakartaDateKey(new Date());
@@ -28,7 +28,7 @@ export async function submitAttendanceMoodAction(formData: FormData) {
   });
 
   if (!todayRecord) {
-    throw new Error("Anda belum melakukan presensi hari ini.");
+    throw new Error("You have not checked in today.");
   }
 
   const now = new Date();

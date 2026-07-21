@@ -43,7 +43,7 @@ export default async function MemberMoodPage() {
       currentPath="/member/mood"
       badge="Daily Mood"
       title="Set Daily Mood"
-      description="Update mood dan fokus kerja hari ini setelah presensi."
+      description="Update your mood and focus area for today after attendance."
     >
       <div className="py-4">
         <MoodClient

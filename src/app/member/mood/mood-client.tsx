@@ -35,10 +35,10 @@ export function MoodClient({ initialMood, initialMoodNote, dashboardPath }: Prop
 
     try {
       await submitAttendanceMoodAction(formData);
-      toast.success("Mood presensi harian berhasil disimpan!");
+      toast.success("Daily attendance mood saved successfully!");
       router.push(dashboardPath);
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Gagal menyimpan mood.");
+      toast.error(error instanceof Error ? error.message : "Failed to save mood.");
       setLoading(false);
     }
   }
@@ -48,17 +48,17 @@ export function MoodClient({ initialMood, initialMoodNote, dashboardPath }: Prop
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
           <Smile className="size-6 text-blue-600 dark:text-blue-400" />
-          Bagaimana Perasaan & Fokus Kerja Hari Ini?
+          How Are You Feeling & Focusing Today?
         </CardTitle>
         <CardDescription className="text-zinc-500 dark:text-zinc-400">
-          Presensi Anda telah berhasil dicatat. Pilih mood dan tulis status singkat untuk dibagikan ke rekan satu studio.
+          Your attendance has been recorded. Select your mood and write a brief status message for your studio teammates.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-3">
             <Label className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-              Pilih Mood Presensi
+              Select Attendance Mood
             </Label>
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5">
               {MOODS.map((m) => {
@@ -86,18 +86,18 @@ export function MoodClient({ initialMood, initialMoodNote, dashboardPath }: Prop
 
           <div className="space-y-2">
             <Label htmlFor="mood-note" className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-              Status Singkat / Fokus Kerja (Opsional)
+              Status Message / Focus Area (Optional)
             </Label>
             <Input
               id="mood-note"
               value={moodNote}
               onChange={(e) => setMoodNote(e.target.value)}
-              placeholder="Contoh: Fokus pengerjaan layout dashboard / Siap sprint revisi..."
+              placeholder="Example: Focusing on dashboard layout / Ready for client revision..."
               className="h-10"
               maxLength={280}
             />
             <p className="text-[11px] text-zinc-400 text-right">
-              {moodNote.length}/280 karakter
+              {moodNote.length}/280 characters
             </p>
           </div>
 
@@ -110,12 +110,12 @@ export function MoodClient({ initialMood, initialMoodNote, dashboardPath }: Prop
               {loading ? (
                 <>
                   <Loader2 className="mr-2 size-4 animate-spin" />
-                  Menyimpan...
+                  Saving...
                 </>
               ) : (
                 <>
                   <Send className="mr-2 size-4" />
-                  Simpan & Lanjut ke Dashboard
+                  Save & Continue to Dashboard
                 </>
               )}
             </Button>
