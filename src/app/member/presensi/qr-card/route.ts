@@ -210,9 +210,9 @@ export async function GET(request: Request) {
                 <p class="description">Preview kartu QR sebelum disimpan atau dicetak.</p>
               </div>
               <div class="actions">
-                <button class="button primary" onclick="window.print()">Cetak / Simpan PDF</button>
-                <a class="button" href="/member/presensi/qr-card?format=svg" download="kolega-qr-card.svg">Unduh SVG</a>
-                <button class="button primary" onclick="downloadPngClient()">Unduh PNG</button>
+                <button class="button primary" onclick="window.print()">PDF</button>
+                <a class="button" href="/member/presensi/qr-card?format=svg" download="kolega-qr-card.svg">SVG</a>
+                <button class="button primary" onclick="downloadPngClient()">PNG</button>
               </div>
             </div>
             <div class="card-container">
