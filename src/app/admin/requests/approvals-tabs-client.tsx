@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/dialog";
 import { reviewRequestAction, deleteRequestAction } from "./actions";
 import { reviewCorrectionAction, deleteCorrectionAction } from "../corrections/actions";
+import { AttachmentViewer } from "@/components/attachment-viewer";
 
 type RequestItem = {
   id: string;
@@ -510,24 +511,20 @@ export function ApprovalsTabsClient({
                                   <p className="text-xs font-semibold text-zinc-400">Full Reason</p>
                                   <p className="mt-1 whitespace-pre-wrap leading-relaxed text-zinc-850 dark:text-zinc-200">{req.reason}</p>
                                 </div>
+                                {req.attachmentUrl && (
+                                  <div>
+                                    <p className="text-xs font-semibold text-zinc-400">Attachment</p>
+                                    <div className="mt-1">
+                                      <AttachmentViewer url={req.attachmentUrl} />
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             </DialogContent>
                           </Dialog>
                         </TableCell>
                         <TableCell>
-                          {req.attachmentUrl ? (
-                            <a
-                              href={req.attachmentUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline"
-                            >
-                              <Paperclip className="size-3" />
-                              View File
-                            </a>
-                          ) : (
-                            <span className="text-xs text-zinc-400">-</span>
-                          )}
+                          <AttachmentViewer url={req.attachmentUrl} />
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
@@ -609,6 +606,7 @@ export function ApprovalsTabsClient({
                       </div>
                     </TableHead>
                     <TableHead>Reason / Note</TableHead>
+                    <TableHead>Attachment</TableHead>
                     <TableHead onClick={() => handleSortHistoryReq("status")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                       <div className="flex items-center gap-1">
                         Status <ArrowUpDown className="size-3 text-zinc-400" />
@@ -626,7 +624,7 @@ export function ApprovalsTabsClient({
                   {sortedAndFilteredHistoryReq.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={currentUser.role === "SUPER_ADMIN" ? 9 : 8}
+                        colSpan={currentUser.role === "SUPER_ADMIN" ? 10 : 9}
                         className="h-24 text-center text-sm text-zinc-500"
                       >
                         No leave request history found.
@@ -652,32 +650,40 @@ export function ApprovalsTabsClient({
                             <DialogTrigger className="cursor-pointer hover:underline text-blue-600 dark:text-blue-400 font-medium">{req.reason}</DialogTrigger>
                             <DialogContent className="max-w-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 font-sans">
                               <DialogHeader>
-                                <DialogTitle>Detail Alasan Izin (Riwayat)</DialogTitle>
+                                <DialogTitle>Leave Request Details (History)</DialogTitle>
                                 <DialogDescription>
-                                  Diajukan oleh {req.user.name} ({req.user.email})
+                                  Submitted by {req.user.name} ({req.user.email})
                                 </DialogDescription>
                               </DialogHeader>
                               <div className="space-y-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Tipe Pengajuan</p>
+                                    <p className="text-xs font-semibold text-zinc-400">Request Type</p>
                                     <p className="mt-1 font-semibold">{requestTypeLabel[req.type] ?? req.type}</p>
                                   </div>
                                   <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Studio Asal</p>
+                                    <p className="text-xs font-semibold text-zinc-400">Home Studio</p>
                                     <p className="mt-1">{req.user.defaultStudio?.name ?? "-"}</p>
                                   </div>
                                 </div>
                                 <div>
-                                  <p className="text-xs font-semibold text-zinc-400">Periode Absen</p>
-                                  <p className="mt-1 font-medium">{formatDate(req.startDate)} s.d. {formatDate(req.endDate)}</p>
+                                  <p className="text-xs font-semibold text-zinc-400">Absence Period</p>
+                                  <p className="mt-1 font-medium">{formatDate(req.startDate)} to {formatDate(req.endDate)}</p>
                                 </div>
                                 <div>
-                                  <p className="text-xs font-semibold text-zinc-400">Alasan Lengkap</p>
+                                  <p className="text-xs font-semibold text-zinc-400">Full Reason</p>
                                   <p className="mt-1 whitespace-pre-wrap leading-relaxed text-zinc-850 dark:text-zinc-200">{req.reason}</p>
                                 </div>
+                                {req.attachmentUrl && (
+                                  <div>
+                                    <p className="text-xs font-semibold text-zinc-400">Attachment</p>
+                                    <div className="mt-1">
+                                      <AttachmentViewer url={req.attachmentUrl} />
+                                    </div>
+                                  </div>
+                                )}
                                 <div>
-                                  <p className="text-xs font-semibold text-zinc-400">Status Pengajuan</p>
+                                  <p className="text-xs font-semibold text-zinc-400">Request Status</p>
                                   <Badge className={`mt-1 ${requestStatusColor[req.status]}`}>
                                     {requestStatusLabel[req.status] ?? req.status}
                                   </Badge>
@@ -685,6 +691,9 @@ export function ApprovalsTabsClient({
                               </div>
                             </DialogContent>
                           </Dialog>
+                        </TableCell>
+                        <TableCell>
+                          <AttachmentViewer url={req.attachmentUrl} />
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className={`text-[10px] ${requestStatusColor[req.status]}`}>
@@ -697,7 +706,7 @@ export function ApprovalsTabsClient({
                         {currentUser.role === "SUPER_ADMIN" && (
                           <TableCell className="text-right">
                             <form action={deleteRequestAction} method="POST" onSubmit={(e) => {
-                              if (!confirm("Apakah Anda yakin ingin menghapus pengajuan ini secara permanen dan memulihkan efek kehadirannya?")) {
+                              if (!confirm("Are you sure you want to permanently delete this request record and restore its attendance effects?")) {
                                 e.preventDefault();
                               }
                             }}>
@@ -708,7 +717,7 @@ export function ApprovalsTabsClient({
                                 variant="ghost"
                                 className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 h-7 px-2"
                               >
-                                Hapus
+                                Delete
                               </Button>
                             </form>
                           </TableCell>

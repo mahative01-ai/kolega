@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/table";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ToastNotificationListener } from "@/components/toast-notification-listener";
+import { AttachmentViewer } from "@/components/attachment-viewer";
 import { requireAnyRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { cancelRequestAction } from "./actions";
@@ -221,19 +222,7 @@ export default async function MemberRequestsPage({
                         {request.reason}
                       </TableCell>
                       <TableCell>
-                        {request.attachmentUrl ? (
-                          <a
-                            href={request.attachmentUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline"
-                          >
-                            <Paperclip className="size-3" />
-                            View File
-                          </a>
-                        ) : (
-                          <span className="text-xs text-zinc-400">-</span>
-                        )}
+                        <AttachmentViewer url={request.attachmentUrl} />
                       </TableCell>
                       <TableCell>
                         <Badge
