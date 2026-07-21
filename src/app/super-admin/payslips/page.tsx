@@ -14,21 +14,9 @@ export default async function PayslipsPage() {
     getPayslipStudios(),
   ]);
 
-  const dashboardUser = {
-    id: actor.id,
-    name: actor.name,
-    email: actor.email,
-    role: actor.role,
-    defaultStudio: actor.defaultStudio
-      ? {
-          name: actor.defaultStudio.name,
-        }
-      : null,
-  };
-
   return (
     <DashboardShell
-      user={dashboardUser}
+      user={actor}
       currentPath="/super-admin/payslips"
       title="Payslips"
       description="Management of monthly team payslip details and distribution."

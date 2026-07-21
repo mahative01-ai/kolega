@@ -11,21 +11,9 @@ export default async function MemberPayslipsPage() {
   const isEligible = (actor.role === "ADMIN" || actor.memberStatus === "TEAM") && actor.role !== "SUPER_ADMIN";
   const initialPayslips = isEligible ? await getMemberPayslips() : [];
 
-  const dashboardUser = {
-    id: actor.id,
-    name: actor.name,
-    email: actor.email,
-    role: actor.role,
-    defaultStudio: actor.defaultStudio
-      ? {
-          name: actor.defaultStudio.name,
-        }
-      : null,
-  };
-
   return (
     <DashboardShell
-      user={dashboardUser}
+      user={actor}
       currentPath="/member/payslips"
       title="My Payslips"
       description="View details of your monthly salary history."
