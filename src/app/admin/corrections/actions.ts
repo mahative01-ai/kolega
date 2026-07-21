@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAnyRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getCorrectionBalanceImpact, checkSickAttachment } from "@/lib/workday-balance";
 
 function jakartaTimeOnDate(date: Date, time: string) {
   const [hours, minutes] = time.split(":").map(Number);
@@ -170,15 +171,23 @@ export async function reviewCorrectionAction(formData: FormData) {
         },
       });
 
-      if (correction.previousStatus === "ALPHA" && correction.newStatus !== "ALPHA") {
+      const hasAttachment = (correction.previousStatus === "SICK" || correction.newStatus === "SICK")
+        ? await checkSickAttachment(correction.requestedById, correction.attendanceRecord.attendanceDate)
+        : false;
+
+      const { workdayBalanceDelta, annualLeaveBalanceDelta } = getCorrectionBalanceImpact(
+        correction.previousStatus,
+        correction.newStatus,
+        hasAttachment
+      );
+
+      if (workdayBalanceDelta !== 0 || annualLeaveBalanceDelta !== 0) {
         await tx.user.update({
           where: { id: correction.requestedById },
-          data: { workDayBalance: { increment: 1 } },
-        });
-      } else if (correction.previousStatus !== "ALPHA" && correction.newStatus === "ALPHA") {
-        await tx.user.update({
-          where: { id: correction.requestedById },
-          data: { workDayBalance: { decrement: 1 } },
+          data: {
+            ...(workdayBalanceDelta !== 0 && { workDayBalance: { increment: workdayBalanceDelta } }),
+            ...(annualLeaveBalanceDelta !== 0 && { annualLeaveBalance: { increment: annualLeaveBalanceDelta } }),
+          },
         });
       }
     }
@@ -346,15 +355,23 @@ export async function quickReviewCorrectionAction(correctionId: string, approve:
         },
       });
 
-      if (correction.previousStatus === "ALPHA" && correction.newStatus !== "ALPHA") {
+      const hasAttachment = (correction.previousStatus === "SICK" || correction.newStatus === "SICK")
+        ? await checkSickAttachment(correction.requestedById, correction.attendanceRecord.attendanceDate)
+        : false;
+
+      const { workdayBalanceDelta, annualLeaveBalanceDelta } = getCorrectionBalanceImpact(
+        correction.previousStatus,
+        correction.newStatus,
+        hasAttachment
+      );
+
+      if (workdayBalanceDelta !== 0 || annualLeaveBalanceDelta !== 0) {
         await tx.user.update({
           where: { id: correction.requestedById },
-          data: { workDayBalance: { increment: 1 } },
-        });
-      } else if (correction.previousStatus !== "ALPHA" && correction.newStatus === "ALPHA") {
-        await tx.user.update({
-          where: { id: correction.requestedById },
-          data: { workDayBalance: { decrement: 1 } },
+          data: {
+            ...(workdayBalanceDelta !== 0 && { workDayBalance: { increment: workdayBalanceDelta } }),
+            ...(annualLeaveBalanceDelta !== 0 && { annualLeaveBalance: { increment: annualLeaveBalanceDelta } }),
+          },
         });
       }
     }
@@ -406,15 +423,24 @@ export async function deleteCorrectionAction(formData: FormData) {
         },
       });
 
-      if (correction.previousStatus === "ALPHA" && correction.newStatus !== "ALPHA") {
+      const hasAttachment = (correction.previousStatus === "SICK" || correction.newStatus === "SICK")
+        ? await checkSickAttachment(correction.requestedById, correction.attendanceRecord.attendanceDate)
+        : false;
+
+      // Reversing means previous = newStatus, new = previousStatus
+      const { workdayBalanceDelta, annualLeaveBalanceDelta } = getCorrectionBalanceImpact(
+        correction.newStatus,
+        correction.previousStatus,
+        hasAttachment
+      );
+
+      if (workdayBalanceDelta !== 0 || annualLeaveBalanceDelta !== 0) {
         await tx.user.update({
           where: { id: correction.requestedById },
-          data: { workDayBalance: { decrement: 1 } },
-        });
-      } else if (correction.previousStatus !== "ALPHA" && correction.newStatus === "ALPHA") {
-        await tx.user.update({
-          where: { id: correction.requestedById },
-          data: { workDayBalance: { increment: 1 } },
+          data: {
+            ...(workdayBalanceDelta !== 0 && { workDayBalance: { increment: workdayBalanceDelta } }),
+            ...(annualLeaveBalanceDelta !== 0 && { annualLeaveBalance: { increment: annualLeaveBalanceDelta } }),
+          },
         });
       }
     }

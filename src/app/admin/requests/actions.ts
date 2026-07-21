@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAnyRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getRequestBalanceImpact } from "@/lib/workday-balance";
 
 export async function reviewRequestAction(formData: FormData) {
   const reviewer = await requireAnyRole(["SUPER_ADMIN", "ADMIN"]);
@@ -23,6 +24,7 @@ export async function reviewRequestAction(formData: FormData) {
         select: {
           id: true,
           role: true,
+          memberStatus: true,
           defaultStudioId: true,
         },
       },
@@ -99,22 +101,21 @@ export async function reviewRequestAction(formData: FormData) {
         countDate.setUTCDate(countDate.getUTCDate() + 1);
       }
 
-      if (request.type === "PERMISSION") {
+      const { workdayBalanceDelta, annualLeaveBalanceDelta } = getRequestBalanceImpact(
+        request.type,
+        Boolean(request.attachmentUrl),
+        request.user.memberStatus
+      );
+
+      const totalWorkdayDelta = workdayBalanceDelta * daysCount;
+      const totalLeaveDelta = annualLeaveBalanceDelta * daysCount;
+
+      if (totalWorkdayDelta !== 0 || totalLeaveDelta !== 0) {
         await tx.user.update({
           where: { id: request.userId },
           data: {
-            workDayBalance: {
-              decrement: daysCount,
-            },
-          },
-        });
-      } else if (request.type === "LEAVE") {
-        await tx.user.update({
-          where: { id: request.userId },
-          data: {
-            annualLeaveBalance: {
-              decrement: daysCount,
-            },
+            ...(totalWorkdayDelta !== 0 && { workDayBalance: { increment: totalWorkdayDelta } }),
+            ...(totalLeaveDelta !== 0 && { annualLeaveBalance: { increment: totalLeaveDelta } }),
           },
         });
       }

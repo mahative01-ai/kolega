@@ -19,6 +19,7 @@ import {
 } from "@/lib/attendance-time";
 import { formatMinutesAsClock, getCheckoutEligibility } from "@/lib/checkout-policy";
 import { prisma } from "@/lib/prisma";
+import { isExtraWorkday } from "@/lib/workday-balance";
 
 function createQrUid() {
   return `MHT-${randomUUID().slice(0, 8).toUpperCase()}`;
@@ -281,6 +282,13 @@ export async function submitWfoAttendanceAction(formData: FormData) {
     }
 
     const result = await prisma.$transaction(async (tx) => {
+      const extraWorkday = await isExtraWorkday(attendanceDate, currentStudioId);
+      const record = await tx.attendanceRecord.findUnique({
+        where: { id: existingRecord.id },
+        select: { extraWorkdayBalanceApplied: true },
+      });
+      const applyExtra = extraWorkday && !record?.extraWorkdayBalanceApplied;
+
       const updateResult = await tx.attendanceRecord.updateMany({
         where: {
           id: existingRecord.id,
@@ -294,11 +302,12 @@ export async function submitWfoAttendanceAction(formData: FormData) {
           locationValidationStatus,
           earlyCheckoutMinutes: checkoutEligibility.earlyCheckoutMinutes,
           lateMinutes: 0,
+          ...(applyExtra && { extraWorkdayBalanceApplied: true }),
           updatedAt: now,
         },
       });
 
-      if (updateResult.count === 1 && isOptionalMondayWfo) {
+      if (updateResult.count === 1 && applyExtra) {
         await tx.user.update({
           where: { id: currentUser.id },
           data: {
@@ -562,16 +571,37 @@ export async function submitWfhAttendanceAction(formData: FormData) {
     const currentMinutes = getJakartaMinutes(now);
     const earlyCheckoutMinutes = Math.max(0, scheduledCheckoutMinutes - currentMinutes);
 
-    await prisma.attendanceRecord.update({
-      where: {
-        id: existingRecord.id,
-      },
-      data: {
-        checkOutAt: now,
-        wfhReport,
-        earlyCheckoutMinutes,
-        updatedAt: now,
-      },
+    await prisma.$transaction(async (tx) => {
+      const extraWorkday = await isExtraWorkday(attendanceDate, currentStudioId);
+      const record = await tx.attendanceRecord.findUnique({
+        where: { id: existingRecord.id },
+        select: { extraWorkdayBalanceApplied: true },
+      });
+      const applyExtra = extraWorkday && !record?.extraWorkdayBalanceApplied;
+
+      await tx.attendanceRecord.update({
+        where: {
+          id: existingRecord.id,
+        },
+        data: {
+          checkOutAt: now,
+          wfhReport,
+          earlyCheckoutMinutes,
+          ...(applyExtra && { extraWorkdayBalanceApplied: true }),
+          updatedAt: now,
+        },
+      });
+
+      if (applyExtra) {
+        await tx.user.update({
+          where: { id: currentUser.id },
+          data: {
+            workDayBalance: {
+              increment: 1,
+            },
+          },
+        });
+      }
     });
 
     revalidatePersonalAttendance(currentUser.role);

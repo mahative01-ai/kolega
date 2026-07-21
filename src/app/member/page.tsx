@@ -405,34 +405,36 @@ export default async function MemberDashboardPage({
     }
   }
 
+  const monthName = data.monthLabel.split(" ")[0];
+
   const metrics = [
     {
-      label: `Attendance ${data.monthLabel}`,
+      label: `Attendance ${monthName}`,
       value: data.summary.total,
       icon: CheckCircle2,
       color: "text-blue-700 dark:text-blue-400",
     },
     {
-      label: `Sick Leave ${data.monthLabel}`,
+      label: `Sick Leave ${monthName}`,
       value: data.summary.sick,
       icon: HeartPulse,
       color: "text-violet-700 dark:text-violet-400",
     },
     {
-      label: `Late ${data.monthLabel}`,
+      label: `Late ${monthName}`,
       value: data.summary.late,
       subValue: data.lateMakeupMinutes > 0 ? `Owed: ${data.lateMakeupMinutes} m` : "None",
       icon: Clock3,
       color: "text-orange-700 dark:text-orange-400",
     },
     {
-      label: `Alpha ${data.monthLabel}`,
+      label: `Alpha ${monthName}`,
       value: data.summary.alpha,
       icon: AlertTriangle,
       color: "text-red-700 dark:text-red-400",
     },
     {
-      label: `WFH ${data.monthLabel}`,
+      label: `WFH ${monthName}`,
       value: data.summary.wfh,
       icon: Home,
       color: "text-sky-700 dark:text-sky-400",

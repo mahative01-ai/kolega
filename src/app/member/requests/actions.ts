@@ -136,9 +136,6 @@ export async function createRequestAction(formData: FormData) {
   }
 
   let type = requestedType as "PERMISSION" | "SICK" | "DISPENSATION" | "LEAVE" | "WFH";
-  if (requestedType === "SICK" && !attachmentUrl) {
-    type = "PERMISSION";
-  }
 
   if (requestedType === "DISPENSATION" && !attachmentUrl) {
     redirect("/member/requests?error=attachment-required");

@@ -270,33 +270,35 @@ export function AdminDashboardClient({
   const [reviewingRequests, setReviewingRequests] = useState<Record<string, boolean>>({});
   const [reviewingCorrections, setReviewingCorrections] = useState<Record<string, boolean>>({});
 
+  const monthName = data.monthLabel.split(" ")[0];
+
   const personalMetrics = [
     {
-      label: `My Attendance ${data.monthLabel}`,
+      label: `Attendance ${monthName}`,
       value: data.personalSummary.total,
       icon: ClipboardCheck,
       color: "text-blue-700 dark:text-blue-400",
     },
     {
-      label: `My Sick Days ${data.monthLabel}`,
+      label: `Sick Days ${monthName}`,
       value: data.personalSummary.sick,
       icon: HeartPulse,
       color: "text-violet-700 dark:text-violet-400",
     },
     {
-      label: `My Late Days ${data.monthLabel}`,
+      label: `Late Days ${monthName}`,
       value: data.personalSummary.late,
       icon: Clock3,
       color: "text-orange-700 dark:text-orange-400",
     },
     {
-      label: `My Alpha Days ${data.monthLabel}`,
+      label: `Alpha Days ${monthName}`,
       value: data.personalSummary.alpha,
       icon: AlertTriangle,
       color: "text-red-700 dark:text-red-400",
     },
     {
-      label: `My WFH ${data.monthLabel}`,
+      label: `WFH ${monthName}`,
       value: data.personalSummary.wfh,
       icon: Home,
       color: "text-sky-700 dark:text-sky-400",
@@ -316,31 +318,31 @@ export function AdminDashboardClient({
 
   const studioMetrics = [
     {
-      label: `Team Attendance ${data.monthLabel}`,
+      label: `Team Attendance ${monthName}`,
       value: data.summary.total,
       icon: ClipboardCheck,
       color: "text-blue-700 dark:text-blue-400",
     },
     {
-      label: `Team Sick Days ${data.monthLabel}`,
+      label: `Team Sick Days ${monthName}`,
       value: data.summary.sick,
       icon: HeartPulse,
       color: "text-violet-700 dark:text-violet-400",
     },
     {
-      label: `Team Late Days ${data.monthLabel}`,
+      label: `Team Late Days ${monthName}`,
       value: data.summary.late,
       icon: Clock3,
       color: "text-orange-700 dark:text-orange-400",
     },
     {
-      label: `Team Alpha Days ${data.monthLabel}`,
+      label: `Team Alpha Days ${monthName}`,
       value: data.summary.alpha,
       icon: AlertTriangle,
       color: "text-red-700 dark:text-red-400",
     },
     {
-      label: `Team WFH ${data.monthLabel}`,
+      label: `Team WFH ${monthName}`,
       value: data.summary.wfh,
       icon: Home,
       color: "text-sky-700 dark:text-sky-400",

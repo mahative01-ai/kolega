@@ -317,6 +317,7 @@ model AttendanceRecord {
   lateMinutes              Int                      @default(0)
   earlyCheckoutMinutes     Int                      @default(0)
   isManualCorrection       Boolean                  @default(false)
+  extraWorkdayBalanceApplied Boolean                @default(false)
   createdById              String?
   createdBy                User?                    @relation("AttendanceCreator", fields: [createdById], references: [id])
   createdAt                DateTime                 @default(now())

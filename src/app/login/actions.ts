@@ -16,6 +16,7 @@ import {
 } from "@/lib/attendance-time";
 import { formatMinutesAsClock, getCheckoutEligibility } from "@/lib/checkout-policy";
 import { prisma } from "@/lib/prisma";
+import { isExtraWorkday } from "@/lib/workday-balance";
 
 type QrAttendanceInput = {
   action?: string;
@@ -415,6 +416,13 @@ export async function loginAndAttendWithQrAction(
         }
 
         await prisma.$transaction(async (tx) => {
+          const extraWorkday = await isExtraWorkday(attendanceDate, currentStudioId);
+          const record = await tx.attendanceRecord.findUnique({
+            where: { id: existingRecord.id },
+            select: { extraWorkdayBalanceApplied: true },
+          });
+          const applyExtra = extraWorkday && !record?.extraWorkdayBalanceApplied;
+
           await tx.attendanceRecord.update({
             where: { id: existingRecord.id },
             data: {
@@ -424,11 +432,12 @@ export async function loginAndAttendWithQrAction(
               locationValidationStatus,
               distanceMeters: distance,
               earlyCheckoutMinutes: checkoutEligibility.earlyCheckoutMinutes,
+              ...(applyExtra && { extraWorkdayBalanceApplied: true }),
               updatedAt: now,
             },
           });
 
-          if (isOptionalMondayWfo) {
+          if (applyExtra) {
             await tx.user.update({
               where: { id: user.id },
               data: {

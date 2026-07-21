@@ -85,14 +85,13 @@ async function getPersonalAttendanceHistory(userId: string) {
 export default async function PersonalAttendanceHistoryPage() {
   const currentUser = await requireAnyRole(["ADMIN", "MEMBER"]);
   const data = await getPersonalAttendanceHistory(currentUser.id);
-  const monthLabel = new Intl.DateTimeFormat("en-US", {
+  const monthName = new Intl.DateTimeFormat("en-US", {
     month: "long",
-    year: "numeric",
     timeZone: "UTC",
   }).format(data.monthStart);
   const metrics = [
     {
-      label: `Attendance (${monthLabel})`,
+      label: `Attendance ${monthName}`,
       value: data.total,
       icon: CalendarCheck2,
       color: "text-blue-700 dark:text-blue-400",
