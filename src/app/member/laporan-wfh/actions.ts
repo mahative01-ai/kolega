@@ -11,7 +11,7 @@ export async function updateOwnJournalAction(
 ) {
   const currentUser = await getCurrentUser();
   if (!currentUser) {
-    throw new Error("Anda harus login terlebih dahulu.");
+    throw new Error("You must be logged in.");
   }
 
   // Fetch the attendance record
@@ -21,17 +21,17 @@ export async function updateOwnJournalAction(
   });
 
   if (!record) {
-    throw new Error("Data presensi tidak ditemukan.");
+    throw new Error("Attendance record not found.");
   }
 
   // Check if it belongs to the logged-in user
   if (record.userId !== currentUser.id) {
-    throw new Error("Anda hanya diperbolehkan mengedit jurnal Anda sendiri.");
+    throw new Error("You can only edit your own journal.");
   }
 
   // Prevent journal edit if status is non-working
   if (["ALPHA", "SICK", "LEAVE", "PERMISSION"].includes(record.status)) {
-    throw new Error("Anda tidak dapat mengedit jurnal pada hari ketika Anda tercatat tidak masuk kerja (Alpa/Sakit/Cuti/Izin).");
+    throw new Error("You cannot edit a journal for days recorded as absent (Alpha/Sick/Leave/Permission).");
   }
 
   // Update the journal fields
@@ -45,7 +45,7 @@ export async function updateOwnJournalAction(
 
   revalidatePath("/member/laporan-wfh");
   revalidatePath("/laporan-presensi");
-  return { success: true, message: "Jurnal berhasil diperbarui." };
+  return { success: true, message: "Journal updated successfully." };
 }
 
 export async function createOwnJournalAction(
@@ -55,7 +55,7 @@ export async function createOwnJournalAction(
 ) {
   const currentUser = await getCurrentUser();
   if (!currentUser) {
-    throw new Error("Anda harus login terlebih dahulu.");
+    throw new Error("You must be logged in.");
   }
 
   const attendanceDate = new Date(dateStr);
@@ -72,7 +72,7 @@ export async function createOwnJournalAction(
   if (existingRecord) {
     // Prevent journal edit if status is non-working
     if (["ALPHA", "SICK", "LEAVE", "PERMISSION"].includes(existingRecord.status)) {
-      throw new Error("Anda tidak dapat mengedit/membuat jurnal pada hari ketika Anda tercatat tidak masuk kerja (Alpa/Sakit/Cuti/Izin).");
+      throw new Error("You cannot edit/create a journal for days recorded as absent (Alpha/Sick/Leave/Permission).");
     }
 
     // If it exists, update it using its existing workMode
@@ -119,13 +119,13 @@ export async function createOwnJournalAction(
 
   revalidatePath("/member/laporan-wfh");
   revalidatePath("/laporan-presensi");
-  return { success: true, message: "Jurnal berhasil disimpan." };
+  return { success: true, message: "Journal saved successfully." };
 }
 
 export async function deleteOwnJournalAction(recordId: string) {
   const currentUser = await getCurrentUser();
   if (!currentUser) {
-    throw new Error("Anda harus login terlebih dahulu.");
+    throw new Error("You must be logged in.");
   }
 
   const record = await prisma.attendanceRecord.findUnique({
@@ -134,11 +134,11 @@ export async function deleteOwnJournalAction(recordId: string) {
   });
 
   if (!record) {
-    throw new Error("Data presensi tidak ditemukan.");
+    throw new Error("Attendance record not found.");
   }
 
   if (record.userId !== currentUser.id) {
-    throw new Error("Anda hanya diperbolehkan menghapus jurnal Anda sendiri.");
+    throw new Error("You can only delete your own journal.");
   }
 
   // Clear journal fields
@@ -152,5 +152,5 @@ export async function deleteOwnJournalAction(recordId: string) {
 
   revalidatePath("/member/laporan-wfh");
   revalidatePath("/laporan-presensi");
-  return { success: true, message: "Jurnal berhasil dihapus." };
+  return { success: true, message: "Journal deleted successfully." };
 }

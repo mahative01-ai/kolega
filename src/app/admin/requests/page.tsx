@@ -9,9 +9,9 @@ import { ToastNotificationListener } from "@/components/toast-notification-liste
 export const dynamic = "force-dynamic";
 
 const successMessages: Record<string, string> = {
-  approve: "Aksi persetujuan berhasil diproses.",
-  reject: "Aksi penolakan berhasil diproses.",
-  deleted: "Data pengajuan/koreksi berhasil dihapus dan efek kehadirannya telah dipulihkan.",
+  approve: "Approval action processed successfully.",
+  reject: "Rejection action processed successfully.",
+  deleted: "Request or correction record deleted successfully and attendance effects restored.",
 };
 
 export default async function AdminApprovalsPage({
@@ -190,11 +190,11 @@ export default async function AdminApprovalsPage({
       user={currentUser}
       currentPath="/admin/requests"
       badge={currentUser.role === "SUPER_ADMIN" ? "Super Admin Approval" : "Admin Approval"}
-      title="Persetujuan & Approval"
+      title="Approvals & Requests"
       description={
         currentUser.role === "SUPER_ADMIN"
-          ? "Kelola perizinan member dan permintaan koreksi presensi dari seluruh studio."
-          : `Kelola perizinan member dan permintaan koreksi presensi untuk studio ${currentUser.defaultStudio?.name ?? ""}.`
+          ? "Manage member leave requests and attendance correction requests from all studios."
+          : `Manage member leave requests and attendance correction requests for studio ${currentUser.defaultStudio?.name ?? ""}.`
       }
     >
       {params.success === "approve" && <ConfettiTrigger />}

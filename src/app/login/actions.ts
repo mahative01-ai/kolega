@@ -277,7 +277,7 @@ export async function loginAndAttendWithQrAction(
   ]);
 
   if (!studio || studio.latitude === null || studio.longitude === null) {
-    return { success: false, error: "Lokasi studio belum lengkap. Hubungi Admin." };
+    return { success: false, error: "Studio GPS location incomplete. Please contact Admin." };
   }
 
   const distance = calculateDistance(userLat, userLng, studio.latitude, studio.longitude);
@@ -289,7 +289,7 @@ export async function loginAndAttendWithQrAction(
   if (existingRecord?.workMode === "WFH" && existingRecord.checkInAt) {
     return {
       success: true,
-      info: "Anda sudah melakukan check-in WFH hari ini. Silakan masuk ke dashboard untuk mengisi laporan.",
+      info: "You have already checked in for WFH today. Please proceed to the dashboard to submit your report.",
       redirectUrl: getDashboardPath(user.role),
     };
   }
@@ -298,15 +298,15 @@ export async function loginAndAttendWithQrAction(
   if (approvedRequest) {
     const requestLabel =
       approvedRequest.type === "SICK"
-        ? "Sakit"
+        ? "Sick Leave"
         : approvedRequest.type === "LEAVE"
-          ? "Cuti"
+          ? "Annual Leave"
           : approvedRequest.type === "DISPENSATION"
-            ? "Dispensasi"
-            : "Izin";
+            ? "Dispensation"
+            : "Personal Leave";
     return {
       success: true,
-      info: `Jadwal Anda hari ini adalah ${requestLabel}.`,
+      info: `Your schedule today is ${requestLabel}.`,
       redirectUrl: getDashboardPath(user.role),
     };
   }
@@ -321,7 +321,7 @@ export async function loginAndAttendWithQrAction(
   if (isWeekendOrHoliday) {
     return {
       success: true,
-      info: "Hari ini adalah Hari Libur / Off Day.",
+      info: "Today is a Holiday / Off Day.",
       redirectUrl: getDashboardPath(user.role),
     };
   }
@@ -353,7 +353,7 @@ export async function loginAndAttendWithQrAction(
 
       return {
         success: true,
-        warning: "Batas presensi pukul 12.00 telah lewat. Status tercatat Alpha.",
+        warning: "Attendance cutoff time (12:00 PM) has passed. Status recorded as Alpha.",
         redirectUrl: getDashboardPath(user.role),
       };
     }
@@ -381,8 +381,8 @@ export async function loginAndAttendWithQrAction(
     });
 
     const successMsg = status === "LATE"
-      ? `Check-in WFO berhasil (Terlambat ${lateMinutes} menit).`
-      : "Check-in WFO berhasil (Tepat Waktu).";
+      ? `WFO Check-in successful (${lateMinutes} mins late).`
+      : "WFO Check-in successful (On Time).";
 
     return {
       success: true,
@@ -395,7 +395,7 @@ export async function loginAndAttendWithQrAction(
       await clearSession();
       return {
         success: true,
-        message: "Anda sudah check-out hari ini.",
+        message: "You have already checked out today.",
         redirectUrl: "/login?success=done",
       };
     }
@@ -411,7 +411,7 @@ export async function loginAndAttendWithQrAction(
         if (!checkoutEligibility.isAllowed) {
           return {
             success: false,
-            error: `Check-out baru dibuka pukul ${formatMinutesAsClock(checkoutEligibility.allowedCheckoutMinutes)}. Sisa ${checkoutEligibility.remainingMinutes} menit.`,
+            error: `Check-out opens at ${formatMinutesAsClock(checkoutEligibility.allowedCheckoutMinutes)}. ${checkoutEligibility.remainingMinutes} minutes remaining.`,
           };
         }
 
@@ -451,7 +451,7 @@ export async function loginAndAttendWithQrAction(
         await clearSession();
         return {
           success: true,
-          message: "Check-out WFO berhasil.",
+          message: "WFO Check-out successful.",
           redirectUrl: "/login?success=checkout",
         };
       }
@@ -459,7 +459,7 @@ export async function loginAndAttendWithQrAction(
       // Hanya login kembali ke dashboard tanpa mengubah status check-in yang sudah ada
       return {
         success: true,
-        message: "Anda sudah check-in hari ini. Masuk ke dashboard...",
+        message: "Already checked in today. Opening dashboard...",
         redirectUrl: getDashboardPath(user.role),
       };
     }

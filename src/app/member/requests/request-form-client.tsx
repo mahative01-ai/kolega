@@ -28,7 +28,7 @@ const SYARAT_KETERANGAN: Record<string, { title: string; desc: string; variant: 
     variant: "emerald",
   },
   LEAVE: {
-    title: "Cuti Tahunan Terms",
+    title: "Annual Leave Terms",
     desc: "Must be requested at least 1 day in advance. Once approved, the system decrements your Annual Leave Balance.",
     variant: "rose",
   },
