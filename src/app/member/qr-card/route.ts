@@ -263,7 +263,7 @@ export async function GET(request: Request) {
               <div class="actions">
                 <a class="button" href="${dashboardPath}">Back to Dashboard</a>
                 <button class="button" onclick="window.print()">Print / PDF</button>
-                <a class="button" href="/member/presensi/qr-card?format=svg" download="kolega-qr-card.svg">SVG</a>
+                <a class="button" href="/member/qr-card?format=svg" download="kolega-qr-card.svg">SVG</a>
                 <button class="button primary" onclick="downloadPngClient()">PNG</button>
               </div>
             </div>
@@ -279,7 +279,7 @@ export async function GET(request: Request) {
             function downloadPngClient() {
               const svgEl = document.querySelector('.card-container svg');
               if (!svgEl) {
-                window.location.href = '/member/presensi/qr-card?format=png';
+                window.location.href = '/member/qr-card?format=png';
                 return;
               }
               const xml = new XMLSerializer().serializeToString(svgEl);
@@ -299,12 +299,12 @@ export async function GET(request: Request) {
                   a.href = canvas.toDataURL('image/png');
                   a.click();
                 } else {
-                  window.location.href = '/member/presensi/qr-card?format=png';
+                  window.location.href = '/member/qr-card?format=png';
                 }
                 URL.revokeObjectURL(url);
               };
               img.onerror = function () {
-                window.location.href = '/member/presensi/qr-card?format=png';
+                window.location.href = '/member/qr-card?format=png';
               };
               img.src = url;
             }
