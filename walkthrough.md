@@ -104,4 +104,5 @@ Seluruh perbaikan bug dan masukan fitur telah sukses diimplementasikan dan diver
         7. **Annual Leave Balance** (khusus member berstatus `TEAM`): Sisa kuota cuti tahunan.
         8. **Workday Balance**: Sisa/Utang saldo hari kerja.
     *   Setiap metrik dilengkapi dengan indikator warna HSL modern, ikon representatif dari Lucide React, serta `HoverCard` deskripsi tips interaktif.
+    *   **Perapian Tata Letak**: Grid kolom diubah menjadi dinamis sesuai jumlah kartu (menggunakan `xl:grid-cols-7` saat member memiliki 7 metrik seperti intern, atau `xl:grid-cols-8` saat tim memiliki 8 metrik) untuk mencegah ruang kosong di sisi kanan. Selain itu, padding kartu dioptimalkan (`p-3.5`) agar teks dan angka proporsional dan tidak terpotong.
     *   Seluruh build produksi Next.js terkompilasi dengan **SUKSES** pasca perbaikan.

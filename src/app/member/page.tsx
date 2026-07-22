@@ -532,7 +532,10 @@ export default async function MemberDashboardPage({
       <ActiveAnnouncementsClient announcements={data.announcements} />
 
       {/* Metrics Grid */}
-      <section className="grid gap-3 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-8 my-6 animate-in fade-in-50 duration-200">
+      <section className={cn(
+        "grid gap-3 sm:grid-cols-2 md:grid-cols-4 my-6 animate-in fade-in-50 duration-200",
+        metrics.length === 7 ? "xl:grid-cols-7" : "xl:grid-cols-8"
+      )}>
         {metrics.map((metric) => {
           const Icon = metric.icon;
 
@@ -541,18 +544,18 @@ export default async function MemberDashboardPage({
               <HoverCardTrigger
                 render={
                   <Card className="shadow-none h-full flex flex-col justify-between cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm">
-                    <CardHeader className="pb-2">
-                      <CardDescription className="flex items-center gap-2 text-xs">
+                    <CardHeader className="p-3.5 pb-1">
+                      <CardDescription className="flex items-center gap-1.5 text-[11px] font-medium">
                         <Icon className={cn("size-4 shrink-0", metric.color)} />
-                        <span className="truncate">{metric.label}</span>
+                        <span className="truncate select-none">{metric.label}</span>
                       </CardDescription>
                     </CardHeader>
-                    <CardContent className="pt-0">
-                      <p className={cn("text-2xl font-bold", metric.color)}>
+                    <CardContent className="p-3.5 pt-0">
+                      <p className={cn("text-2xl font-bold tracking-tight", metric.color)}>
                         {metric.value.toLocaleString("en-US")}
                       </p>
                       {metric.subValue && (
-                        <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-1 truncate">
+                        <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5 truncate font-medium">
                           {metric.subValue}
                         </p>
                       )}
