@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Home, Calendar, Clock, BookOpen, CheckCircle, AlertCircle, Edit2, Trash2, ChevronLeft, ChevronRight, Filter } from "lucide-react";
+import { Home, Calendar, Clock, BookOpen, CheckCircle, AlertCircle, Edit2, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { updateOwnJournalAction, deleteOwnJournalAction } from "./actions";
 import { toast } from "sonner";
@@ -86,6 +86,10 @@ function getNonWorkingText(status: string) {
   }
 }
 
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "An error occurred.";
+}
+
 export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, monthLabel }: Props) {
   const [records, setRecords] = useState<SerializedRecord[]>(initialRecords);
   const [editingRecord, setEditingRecord] = useState<SerializedRecord | null>(null);
@@ -123,8 +127,8 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
       } else {
         toast.error("Failed to delete journal.");
       }
-    } catch (err: any) {
-      toast.error(err.message || "An error occurred.");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err));
     }
   };
 
@@ -161,8 +165,8 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
       } else {
         toast.error("Failed to update journal.");
       }
-    } catch (err: any) {
-      toast.error(err.message || "An error occurred.");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err));
     } finally {
       setIsSubmitting(false);
     }
@@ -483,4 +487,3 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
     </div>
   );
 }
-

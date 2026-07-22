@@ -19,7 +19,6 @@ import {
   parseMonthKey,
   getIndonesianHolidays,
 } from "@/lib/calendar";
-import QRCode from "qrcode";
 
 export const dynamic = "force-dynamic";
 
@@ -391,15 +390,6 @@ export default async function AdminDashboardPage({
     birthDate.getUTCDate() === currentDate.getDate() &&
     birthDate.getUTCMonth() === currentDate.getMonth();
 
-  const qrSvg = data.qrCredential
-    ? await QRCode.toString(data.qrCredential.qrUid, {
-        type: "svg",
-        margin: 1,
-        width: 180,
-        errorCorrectionLevel: "M",
-      })
-    : null;
-
   const { leadingBlankDays, days } = getCalendarDays(
     data.selectedMonth.year,
     data.selectedMonth.monthIndex
@@ -454,7 +444,6 @@ export default async function AdminDashboardPage({
         currentUser={currentUser}
         defaultTab={defaultTab}
         data={data}
-        qrSvg={qrSvg}
         days={days}
         leadingBlankDays={leadingBlankDays}
         todayKey={todayKey}

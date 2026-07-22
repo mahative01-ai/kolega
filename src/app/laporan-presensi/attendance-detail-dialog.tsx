@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { getMood } from "@/lib/moods";
 import {
   Calendar,
-  Clock,
   MapPin,
   FileText,
   ShieldCheck,
@@ -121,8 +120,8 @@ export function AttendanceDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-6 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 border-zinc-200 dark:border-zinc-800">
-        <DialogHeader className="border-b pb-4">
+      <DialogContent className="max-h-[90vh] max-w-4xl overflow-hidden p-0 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 border-zinc-200 dark:border-zinc-800">
+        <DialogHeader className="border-b border-zinc-150 px-6 pt-6 pb-5 dark:border-zinc-800">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
               {/* Mood Avatar */}
@@ -166,7 +165,7 @@ export function AttendanceDetailDialog({
           </div>
         </DialogHeader>
 
-        <div className="py-2">
+        <div className="max-h-[62vh] overflow-y-auto px-6 py-5">
           <Tabs defaultValue="summary" className="w-full">
             <TabsList className="grid w-full grid-cols-3 bg-zinc-100 dark:bg-zinc-900 p-1 rounded-lg">
               <TabsTrigger value="summary" className="text-xs font-semibold py-1.5 cursor-pointer">
@@ -183,31 +182,31 @@ export function AttendanceDetailDialog({
             {/* Summary Tab */}
             <TabsContent value="summary" className="space-y-4 pt-3">
               {/* Daily timing stats grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 p-3 flex flex-col justify-between shadow-sm">
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                <div className="min-h-24 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 p-4 flex flex-col justify-between shadow-sm">
                   <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">Check-In Time</span>
-                  <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-1">
+                  <span className="mt-3 text-xl font-bold text-emerald-600 dark:text-emerald-400">
                     {formatTime(record.checkInAt)}
                   </span>
                 </div>
                 
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 p-3 flex flex-col justify-between shadow-sm">
+                <div className="min-h-24 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 p-4 flex flex-col justify-between shadow-sm">
                   <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">Check-Out Time</span>
-                  <span className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-1">
+                  <span className="mt-3 text-xl font-bold text-blue-600 dark:text-blue-400">
                     {formatTime(record.checkOutAt)}
                   </span>
                 </div>
 
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 p-3 flex flex-col justify-between shadow-sm">
+                <div className="min-h-24 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 p-4 flex flex-col justify-between shadow-sm">
                   <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">Late Minutes</span>
-                  <span className={`text-lg font-bold mt-1 ${record.lateMinutes > 0 ? "text-orange-600 dark:text-orange-400" : "text-zinc-650 dark:text-zinc-400"}`}>
+                  <span className={`mt-3 text-xl font-bold ${record.lateMinutes > 0 ? "text-orange-600 dark:text-orange-400" : "text-zinc-650 dark:text-zinc-400"}`}>
                     {record.lateMinutes > 0 ? `${record.lateMinutes} mins` : "0 (On Time)"}
                   </span>
                 </div>
 
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 p-3 flex flex-col justify-between shadow-sm">
+                <div className="min-h-24 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 p-4 flex flex-col justify-between shadow-sm">
                   <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">Early Checkout</span>
-                  <span className={`text-lg font-bold mt-1 ${record.earlyCheckoutMinutes > 0 ? "text-orange-600 dark:text-orange-400" : "text-zinc-650 dark:text-zinc-400"}`}>
+                  <span className={`mt-3 text-xl font-bold ${record.earlyCheckoutMinutes > 0 ? "text-orange-600 dark:text-orange-400" : "text-zinc-650 dark:text-zinc-400"}`}>
                     {record.earlyCheckoutMinutes > 0 ? `${record.earlyCheckoutMinutes} mins` : "0"}
                   </span>
                 </div>
@@ -361,7 +360,7 @@ export function AttendanceDetailDialog({
           </Tabs>
         </div>
 
-        <DialogFooter className="border-t pt-4">
+        <DialogFooter className="border-t border-zinc-150 bg-zinc-50 px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900/30">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
           </Button>

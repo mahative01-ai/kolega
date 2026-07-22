@@ -6,20 +6,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   AlertTriangle,
   ClipboardCheck,
   Clock3,
-  Download,
   HeartPulse,
   Home,
   QrCode,
   ShieldCheck,
   History,
   Camera,
-  CalendarDays,
   User,
   Users,
   Brush,
@@ -39,8 +36,6 @@ import { AttendanceSummary } from "@/lib/attendance-report";
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import {
   broadcastAnnouncementAction,
-  quickAssignPicketAction,
-  quickRemovePicketAction
 } from "./actions";
 import { quickReviewRequestAction } from "./requests/actions";
 import { quickReviewCorrectionAction } from "./corrections/actions";
@@ -145,7 +140,6 @@ type Props = {
       priority: number;
     }>;
   };
-  qrSvg: string | null;
   days: { date: Date; dateKey: string; dayNumber: number }[];
   leadingBlankDays: number;
   todayKey: string;
@@ -181,16 +175,6 @@ const statusColor: Record<string, string> = {
   OFF_DAY: "bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-300 dark:border-zinc-700",
 };
 
-const workModeLabels: Record<string, string> = {
-  WFO: "WFO (Office)",
-  WFH: "WFH (Home)",
-};
-
-const workModeStyles: Record<string, string> = {
-  WFO: "bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border-zinc-200 dark:border-zinc-700",
-  WFH: "bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-900",
-};
-
 function formatTime(date: Date | null | string) {
   if (!date) return "-";
   return new Intl.DateTimeFormat("en-US", {
@@ -214,7 +198,6 @@ function getErrorMessage(error: unknown, fallback: string) {
 export function AdminDashboardClient({
   defaultTab,
   data,
-  qrSvg,
   days,
   leadingBlankDays,
   todayKey,
@@ -286,8 +269,6 @@ export function AdminDashboardClient({
   const [broadcastErr, setBroadcastErr] = useState("");
   const [broadcastSucc, setBroadcastSucc] = useState("");
 
-  const [picketUserId, setPicketUserId] = useState("");
-  const [removingPickets, setRemovingPickets] = useState<Record<string, boolean>>({});
   const [reviewingRequests, setReviewingRequests] = useState<Record<string, boolean>>({});
   const [reviewingCorrections, setReviewingCorrections] = useState<Record<string, boolean>>({});
 
@@ -390,32 +371,6 @@ export function AdminDashboardClient({
     });
   }
 
-  function handleQuickAssignPicket() {
-    if (!picketUserId) return;
-    startTransition(async () => {
-      try {
-        const todayStr = new Date().toISOString().split("T")[0];
-        await quickAssignPicketAction(picketUserId, todayStr);
-        setPicketUserId("");
-      } catch (err: unknown) {
-        alert(getErrorMessage(err, "Failed to assign picket officer."));
-      }
-    });
-  }
-
-  function handleQuickRemovePicket(picketId: string) {
-    setRemovingPickets((prev) => ({ ...prev, [picketId]: true }));
-    startTransition(async () => {
-      try {
-        await quickRemovePicketAction(picketId);
-      } catch (err: unknown) {
-        alert(getErrorMessage(err, "Failed to remove picket."));
-      } finally {
-        setRemovingPickets((prev) => ({ ...prev, [picketId]: false }));
-      }
-    });
-  }
-
   function handleQuickReviewRequest(requestId: string, approve: boolean) {
     setReviewingRequests((prev) => ({ ...prev, [requestId]: true }));
     startTransition(async () => {
@@ -507,10 +462,10 @@ export function AdminDashboardClient({
           </section>
 
           {/* Main Layout Grid */}
-          <div className="grid gap-6 lg:grid-cols-[1fr_2fr]">
+          <div className="grid items-start gap-6 lg:grid-cols-[1fr_2fr]">
             <div className="space-y-6">
               {/* Today's Record */}
-              <Card className="shadow-none h-full flex flex-col justify-between">
+              <Card className="shadow-none flex flex-col">
                 <div>
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
@@ -583,7 +538,7 @@ export function AdminDashboardClient({
                   )}
                 </div>
 
-                <CardContent className="pt-3 border-t border-zinc-150 dark:border-zinc-850 flex flex-wrap gap-2 justify-between">
+                <CardContent className="mt-auto pt-3 border-t border-zinc-150 dark:border-zinc-850 flex flex-wrap gap-2 justify-between">
                   <Link
                     href="/member/presensi/riwayat"
                     className={cn(buttonVariants({ variant: "outline", size: "sm" }), "flex items-center gap-1 text-xs")}

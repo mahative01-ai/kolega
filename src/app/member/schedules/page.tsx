@@ -68,7 +68,7 @@ export default async function MemberSchedulesPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <CalendarClock className="size-5 text-blue-700 dark:text-blue-400" />
-              Today's Work Status
+              Today&apos;s Work Status
             </CardTitle>
             <CardDescription>
               If no custom schedule is set, work mode follows default studio settings.

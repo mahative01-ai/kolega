@@ -133,7 +133,7 @@ export default async function MemberPresensiPage({
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-bold flex items-center gap-2">
               <Clock3 className="size-4 text-blue-700 dark:text-blue-400" />
-              Today's Attendance Status
+              Today&apos;s Attendance Status
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-3 text-xs">

@@ -1,26 +1,18 @@
 import {
-  AlertTriangle,
-  CheckCircle2,
   Clock3,
-  Download,
-  HeartPulse,
   Home,
   QrCode,
   ShieldCheck,
   History,
   Camera,
   Brush,
-  Building,
-  CalendarDays,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import QRCode from "qrcode";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { createPersonalQrCredentialAction } from "@/app/member/presensi/actions";
@@ -29,10 +21,8 @@ import { WfoJournalForm } from "@/app/member/presensi/wfo-journal-form";
 import { FileText } from "lucide-react";
 import { ActiveAnnouncementsClient } from "@/components/active-announcements-client";
 import { ViewQrCardClient } from "@/components/view-qr-card-client";
-import { AnnouncementBanner } from "@/app/member/announcement-banner";
 import { ConfettiTrigger } from "@/components/confetti-trigger";
 import { DailySignalsBanner } from "@/components/daily-signals-banner";
-import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import { getDailySignals } from "@/lib/daily-signals";
 import {
   formatMonthLabel,
@@ -365,15 +355,6 @@ export default async function MemberDashboardPage({
   const checkoutAvailableTime = checkoutEligibility
     ? formatMinutesAsClock(checkoutEligibility.allowedCheckoutMinutes)
     : null;
-  const qrSvg = data.qrCredential
-    ? await QRCode.toString(data.qrCredential.qrUid, {
-        type: "svg",
-        margin: 1,
-        width: 180,
-        errorCorrectionLevel: "M",
-      })
-    : null;
-
   const { leadingBlankDays, days } = getCalendarDays(
     data.selectedMonth.year,
     data.selectedMonth.monthIndex
@@ -437,66 +418,6 @@ export default async function MemberDashboardPage({
       }
     }
   }
-
-  const monthName = data.monthLabel.split(" ")[0];
-
-  const metrics = [
-    {
-      label: `Attendance ${monthName}`,
-      value: data.summary.total,
-      icon: CheckCircle2,
-      color: "text-blue-700 dark:text-blue-400",
-    },
-    {
-      label: `Sick Leave ${monthName}`,
-      value: data.summary.sick,
-      icon: HeartPulse,
-      color: "text-violet-700 dark:text-violet-400",
-    },
-    {
-      label: `Late ${monthName}`,
-      value: data.summary.late,
-      subValue: data.lateMakeupMinutes > 0 ? `Owed: ${data.lateMakeupMinutes} m` : "None",
-      icon: Clock3,
-      color: "text-orange-700 dark:text-orange-400",
-    },
-    {
-      label: `Alpha ${monthName}`,
-      value: data.summary.alpha,
-      icon: AlertTriangle,
-      color: "text-red-700 dark:text-red-400",
-    },
-    {
-      label: `WFH ${monthName}`,
-      value: data.summary.wfh,
-      icon: Home,
-      color: "text-sky-700 dark:text-sky-400",
-    },
-    ...(data.memberStatus === "TEAM" ? [{
-      label: "Annual Leave Balance",
-      value: data.annualLeaveBalance,
-      subValue: `${data.annualLeaveBalance} days remaining`,
-      icon: CalendarDays,
-      color: "text-blue-700 dark:text-blue-400",
-    }] : []),
-    {
-      label: "Workday Balance",
-      value: data.workDayBalance,
-      subValue:
-        data.workDayBalance < 0
-          ? `Owed ${Math.abs(data.workDayBalance)} d`
-          : data.workDayBalance > 0
-            ? `Surplus ${data.workDayBalance} d`
-            : "None",
-      icon: ShieldCheck,
-      color:
-        data.workDayBalance < 0
-          ? "text-red-700 dark:text-red-400"
-          : data.workDayBalance > 0
-            ? "text-emerald-700 dark:text-emerald-400"
-            : "text-zinc-700 dark:text-zinc-300",
-    },
-  ];
 
   function formatTime(date: Date | null) {
     if (!date) return "-";
@@ -567,10 +488,10 @@ export default async function MemberDashboardPage({
         </Card>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_2fr] my-6">
+      <div className="grid items-start gap-6 lg:grid-cols-[1fr_2fr] my-6">
         <div className="space-y-6">
           {/* Today's Attendance */}
-          <Card className="shadow-none h-full flex flex-col justify-between">
+          <Card className="shadow-none flex flex-col">
             <div>
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
@@ -643,7 +564,7 @@ export default async function MemberDashboardPage({
               )}
             </div>
 
-            <CardContent className="pt-3 border-t border-zinc-150 dark:border-zinc-850 flex flex-wrap gap-2 justify-between">
+            <CardContent className="mt-auto pt-3 border-t border-zinc-150 dark:border-zinc-850 flex flex-wrap gap-2 justify-between">
               <Link
                 href="/member/presensi/riwayat"
                 className={cn(buttonVariants({ variant: "outline", size: "sm" }), "flex items-center gap-1 text-xs")}
@@ -862,7 +783,7 @@ export default async function MemberDashboardPage({
         </Card>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[0.35fr_0.65fr] mt-6">
+      <div className="grid items-start gap-6 lg:grid-cols-[0.35fr_0.65fr] mt-6">
         {data.internProfile ? (
           <Card className="shadow-none flex flex-col justify-between">
             <CardHeader className="pb-3">

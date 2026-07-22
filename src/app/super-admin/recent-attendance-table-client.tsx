@@ -139,7 +139,7 @@ export function RecentAttendanceTableClient({ records, statusColor, statusLabel 
                       <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-3 space-y-1">
                         <h5 className="text-[11px] font-bold text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
                           <CheckCircle className="size-3 text-emerald-600" />
-                          WFO JOURNAL (TODAY'S WORK REPORT)
+                          WFO JOURNAL (TODAY&apos;S WORK REPORT)
                         </h5>
                         <p className="text-xs text-zinc-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed">
                           {item.wfhReport || "No WFO journal submitted."}

@@ -32,24 +32,25 @@ export function ViewQrCardClient() {
           </Button>
         }
       />
-      <DialogContent className="max-w-md p-6 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 font-sans">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+      <DialogContent className="max-w-xl overflow-hidden p-0 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 font-sans">
+        <DialogHeader className="px-6 pt-6 pb-3">
+          <DialogTitle className="flex items-center gap-2 text-lg">
             <QrCode className="size-5 text-zinc-700 dark:text-zinc-400" />
             My QR Card
           </DialogTitle>
         </DialogHeader>
         
-        <div className="py-4 flex justify-center bg-zinc-50 dark:bg-zinc-900/40 rounded-lg border border-zinc-100 dark:border-zinc-800 my-2">
+        <div className="mx-6 mb-6 flex justify-center rounded-xl border border-zinc-100 bg-zinc-50 p-5 dark:border-zinc-800 dark:bg-zinc-900/40">
+          {/* eslint-disable-next-line @next/next/no-img-element -- dynamic QR endpoint supports SVG/PNG/JPEG downloads. */}
           <img
             src="/member/presensi/qr-card?format=svg"
-            className="w-full h-auto max-w-[280px] bg-white rounded-lg border border-zinc-200 shadow-sm"
+            className="h-auto w-full max-w-[340px] rounded-xl border border-zinc-200 bg-white shadow-sm"
             alt="My QR Card"
             key={open ? "open" : "closed"}
           />
         </div>
 
-        <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-end mt-4">
+        <DialogFooter className="flex flex-col gap-2 border-t border-zinc-100 bg-zinc-50 px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900/30 sm:flex-row sm:justify-end">
           <a
             href="/member/presensi/qr-card?format=png"
             download="my-qr-card.png"

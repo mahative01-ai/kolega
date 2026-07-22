@@ -156,7 +156,7 @@ export async function DashboardShell({
 
         {/* Main Content Area */}
         <div className="flex-1 p-6 lg:p-8">
-          <div className="mx-auto w-full max-w-7xl">
+          <div className="mx-auto w-full max-w-[1440px]">
             {/* Page Header */}
             <div className="mb-6">
               <Badge variant="outline" className="mb-2 bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 border-zinc-200 dark:border-zinc-800">

@@ -209,7 +209,7 @@ export function QrLoginScanner({
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-zinc-200/60 mt-1">
-            <span className="text-[11px] text-zinc-400 font-medium">Today's status:</span>
+            <span className="text-[11px] text-zinc-400 font-medium">Today&apos;s status:</span>
             <span className={`text-[11px] font-semibold px-2 py-0.5 rounded border ${currentUser.statusColor}`}>
               {currentUser.statusText}
             </span>
