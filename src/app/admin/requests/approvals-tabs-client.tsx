@@ -8,6 +8,7 @@ import {
   Search,
   ClipboardList,
   Clock,
+  Eye,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -71,6 +72,7 @@ type CorrectionItem = {
   proposedCheckInTime: string | null;
   proposedCheckOutTime: string | null;
   reason: string;
+  attachmentUrl: string | null;
   status: string;
   createdAt: Date;
   updatedAt: Date;
@@ -470,52 +472,64 @@ export function ApprovalsTabsClient({
                         </TableCell>
                         <TableCell className="text-xs font-mono">{formatDate(req.startDate)}</TableCell>
                         <TableCell className="text-xs font-mono">{formatDate(req.endDate)}</TableCell>
-                        <TableCell className="max-w-[180px] truncate text-xs">
-                          <Dialog>
-                            <DialogTrigger className="cursor-pointer hover:underline text-blue-600 dark:text-blue-400 font-medium" title="Click for details">{req.reason}</DialogTrigger>
-                            <DialogContent className="max-w-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 font-sans">
-                              <DialogHeader>
-                                <DialogTitle>Leave Request Details</DialogTitle>
-                                <DialogDescription>
-                                  Submitted by {req.user.name} ({req.user.email})
-                                </DialogDescription>
-                              </DialogHeader>
-                              <div className="space-y-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Request Type</p>
-                                    <p className="mt-1 font-semibold">{requestTypeLabel[req.type] ?? req.type}</p>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Home Studio</p>
-                                    <p className="mt-1">{req.user.defaultStudio?.name ?? "-"}</p>
-                                  </div>
-                                </div>
-                                <div>
-                                  <p className="text-xs font-semibold text-zinc-400">Absence Period</p>
-                                  <p className="mt-1 font-medium">{formatDate(req.startDate)} to {formatDate(req.endDate)}</p>
-                                </div>
-                                <div>
-                                  <p className="text-xs font-semibold text-zinc-400">Full Reason</p>
-                                  <p className="mt-1 whitespace-pre-wrap leading-relaxed text-zinc-850 dark:text-zinc-200">{req.reason}</p>
-                                </div>
-                                {req.attachmentUrl && (
-                                  <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Attachment</p>
-                                    <div className="mt-1">
-                                      <AttachmentViewer url={req.attachmentUrl} />
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </DialogContent>
-                          </Dialog>
+                        <TableCell className="max-w-[180px] truncate text-xs" title={req.reason}>
+                          {req.reason}
                         </TableCell>
                         <TableCell>
                           <AttachmentViewer url={req.attachmentUrl} />
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
+                            <Dialog>
+                              <DialogTrigger
+                                render={
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 px-2 text-xs border-zinc-200 text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                                  >
+                                    <Eye className="size-3 mr-1" aria-hidden="true" />
+                                    Details
+                                  </Button>
+                                }
+                              />
+                              <DialogContent className="max-w-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 font-sans">
+                                <DialogHeader>
+                                  <DialogTitle>Leave Request Details</DialogTitle>
+                                  <DialogDescription>
+                                    Submitted by {req.user.name} ({req.user.email})
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <p className="text-xs font-semibold text-zinc-400">Request Type</p>
+                                      <p className="mt-1 font-semibold">{requestTypeLabel[req.type] ?? req.type}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs font-semibold text-zinc-400">Home Studio</p>
+                                      <p className="mt-1">{req.user.defaultStudio?.name ?? "-"}</p>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-semibold text-zinc-400">Absence Period</p>
+                                    <p className="mt-1 font-medium">{formatDate(req.startDate)} to {formatDate(req.endDate)}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-semibold text-zinc-400">Full Reason</p>
+                                    <p className="mt-1 whitespace-pre-wrap leading-relaxed text-zinc-850 dark:text-zinc-200">{req.reason}</p>
+                                  </div>
+                                  {req.attachmentUrl && (
+                                    <div>
+                                      <p className="text-xs font-semibold text-zinc-400">Attachment</p>
+                                      <div className="mt-1">
+                                        <AttachmentViewer url={req.attachmentUrl} />
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </DialogContent>
+                            </Dialog>
                             <form action={reviewRequestAction} method="POST">
                               <input type="hidden" name="requestId" value={req.id} />
                               <input type="hidden" name="action" value="APPROVE" />
@@ -605,7 +619,7 @@ export function ApprovalsTabsClient({
                         Reviewed By <ArrowUpDown className="size-3 text-zinc-400" />
                       </div>
                     </TableHead>
-                    {currentUser.role === "SUPER_ADMIN" && <TableHead className="text-right">Action</TableHead>}
+                    <TableHead className="text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -633,52 +647,8 @@ export function ApprovalsTabsClient({
                         </TableCell>
                         <TableCell className="text-xs font-mono">{formatDate(req.startDate)}</TableCell>
                         <TableCell className="text-xs font-mono">{formatDate(req.endDate)}</TableCell>
-                        <TableCell className="max-w-[150px] truncate text-xs">
-                          <Dialog>
-                            <DialogTrigger className="cursor-pointer hover:underline text-blue-600 dark:text-blue-400 font-medium">{req.reason}</DialogTrigger>
-                            <DialogContent className="max-w-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 font-sans">
-                              <DialogHeader>
-                                <DialogTitle>Leave Request Details (History)</DialogTitle>
-                                <DialogDescription>
-                                  Submitted by {req.user.name} ({req.user.email})
-                                </DialogDescription>
-                              </DialogHeader>
-                              <div className="space-y-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Request Type</p>
-                                    <p className="mt-1 font-semibold">{requestTypeLabel[req.type] ?? req.type}</p>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Home Studio</p>
-                                    <p className="mt-1">{req.user.defaultStudio?.name ?? "-"}</p>
-                                  </div>
-                                </div>
-                                <div>
-                                  <p className="text-xs font-semibold text-zinc-400">Absence Period</p>
-                                  <p className="mt-1 font-medium">{formatDate(req.startDate)} to {formatDate(req.endDate)}</p>
-                                </div>
-                                <div>
-                                  <p className="text-xs font-semibold text-zinc-400">Full Reason</p>
-                                  <p className="mt-1 whitespace-pre-wrap leading-relaxed text-zinc-850 dark:text-zinc-200">{req.reason}</p>
-                                </div>
-                                {req.attachmentUrl && (
-                                  <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Attachment</p>
-                                    <div className="mt-1">
-                                      <AttachmentViewer url={req.attachmentUrl} />
-                                    </div>
-                                  </div>
-                                )}
-                                <div>
-                                  <p className="text-xs font-semibold text-zinc-400">Request Status</p>
-                                  <Badge className={`mt-1 ${requestStatusColor[req.status]}`}>
-                                    {requestStatusLabel[req.status] ?? req.status}
-                                  </Badge>
-                                </div>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
+                        <TableCell className="max-w-[150px] truncate text-xs" title={req.reason}>
+                          {req.reason}
                         </TableCell>
                         <TableCell>
                           <AttachmentViewer url={req.attachmentUrl} />
@@ -691,25 +661,83 @@ export function ApprovalsTabsClient({
                         <TableCell className="text-xs text-zinc-550 dark:text-zinc-400">
                           {req.reviewer?.name ?? "-"}
                         </TableCell>
-                        {currentUser.role === "SUPER_ADMIN" && (
-                          <TableCell className="text-right">
-                            <form action={deleteRequestAction} method="POST" onSubmit={(e) => {
-                              if (!confirm("Are you sure you want to permanently delete this request record and restore its attendance effects?")) {
-                                e.preventDefault();
-                              }
-                            }}>
-                              <input type="hidden" name="requestId" value={req.id} />
-                              <Button
-                                type="submit"
-                                size="sm"
-                                variant="ghost"
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 h-7 px-2"
-                              >
-                                Delete
-                              </Button>
-                            </form>
-                          </TableCell>
-                        )}
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Dialog>
+                              <DialogTrigger
+                                render={
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 px-2 text-xs border-zinc-200 text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                                  >
+                                    <Eye className="size-3 mr-1" aria-hidden="true" />
+                                    Details
+                                  </Button>
+                                }
+                              />
+                              <DialogContent className="max-w-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 font-sans">
+                                <DialogHeader>
+                                  <DialogTitle>Leave Request Details (History)</DialogTitle>
+                                  <DialogDescription>
+                                    Submitted by {req.user.name} ({req.user.email})
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <p className="text-xs font-semibold text-zinc-400">Request Type</p>
+                                      <p className="mt-1 font-semibold">{requestTypeLabel[req.type] ?? req.type}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs font-semibold text-zinc-400">Home Studio</p>
+                                      <p className="mt-1">{req.user.defaultStudio?.name ?? "-"}</p>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-semibold text-zinc-400">Absence Period</p>
+                                    <p className="mt-1 font-medium">{formatDate(req.startDate)} to {formatDate(req.endDate)}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-semibold text-zinc-400">Full Reason</p>
+                                    <p className="mt-1 whitespace-pre-wrap leading-relaxed text-zinc-850 dark:text-zinc-200">{req.reason}</p>
+                                  </div>
+                                  {req.attachmentUrl && (
+                                    <div>
+                                      <p className="text-xs font-semibold text-zinc-400">Attachment</p>
+                                      <div className="mt-1">
+                                        <AttachmentViewer url={req.attachmentUrl} />
+                                      </div>
+                                    </div>
+                                  )}
+                                  <div>
+                                    <p className="text-xs font-semibold text-zinc-400">Request Status</p>
+                                    <Badge className={`mt-1 ${requestStatusColor[req.status]}`}>
+                                      {requestStatusLabel[req.status] ?? req.status}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                            {currentUser.role === "SUPER_ADMIN" && (
+                              <form action={deleteRequestAction} method="POST" onSubmit={(e) => {
+                                if (!confirm("Are you sure you want to permanently delete this request record and restore its attendance effects?")) {
+                                  e.preventDefault();
+                                }
+                              }}>
+                                <input type="hidden" name="requestId" value={req.id} />
+                                <Button
+                                  type="submit"
+                                  size="sm"
+                                  variant="ghost"
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 h-7 px-2"
+                                >
+                                  Delete
+                                </Button>
+                              </form>
+                            )}
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))
                   )}
@@ -803,72 +831,84 @@ export function ApprovalsTabsClient({
                             {corr.newStatus ? (statusLabel[corr.newStatus] ?? corr.newStatus) : "-"}
                           </Badge>
                         </TableCell>
-                        <TableCell className="max-w-[200px] truncate text-xs">
-                          <Dialog>
-                            <DialogTrigger className="cursor-pointer hover:underline text-blue-600 dark:text-blue-400 font-medium" title="Click for details">{corr.reason}</DialogTrigger>
-                            <DialogContent className="max-w-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 font-sans">
-                              <DialogHeader>
-                                <DialogTitle>Correction Reason Details</DialogTitle>
-                                <DialogDescription>
-                                  Submitted by {corr.requestedBy.name} ({corr.requestedBy.email})
-                                </DialogDescription>
-                              </DialogHeader>
-                              <div className="space-y-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Attendance Date</p>
-                                    <p className="mt-1 font-semibold">{formatDate(corr.attendanceRecord?.attendanceDate)}</p>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Home Studio</p>
-                                    <p className="mt-1">{corr.requestedBy.defaultStudio?.name ?? "-"}</p>
-                                  </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Previous Status</p>
-                                    <Badge variant="outline" className={corr.previousStatus ? statusColor[corr.previousStatus] : "mt-1"}>
-                                      {corr.previousStatus ? (statusLabel[corr.previousStatus] ?? corr.previousStatus) : "-"}
-                                    </Badge>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs font-semibold text-zinc-400">New Status</p>
-                                    <Badge variant="outline" className={corr.newStatus ? statusColor[corr.newStatus] : "mt-1"}>
-                                      {corr.newStatus ? (statusLabel[corr.newStatus] ?? corr.newStatus) : "-"}
-                                    </Badge>
-                                  </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <p className="text-xs font-semibold text-zinc-400">New Check-In Time</p>
-                                    <p className="mt-1 font-medium">{corr.proposedCheckInTime ? corr.proposedCheckInTime : "-"}</p>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs font-semibold text-zinc-400">New Check-Out Time</p>
-                                    <p className="mt-1 font-medium">{corr.proposedCheckOutTime ? corr.proposedCheckOutTime : "-"}</p>
-                                  </div>
-                                </div>
-                                <div>
-                                  <p className="text-xs font-semibold text-zinc-400">Full Reason</p>
-                                  <p className="mt-1 whitespace-pre-wrap leading-relaxed text-zinc-850 dark:text-zinc-200">{corr.reason}</p>
-                                </div>
-                                {corr.attachmentUrl && (
-                                  <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Attachment</p>
-                                    <div className="mt-1">
-                                      <AttachmentViewer url={corr.attachmentUrl} />
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </DialogContent>
-                          </Dialog>
+                        <TableCell className="max-w-[200px] truncate text-xs" title={corr.reason}>
+                          {corr.reason}
                         </TableCell>
                         <TableCell>
                           <AttachmentViewer url={corr.attachmentUrl} />
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
+                            <Dialog>
+                              <DialogTrigger
+                                render={
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 px-2 text-xs border-zinc-200 text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                                  >
+                                    <Eye className="size-3 mr-1" aria-hidden="true" />
+                                    Details
+                                  </Button>
+                                }
+                              />
+                              <DialogContent className="max-w-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 font-sans">
+                                <DialogHeader>
+                                  <DialogTitle>Correction Reason Details</DialogTitle>
+                                  <DialogDescription>
+                                    Submitted by {corr.requestedBy.name} ({corr.requestedBy.email})
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <p className="text-xs font-semibold text-zinc-400">Attendance Date</p>
+                                      <p className="mt-1 font-semibold">{formatDate(corr.attendanceRecord?.attendanceDate)}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs font-semibold text-zinc-400">Home Studio</p>
+                                      <p className="mt-1">{corr.requestedBy.defaultStudio?.name ?? "-"}</p>
+                                    </div>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <p className="text-xs font-semibold text-zinc-400">Previous Status</p>
+                                      <Badge variant="outline" className={corr.previousStatus ? statusColor[corr.previousStatus] : "mt-1"}>
+                                        {corr.previousStatus ? (statusLabel[corr.previousStatus] ?? corr.previousStatus) : "-"}
+                                      </Badge>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs font-semibold text-zinc-400">New Status</p>
+                                      <Badge variant="outline" className={corr.newStatus ? statusColor[corr.newStatus] : "mt-1"}>
+                                        {corr.newStatus ? (statusLabel[corr.newStatus] ?? corr.newStatus) : "-"}
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <p className="text-xs font-semibold text-zinc-400">New Check-In Time</p>
+                                      <p className="mt-1 font-medium">{corr.proposedCheckInTime ? corr.proposedCheckInTime : "-"}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs font-semibold text-zinc-400">New Check-Out Time</p>
+                                      <p className="mt-1 font-medium">{corr.proposedCheckOutTime ? corr.proposedCheckOutTime : "-"}</p>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-semibold text-zinc-400">Full Reason</p>
+                                    <p className="mt-1 whitespace-pre-wrap leading-relaxed text-zinc-850 dark:text-zinc-200">{corr.reason}</p>
+                                  </div>
+                                  {corr.attachmentUrl && (
+                                    <div>
+                                      <p className="text-xs font-semibold text-zinc-400">Attachment</p>
+                                      <div className="mt-1">
+                                        <AttachmentViewer url={corr.attachmentUrl} />
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </DialogContent>
+                            </Dialog>
                             <form action={reviewCorrectionAction} method="POST">
                               <input type="hidden" name="correctionId" value={corr.id} />
                               <input type="hidden" name="action" value="APPROVE" />
@@ -958,7 +998,7 @@ export function ApprovalsTabsClient({
                         Reviewed By <ArrowUpDown className="size-3 text-zinc-400" />
                       </div>
                     </TableHead>
-                    {currentUser.role === "SUPER_ADMIN" && <TableHead className="text-right">Action</TableHead>}
+                    <TableHead className="text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -990,72 +1030,8 @@ export function ApprovalsTabsClient({
                             {corr.newStatus ? (statusLabel[corr.newStatus] ?? corr.newStatus) : "-"}
                           </Badge>
                         </TableCell>
-                        <TableCell className="max-w-[150px] truncate text-xs">
-                          <Dialog>
-                            <DialogTrigger className="cursor-pointer hover:underline text-blue-600 dark:text-blue-400 font-medium">{corr.reason}</DialogTrigger>
-                            <DialogContent className="max-w-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 font-sans">
-                              <DialogHeader>
-                                <DialogTitle>Correction Reason Details (History)</DialogTitle>
-                                <DialogDescription>
-                                  Submitted by {corr.requestedBy.name} ({corr.requestedBy.email})
-                                </DialogDescription>
-                              </DialogHeader>
-                              <div className="space-y-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Attendance Date</p>
-                                    <p className="mt-1 font-semibold">{formatDate(corr.attendanceRecord?.attendanceDate)}</p>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Home Studio</p>
-                                    <p className="mt-1">{corr.requestedBy.defaultStudio?.name ?? "-"}</p>
-                                  </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Previous Status</p>
-                                    <Badge variant="outline" className={corr.previousStatus ? statusColor[corr.previousStatus] : "mt-1"}>
-                                      {corr.previousStatus ? (statusLabel[corr.previousStatus] ?? corr.previousStatus) : "-"}
-                                    </Badge>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs font-semibold text-zinc-400">New Status</p>
-                                    <Badge variant="outline" className={corr.newStatus ? statusColor[corr.newStatus] : "mt-1"}>
-                                      {corr.newStatus ? (statusLabel[corr.newStatus] ?? corr.newStatus) : "-"}
-                                    </Badge>
-                                  </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <p className="text-xs font-semibold text-zinc-400">New Check-In Time</p>
-                                    <p className="mt-1 font-medium">{corr.proposedCheckInTime ? corr.proposedCheckInTime : "-"}</p>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs font-semibold text-zinc-400">New Check-Out Time</p>
-                                    <p className="mt-1 font-medium">{corr.proposedCheckOutTime ? corr.proposedCheckOutTime : "-"}</p>
-                                  </div>
-                                </div>
-                                <div>
-                                  <p className="text-xs font-semibold text-zinc-400">Full Reason</p>
-                                  <p className="mt-1 whitespace-pre-wrap leading-relaxed text-zinc-850 dark:text-zinc-200">{corr.reason}</p>
-                                </div>
-                                {corr.attachmentUrl && (
-                                  <div>
-                                    <p className="text-xs font-semibold text-zinc-400">Attachment</p>
-                                    <div className="mt-1">
-                                      <AttachmentViewer url={corr.attachmentUrl} />
-                                    </div>
-                                  </div>
-                                )}
-                                <div>
-                                  <p className="text-xs font-semibold text-zinc-400">Request Status</p>
-                                  <Badge className={`mt-1 ${requestStatusColor[corr.status]}`}>
-                                    {requestStatusLabel[corr.status] ?? corr.status}
-                                  </Badge>
-                                </div>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
+                        <TableCell className="max-w-[150px] truncate text-xs" title={corr.reason}>
+                          {corr.reason}
                         </TableCell>
                         <TableCell>
                           <AttachmentViewer url={corr.attachmentUrl} />
@@ -1065,28 +1041,106 @@ export function ApprovalsTabsClient({
                             {requestStatusLabel[corr.status] ?? corr.status}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-xs text-zinc-500">
+                        <TableCell className="text-xs text-zinc-550 dark:text-zinc-400">
                           {corr.approvedBy?.name ?? "-"}
                         </TableCell>
-                        {currentUser.role === "SUPER_ADMIN" && (
-                          <TableCell className="text-right">
-                            <form action={deleteCorrectionAction} method="POST" onSubmit={(e) => {
-                              if (!confirm("Are you sure you want to permanently delete this correction and restore previous attendance data?")) {
-                                e.preventDefault();
-                              }
-                            }}>
-                              <input type="hidden" name="correctionId" value={corr.id} />
-                              <Button
-                                type="submit"
-                                size="sm"
-                                variant="ghost"
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 h-7 px-2"
-                              >
-                                Delete
-                              </Button>
-                            </form>
-                          </TableCell>
-                        )}
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Dialog>
+                              <DialogTrigger
+                                render={
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 px-2 text-xs border-zinc-200 text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                                  >
+                                    <Eye className="size-3 mr-1" aria-hidden="true" />
+                                    Details
+                                  </Button>
+                                }
+                              />
+                              <DialogContent className="max-w-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 font-sans">
+                                <DialogHeader>
+                                  <DialogTitle>Correction Reason Details (History)</DialogTitle>
+                                  <DialogDescription>
+                                    Submitted by {corr.requestedBy.name} ({corr.requestedBy.email})
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <p className="text-xs font-semibold text-zinc-400">Attendance Date</p>
+                                      <p className="mt-1 font-semibold">{formatDate(corr.attendanceRecord?.attendanceDate)}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs font-semibold text-zinc-400">Home Studio</p>
+                                      <p className="mt-1">{corr.requestedBy.defaultStudio?.name ?? "-"}</p>
+                                    </div>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <p className="text-xs font-semibold text-zinc-400">Previous Status</p>
+                                      <Badge variant="outline" className={corr.previousStatus ? statusColor[corr.previousStatus] : "mt-1"}>
+                                        {corr.previousStatus ? (statusLabel[corr.previousStatus] ?? corr.previousStatus) : "-"}
+                                      </Badge>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs font-semibold text-zinc-400">New Status</p>
+                                      <Badge variant="outline" className={corr.newStatus ? statusColor[corr.newStatus] : "mt-1"}>
+                                        {corr.newStatus ? (statusLabel[corr.newStatus] ?? corr.newStatus) : "-"}
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <p className="text-xs font-semibold text-zinc-400">New Check-In Time</p>
+                                      <p className="mt-1 font-medium">{corr.proposedCheckInTime ? corr.proposedCheckInTime : "-"}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs font-semibold text-zinc-400">New Check-Out Time</p>
+                                      <p className="mt-1 font-medium">{corr.proposedCheckOutTime ? corr.proposedCheckOutTime : "-"}</p>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-semibold text-zinc-400">Full Reason</p>
+                                    <p className="mt-1 whitespace-pre-wrap leading-relaxed text-zinc-850 dark:text-zinc-200">{corr.reason}</p>
+                                  </div>
+                                  {corr.attachmentUrl && (
+                                    <div>
+                                      <p className="text-xs font-semibold text-zinc-400">Attachment</p>
+                                      <div className="mt-1">
+                                        <AttachmentViewer url={corr.attachmentUrl} />
+                                      </div>
+                                    </div>
+                                  )}
+                                  <div>
+                                    <p className="text-xs font-semibold text-zinc-400">Request Status</p>
+                                    <Badge className={`mt-1 ${requestStatusColor[corr.status]}`}>
+                                      {requestStatusLabel[corr.status] ?? corr.status}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                            {currentUser.role === "SUPER_ADMIN" && (
+                              <form action={deleteCorrectionAction} method="POST" onSubmit={(e) => {
+                                if (!confirm("Are you sure you want to permanently delete this correction and restore previous attendance data?")) {
+                                  e.preventDefault();
+                                }
+                              }}>
+                                <input type="hidden" name="correctionId" value={corr.id} />
+                                <Button
+                                  type="submit"
+                                  size="sm"
+                                  variant="ghost"
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 h-7 px-2"
+                                >
+                                  Delete
+                                </Button>
+                              </form>
+                            )}
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))
                   )}

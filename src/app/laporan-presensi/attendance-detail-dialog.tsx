@@ -17,7 +17,9 @@ import {
   FileText,
   ShieldCheck,
   Building,
+  Mail,
 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export type DetailRecord = {
   id: string;
@@ -119,229 +121,244 @@ export function AttendanceDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-6">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-6 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 border-zinc-200 dark:border-zinc-800">
         <DialogHeader className="border-b pb-4">
-          <div className="flex items-center gap-3">
-            <div
-              className={`size-12 rounded-full flex items-center justify-center text-2xl shrink-0 border select-none ${mood.bgColor} ${mood.borderColor}`}
-              title={mood.label}
-            >
-              {mood.emoji}
-            </div>
-            <div>
-              <DialogTitle className="text-xl font-bold text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
-                {record.user.name}
-              </DialogTitle>
-              <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500 mt-1">
-                <span>{record.user.email}</span>
-                <span>•</span>
-                <Badge variant="outline" className="text-[10px] uppercase font-semibold">
-                  {record.user.role}
-                </Badge>
-                {record.user.memberStatus && (
-                  <Badge variant="secondary" className="text-[10px] uppercase font-semibold">
-                    {record.user.memberStatus}
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4">
+              {/* Mood Avatar */}
+              <div
+                className={`flex size-16 shrink-0 items-center justify-center rounded-2xl border-2 shadow-inner text-3xl select-none ${mood.bgColor} ${mood.borderColor}`}
+                title={mood.label}
+              >
+                {mood.emoji}
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2.5">
+                  <DialogTitle className="text-xl font-bold text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+                    {record.user.name}
+                  </DialogTitle>
+                  <Badge variant="outline" className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-[11px] text-zinc-500 dark:text-zinc-400 font-normal">
+                    Mood: {mood.label}
                   </Badge>
-                )}
+                </div>
+                <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-600 dark:text-zinc-400">
+                  <span className="inline-flex items-center gap-1"><Mail className="size-3.5 text-zinc-400 dark:text-zinc-500" /> {record.user.email}</span>
+                  <span className="inline-flex items-center gap-1"><Building className="size-3.5 text-zinc-400 dark:text-zinc-500" /> Home: {record.user.defaultStudio?.name || record.ownerStudio.name}</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <Badge className="border-blue-500/30 bg-blue-500/15 text-blue-700 dark:text-blue-300 text-[10px] font-semibold uppercase">
+                    {record.user.role}
+                  </Badge>
+                  {record.user.memberStatus && (
+                    <Badge className="border-sky-500/30 bg-sky-500/15 text-sky-700 dark:text-sky-300 text-[10px] font-semibold uppercase">
+                      {record.user.memberStatus}
+                    </Badge>
+                  )}
+                  <Badge className="border-zinc-500/30 bg-zinc-500/15 text-zinc-700 dark:text-zinc-300 text-[10px] font-semibold uppercase">
+                    {record.workMode}
+                  </Badge>
+                  <Badge className={`text-[10px] font-semibold uppercase ${statusColor[record.status]}`}>
+                    {statusLabel[record.status] ?? record.status}
+                  </Badge>
+                </div>
               </div>
             </div>
           </div>
         </DialogHeader>
 
-        <div className="space-y-5 py-2">
-          {/* Attendance Summary */}
-          <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 p-4 space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
-              <Calendar className="size-4 text-blue-600" />
-              Attendance Summary
-            </h4>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
-              <div>
-                <span className="text-xs text-zinc-400 block">Date</span>
-                <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                  {formatDate(record.attendanceDate)}
-                </span>
-              </div>
-              <div>
-                <span className="text-xs text-zinc-400 block">Work Mode</span>
-                <Badge variant="outline" className="mt-0.5">
-                  {record.workMode}
-                </Badge>
-              </div>
-              <div>
-                <span className="text-xs text-zinc-400 block">Status</span>
-                <Badge variant="secondary" className={`mt-0.5 ${statusColor[record.status]}`}>
-                  {statusLabel[record.status] ?? record.status}
-                </Badge>
-              </div>
-              <div>
-                <span className="text-xs text-zinc-400 block">Check-In Time</span>
-                <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                  {formatTime(record.checkInAt)}
-                </span>
-              </div>
-              <div>
-                <span className="text-xs text-zinc-400 block">Check-Out Time</span>
-                <span className="font-semibold text-blue-600 dark:text-blue-400">
-                  {formatTime(record.checkOutAt)}
-                </span>
-              </div>
-              <div>
-                <span className="text-xs text-zinc-400 block">Default Studio</span>
-                <span className="font-medium text-zinc-800 dark:text-zinc-200 flex items-center gap-1">
-                  <Building className="size-3 text-zinc-400" />
-                  {record.user.defaultStudio?.name || record.ownerStudio.name}
-                </span>
-              </div>
-            </div>
-          </div>
+        <div className="py-2">
+          <Tabs defaultValue="summary" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 bg-zinc-100 dark:bg-zinc-900 p-1 rounded-lg">
+              <TabsTrigger value="summary" className="text-xs font-semibold py-1.5 cursor-pointer">
+                Summary
+              </TabsTrigger>
+              <TabsTrigger value="location" className="text-xs font-semibold py-1.5 cursor-pointer">
+                Location & Geofence
+              </TabsTrigger>
+              <TabsTrigger value="logs" className="text-xs font-semibold py-1.5 cursor-pointer">
+                Audit Logs
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Location Details */}
-          <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
-              <MapPin className="size-4 text-emerald-600" />
-              Location & Geofence Verification
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-              <div>
-                <span className="text-xs text-zinc-400 block">Location Studio</span>
-                <span className="font-medium text-zinc-800 dark:text-zinc-200">
-                  {record.locationStudio?.name ?? "Location not required"}
-                </span>
-              </div>
-              <div>
-                <span className="text-xs text-zinc-400 block">Validation Status</span>
-                <Badge
-                  variant="outline"
-                  className={
-                    record.locationValidationStatus === "OUTSIDE_RADIUS"
-                      ? "border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/20 dark:text-amber-300"
-                      : record.locationValidationStatus === "INSIDE_RADIUS"
-                      ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/20 dark:text-emerald-300"
-                      : ""
-                  }
-                >
-                  {formatLocationValidation(record.locationValidationStatus)}
-                </Badge>
-              </div>
-              <div>
-                <span className="text-xs text-zinc-400 block">Distance to Studio</span>
-                <span className="font-medium text-zinc-800 dark:text-zinc-200">
-                  {typeof record.distanceMeters === "number"
-                    ? `${Math.round(record.distanceMeters)} meters`
-                    : "N/A"}
-                </span>
-              </div>
-              <div>
-                <span className="text-xs text-zinc-400 block">GPS Coordinates (In / Out)</span>
-                <span className="text-xs text-zinc-600 dark:text-zinc-400 font-mono">
-                  {record.checkInLatitude && record.checkInLongitude
-                    ? `In: ${record.checkInLatitude.toFixed(5)}, ${record.checkInLongitude.toFixed(5)}`
-                    : "In: N/A"}
-                  {" | "}
-                  {record.checkOutLatitude && record.checkOutLongitude
-                    ? `Out: ${record.checkOutLatitude.toFixed(5)}, ${record.checkOutLongitude.toFixed(5)}`
-                    : "Out: N/A"}
-                </span>
-              </div>
-            </div>
-          </div>
+            {/* Summary Tab */}
+            <TabsContent value="summary" className="space-y-4 pt-3">
+              {/* Daily timing stats grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 p-3 flex flex-col justify-between shadow-sm">
+                  <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">Check-In Time</span>
+                  <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-1">
+                    {formatTime(record.checkInAt)}
+                  </span>
+                </div>
+                
+                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 p-3 flex flex-col justify-between shadow-sm">
+                  <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">Check-Out Time</span>
+                  <span className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-1">
+                    {formatTime(record.checkOutAt)}
+                  </span>
+                </div>
 
-          {/* Time Policy Metrics */}
-          <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
-              <Clock className="size-4 text-orange-600" />
-              Time Policy Metrics
-            </h4>
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <span className="text-xs text-zinc-400 block">Late Minutes</span>
-                <span
-                  className={
-                    record.lateMinutes > 0
-                      ? "font-bold text-orange-600 dark:text-orange-400"
-                      : "text-zinc-600 dark:text-zinc-400"
-                  }
-                >
-                  {record.lateMinutes > 0 ? `${record.lateMinutes} minutes` : "0 (On Time)"}
-                </span>
-              </div>
-              <div>
-                <span className="text-xs text-zinc-400 block">Early Checkout Minutes</span>
-                <span
-                  className={
-                    record.earlyCheckoutMinutes > 0
-                      ? "font-bold text-orange-600 dark:text-orange-400"
-                      : "text-zinc-600 dark:text-zinc-400"
-                  }
-                >
-                  {record.earlyCheckoutMinutes > 0
-                    ? `${record.earlyCheckoutMinutes} minutes`
-                    : "0"}
-                </span>
-              </div>
-            </div>
-          </div>
+                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 p-3 flex flex-col justify-between shadow-sm">
+                  <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">Late Minutes</span>
+                  <span className={`text-lg font-bold mt-1 ${record.lateMinutes > 0 ? "text-orange-600 dark:text-orange-400" : "text-zinc-650 dark:text-zinc-400"}`}>
+                    {record.lateMinutes > 0 ? `${record.lateMinutes} mins` : "0 (On Time)"}
+                  </span>
+                </div>
 
-          {/* WFH / Work Journal */}
-          {(record.workMode === "WFH" || record.wfhPlan || record.wfhReport) && (
-            <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
-                <FileText className="size-4 text-sky-600" />
-                Work Journal & Morning Plan
-              </h4>
-              <div className="space-y-3 text-xs">
-                {record.workMode === "WFH" && (
+                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 p-3 flex flex-col justify-between shadow-sm">
+                  <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">Early Checkout</span>
+                  <span className={`text-lg font-bold mt-1 ${record.earlyCheckoutMinutes > 0 ? "text-orange-600 dark:text-orange-400" : "text-zinc-650 dark:text-zinc-400"}`}>
+                    {record.earlyCheckoutMinutes > 0 ? `${record.earlyCheckoutMinutes} mins` : "0"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Summary Details Card */}
+              <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 space-y-3 shadow-sm">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5 border-b pb-2">
+                  <Calendar className="size-4 text-blue-600" />
+                  Attendance Info
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="font-semibold text-zinc-500 block mb-1">Morning Work Plan:</span>
-                    <div className="rounded border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-2.5 whitespace-pre-line text-zinc-700 dark:text-zinc-300">
-                      {record.wfhPlan || "No plan submitted."}
-                    </div>
+                    <span className="text-xs text-zinc-400 block font-medium">Date</span>
+                    <span className="font-semibold text-zinc-800 dark:text-zinc-200">
+                      {formatDate(record.attendanceDate)}
+                    </span>
                   </div>
-                )}
-                <div>
-                  <span className="font-semibold text-zinc-500 block mb-1">End-of-Day Work Report:</span>
-                  <div className="rounded border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-2.5 whitespace-pre-line text-zinc-700 dark:text-zinc-300">
-                    {record.wfhReport || "No report submitted."}
+                  <div>
+                    <span className="text-xs text-zinc-400 block font-medium">Default Studio</span>
+                    <span className="font-semibold text-zinc-850 dark:text-zinc-200 flex items-center gap-1.5 mt-0.5">
+                      <Building className="size-3.5 text-zinc-400" />
+                      {record.user.defaultStudio?.name || record.ownerStudio.name}
+                    </span>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
 
-          {/* Audit & Admin Metadata */}
-          <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 p-4 space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
-              <ShieldCheck className="size-4 text-violet-600" />
-              Correction & Audit Logs
-            </h4>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-              <div>
-                <span className="text-zinc-400 block">Manual Correction</span>
-                <Badge variant={record.isManualCorrection ? "secondary" : "outline"} className="mt-0.5 text-[10px]">
-                  {record.isManualCorrection ? "Yes (Corrected)" : "No (Normal)"}
-                </Badge>
+              {/* WFH Journal */}
+              {(record.workMode === "WFH" || record.wfhPlan || record.wfhReport) && (
+                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 space-y-4 shadow-sm">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5 border-b pb-2">
+                    <FileText className="size-4 text-sky-600" />
+                    Work Journal & Morning Plan
+                  </h4>
+                  <div className="space-y-4 text-xs">
+                    <div>
+                      <span className="font-semibold text-zinc-550 block mb-1">Morning Work Plan:</span>
+                      <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-3 whitespace-pre-line text-zinc-700 dark:text-zinc-300 leading-relaxed font-sans">
+                        {record.wfhPlan || "No plan submitted."}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="font-semibold text-zinc-550 block mb-1">End-of-Day Work Report:</span>
+                      <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-3 whitespace-pre-line text-zinc-700 dark:text-zinc-300 leading-relaxed font-sans">
+                        {record.wfhReport || "No report submitted."}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Location Tab */}
+            <TabsContent value="location" className="space-y-4 pt-3">
+              <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 space-y-4 shadow-sm">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5 border-b pb-2">
+                  <MapPin className="size-4 text-emerald-600" />
+                  Location & Geofence Verification
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-xs text-zinc-400 block font-medium">Location Studio</span>
+                    <span className="font-semibold text-zinc-850 dark:text-zinc-200 mt-1 block">
+                      {record.locationStudio?.name ?? "Location not required"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-xs text-zinc-400 block font-medium">Validation Status</span>
+                    <div className="mt-1">
+                      <Badge
+                        variant="outline"
+                        className={
+                          record.locationValidationStatus === "OUTSIDE_RADIUS"
+                            ? "border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/20 dark:text-amber-300 font-semibold"
+                            : record.locationValidationStatus === "INSIDE_RADIUS"
+                            ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/20 dark:text-emerald-300 font-semibold"
+                            : "font-semibold"
+                        }
+                      >
+                        {formatLocationValidation(record.locationValidationStatus)}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-xs text-zinc-400 block font-medium">Distance to Studio</span>
+                    <span className="font-semibold text-zinc-850 dark:text-zinc-200 mt-1 block">
+                      {typeof record.distanceMeters === "number"
+                        ? `${Math.round(record.distanceMeters)} meters`
+                        : "N/A"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-xs text-zinc-400 block font-medium">GPS Coordinates (In / Out)</span>
+                    <div className="text-xs text-zinc-650 dark:text-zinc-450 font-mono mt-1 space-y-1">
+                      <p className="flex items-center gap-1.5">
+                        <span className="w-8 font-semibold text-zinc-400">In:</span>
+                        {record.checkInLatitude && record.checkInLongitude
+                          ? `${record.checkInLatitude.toFixed(5)}, ${record.checkInLongitude.toFixed(5)}`
+                          : "N/A"}
+                      </p>
+                      <p className="flex items-center gap-1.5">
+                        <span className="w-8 font-semibold text-zinc-400">Out:</span>
+                        {record.checkOutLatitude && record.checkOutLongitude
+                          ? `${record.checkOutLatitude.toFixed(5)}, ${record.checkOutLongitude.toFixed(5)}`
+                          : "N/A"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div>
-                <span className="text-zinc-400 block">Created By</span>
-                <span className="font-medium text-zinc-700 dark:text-zinc-300">
-                  {record.createdBy?.name || "System"}
-                </span>
+            </TabsContent>
+
+            {/* Audit Logs Tab */}
+            <TabsContent value="logs" className="space-y-4 pt-3">
+              <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 space-y-4 shadow-sm">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5 border-b pb-2">
+                  <ShieldCheck className="size-4 text-violet-600" />
+                  Correction & Audit Logs
+                </h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-xs text-zinc-400 block font-medium">Manual Correction</span>
+                    <div className="mt-1">
+                      <Badge variant={record.isManualCorrection ? "secondary" : "outline"} className="text-[10px] font-semibold">
+                        {record.isManualCorrection ? "Yes (Corrected)" : "No (Normal)"}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-xs text-zinc-400 block font-medium">Created By</span>
+                    <span className="font-semibold text-zinc-850 dark:text-zinc-200 mt-1 block">
+                      {record.createdBy?.name || "System"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-xs text-zinc-400 block font-medium">Created At</span>
+                    <span className="text-zinc-700 dark:text-zinc-300 mt-1 block">
+                      {formatTimestamp(record.createdAt)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-xs text-zinc-400 block font-medium">Updated At</span>
+                    <span className="text-zinc-700 dark:text-zinc-300 mt-1 block">
+                      {formatTimestamp(record.updatedAt)}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div>
-                <span className="text-zinc-400 block">Created At</span>
-                <span className="text-zinc-700 dark:text-zinc-300">
-                  {formatTimestamp(record.createdAt)}
-                </span>
-              </div>
-              <div>
-                <span className="text-zinc-400 block">Updated At</span>
-                <span className="text-zinc-700 dark:text-zinc-300">
-                  {formatTimestamp(record.updatedAt)}
-                </span>
-              </div>
-            </div>
-          </div>
+            </TabsContent>
+          </Tabs>
         </div>
 
         <DialogFooter className="border-t pt-4">
