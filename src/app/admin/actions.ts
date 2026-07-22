@@ -30,6 +30,21 @@ export async function broadcastAnnouncementAction(message: string) {
     select: { id: true },
   });
 
+  // Create persistent announcement record
+  await prisma.announcement.create({
+    data: {
+      title: `Broadcast Announcement from ${sender.name}`,
+      message: msg,
+      targetStudioId: studioId,
+      allStudios: sender.role === "SUPER_ADMIN",
+      publishAt: new Date(),
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // expires in 7 days
+      priority: 0,
+      isActive: true,
+      createdById: sender.id,
+    },
+  });
+
   // Create notifications for all of them
   await prisma.$transaction(
     users.map((u) =>
@@ -45,7 +60,7 @@ export async function broadcastAnnouncementAction(message: string) {
 
   revalidatePath("/member");
   revalidatePath("/admin");
-  return { success: true, message: "Pengumuman berhasil disebarkan ke semua anggota." };
+  return { success: true, message: "Announcement broadcasted successfully to all members." };
 }
 
 // ─── Picket Duty Quick Assignment ───────────────────────────────────────────

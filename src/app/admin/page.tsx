@@ -61,6 +61,8 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
     calendarEvents,
     apiHolidays,
     attendancePolicy,
+    monthlyAttendance,
+    activeAnnouncements,
   ] = await Promise.all([
     prisma.studio.findUnique({
       where: { id: defaultStudioId ?? "__none__" },
@@ -130,6 +132,11 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
       },
       include: {
         user: {
+          select: {
+            name: true,
+          },
+        },
+        studio: {
           select: {
             name: true,
           },
@@ -269,6 +276,46 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
           },
         })
       : Promise.resolve(null),
+    prisma.attendanceRecord.findMany({
+      where: {
+        userId,
+        attendanceDate: {
+          gte: monthStart,
+          lte: monthEnd,
+        },
+      },
+      select: {
+        attendanceDate: true,
+        status: true,
+        isManualCorrection: true,
+        workMode: true,
+      },
+    }),
+    prisma.announcement.findMany({
+      where: {
+        isActive: true,
+        publishAt: { lte: new Date() },
+        AND: [
+          {
+            OR: [
+              { allStudios: true },
+              { targetStudioId: defaultStudioId ?? "__none__" },
+            ],
+          },
+          {
+            OR: [
+              { expiresAt: null },
+              { expiresAt: { gte: new Date() } },
+            ],
+          },
+        ],
+      },
+      orderBy: [
+        { priority: "desc" },
+        { eventDate: "asc" },
+        { createdAt: "desc" },
+      ],
+    }),
   ]);
 
   const dailyTrend: { dateLabel: string; count: number }[] = [];
@@ -320,6 +367,8 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
     calendarEvents,
     apiHolidays,
     attendancePolicy,
+    monthlyAttendance,
+    activeAnnouncements,
     monthLabel: formatMonthLabel(reportMonth),
     selectedMonth: month,
   };
@@ -365,6 +414,16 @@ export default async function AdminDashboardPage({
     };
   }
 
+  // Convert attendance array to record/map for client lookups
+  const attendanceByDateMap: Record<string, { status: string; isManualCorrection: boolean; workMode: string }> = {};
+  for (const rec of data.monthlyAttendance) {
+    attendanceByDateMap[formatDateKey(rec.attendanceDate)] = {
+      status: rec.status,
+      isManualCorrection: rec.isManualCorrection,
+      workMode: rec.workMode,
+    };
+  }
+
   const todayKey = formatDateKey(dateOnly());
   const defaultTab = params.tab === "studio" ? "studio" : "personal";
 
@@ -400,6 +459,7 @@ export default async function AdminDashboardPage({
         leadingBlankDays={leadingBlankDays}
         todayKey={todayKey}
         scheduleByDateMap={scheduleByDateMap}
+        attendanceByDateMap={attendanceByDateMap}
       />
     </DashboardShell>
   );

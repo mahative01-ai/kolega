@@ -541,8 +541,16 @@ export function RolesClient({
                             {getMood(user.currentMood).emoji}
                           </div>
                           <div>
-                            <div className="text-zinc-900 dark:text-zinc-100">{user.name}</div>
-                            <div className="text-xs text-zinc-500 dark:text-zinc-400 font-mono">
+                            <div
+                              onClick={() => handleOpenView(user)}
+                              className="text-zinc-900 dark:text-zinc-100 hover:font-semibold transition-all cursor-pointer"
+                            >
+                              {user.name}
+                            </div>
+                            <div
+                              onClick={() => handleOpenView(user)}
+                              className="text-xs text-zinc-500 dark:text-zinc-400 font-mono hover:font-semibold transition-all cursor-pointer"
+                            >
                               @{user.username || "not_set"}
                             </div>
                           </div>
@@ -569,16 +577,7 @@ export function RolesClient({
                         </Badge>
                       </TableCell>
                       {canShowActions && (
-                        <TableCell className="text-right flex items-center justify-end gap-1.5">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleOpenView(user)}
-                            className="h-8 px-2 text-xs border-zinc-200 text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
-                          >
-                            <Eye className="size-3" aria-hidden="true" />
-                            Details
-                          </Button>
+                        <TableCell className="text-right">
                           {(isSuperAdmin || (currentUser.role === "ADMIN" && user.role === "MEMBER")) && (
                             <Button
                               variant="outline"
@@ -755,16 +754,16 @@ export function RolesClient({
                   </div>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">Field Mentor</label>
+                  <label className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">Mentor</label>
                   <input type="hidden" name="mentorId" value={addMentorId} />
                   <Combobox
                     options={[
-                      { value: "", label: "No mentor" },
+                      { value: "", label: "No mentor assigned" },
                       ...mentors.map((m) => ({ value: m.id, label: m.name })),
                     ]}
                     value={addMentorId}
                     onChange={setAddMentorId}
-                    placeholder="Select Mentor..."
+                    placeholder="Select mentor"
                     searchPlaceholder="Search mentor..."
                   />
                 </div>
@@ -1011,16 +1010,16 @@ export function RolesClient({
                     </div>
                   </div>
                   <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">Field Mentor</label>
+                    <label className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400">Mentor</label>
                     <input type="hidden" name="mentorId" value={editMentorId} />
                     <Combobox
                       options={[
-                        { value: "", label: "No mentor" },
+                        { value: "", label: "No mentor assigned" },
                         ...mentors.map((m) => ({ value: m.id, label: m.name })),
                       ]}
                       value={editMentorId}
                       onChange={setEditMentorId}
-                      placeholder="Select Mentor..."
+                      placeholder="Select mentor"
                       searchPlaceholder="Search mentor..."
                     />
                   </div>
@@ -1352,7 +1351,7 @@ export function RolesClient({
                     <span>Program: <b className="text-zinc-900 dark:text-zinc-100">{viewUser.internProfile.program}</b></span>
                     <span>Institution: <b className="text-zinc-900 dark:text-zinc-100">{viewUser.internProfile.institution}</b></span>
                     <span>Period: <b className="text-zinc-900 dark:text-zinc-100">{formatDate(viewUser.internProfile.startDate)} - {formatDate(viewUser.internProfile.endDate)}</b></span>
-                    <span>Mentor: <b className="text-zinc-900 dark:text-zinc-100">{mentors.find((m) => m.id === viewUser.internProfile?.mentorId)?.name || "Not assigned"}</b></span>
+                    <span>Mentor: <b className="text-zinc-900 dark:text-zinc-100">{mentors.find((m) => m.id === viewUser.internProfile?.mentorId)?.name || "No mentor assigned"}</b></span>
                   </div>
                 </div>
               )}

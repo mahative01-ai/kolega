@@ -42,7 +42,7 @@ export function AttendanceTableBodyClient({
     return (
       <TableBody>
         <TableRow>
-          <TableCell colSpan={8} className="h-24 text-center text-sm text-zinc-500">
+          <TableCell colSpan={7} className="h-24 text-center text-sm text-zinc-500">
             No attendance records found for this filter.
           </TableCell>
         </TableRow>
@@ -61,7 +61,7 @@ export function AttendanceTableBodyClient({
               <button
                 type="button"
                 onClick={() => onSelectRecord(record)}
-                className="flex items-center gap-2 text-left group hover:opacity-80 transition-opacity"
+                className="flex items-center gap-2 text-left group hover:opacity-90 transition-opacity"
               >
                 <div
                   className={`size-8 rounded-full flex items-center justify-center text-lg shrink-0 border select-none ${mood.bgColor} ${mood.borderColor}`}
@@ -70,10 +70,9 @@ export function AttendanceTableBodyClient({
                   {mood.emoji}
                 </div>
                 <div>
-                  <div className="font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:underline">
+                  <div className="font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-blue-600 dark:group-hover:text-blue-400">
                     {record.user.name}
                   </div>
-                  <div className="text-xs font-normal text-zinc-500">{record.user.email}</div>
                 </div>
               </button>
             </TableCell>
@@ -91,17 +90,6 @@ export function AttendanceTableBodyClient({
             </TableCell>
             <TableCell>{formatTime(record.checkInAt)}</TableCell>
             <TableCell>{formatTime(record.checkOutAt)}</TableCell>
-            <TableCell>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onSelectRecord(record)}
-                className="h-8 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/30"
-              >
-                <Eye className="size-3.5 mr-1" />
-                Details
-              </Button>
-            </TableCell>
           </TableRow>
         );
       })}

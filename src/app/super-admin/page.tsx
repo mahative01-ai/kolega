@@ -585,18 +585,27 @@ export default async function SuperAdminDashboardPage() {
                     There are no picket duty officers assigned for today.
                   </p>
                 ) : (
-                  <div className="space-y-2.5">
+                  <div className="space-y-3">
                     {/* Group by studio */}
                     {Array.from(new Set(data.picketToday.map((p) => p.studio.name))).map((studioName) => {
                       const studioPickets = data.picketToday.filter((p) => p.studio.name === studioName);
                       return (
-                        <div key={studioName} className="space-y-1">
-                          <p className="text-sm text-zinc-700 dark:text-zinc-300">
-                            The picket duty officers for <span className="font-semibold">{studioName}</span> today are:{" "}
-                            <span className="font-semibold">
-                              {studioPickets.map((p) => p.user.name).join(", ")}
-                            </span>
+                        <div key={studioName} className="p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 space-y-2">
+                          <p className="text-xs font-bold text-zinc-900 dark:text-zinc-150 uppercase tracking-wider">
+                            Studio: {studioName}
                           </p>
+                          <div className="space-y-1.5 pl-2 text-xs">
+                            {studioPickets.map((p) => (
+                              <div key={p.id} className="text-zinc-750 dark:text-zinc-350">
+                                • <span className="font-medium text-zinc-850 dark:text-zinc-205">{p.user.name}</span>
+                                {p.note && (
+                                  <span className="text-[10px] text-zinc-500 italic block pl-3">
+                                    Note: &ldquo;{p.note}&rdquo;
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       );
                     })}

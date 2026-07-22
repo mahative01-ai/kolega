@@ -26,7 +26,9 @@ import {
   Megaphone,
   Check,
   X,
-  Loader2
+  Loader2,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createPersonalQrCredentialAction } from "@/app/member/presensi/actions";
@@ -44,6 +46,8 @@ import { quickReviewRequestAction } from "./requests/actions";
 import { quickReviewCorrectionAction } from "./corrections/actions";
 import { dedupeCalendarEvents, isApiHolidayCoveredByDbEvent } from "@/lib/calendar-events";
 import { formatMinutesAsClock, getCheckoutEligibility } from "@/lib/checkout-policy";
+import { ActiveAnnouncementsClient } from "@/components/active-announcements-client";
+import { ViewQrCardClient } from "@/components/view-qr-card-client";
 
 type Props = {
   currentUser: {
@@ -71,10 +75,12 @@ type Props = {
     picketToday: Array<{
       id: string;
       user: { name: string };
+      studio?: { name: string } | null;
+      note?: string | null;
     }>;
     monthLabel: string;
     personalWorkDayBalance: number;
-    selectedMonth: { year: number; monthIndex: number };
+    selectedMonth: { year: number; monthIndex: number; monthKey?: string };
     personalSummary: AttendanceSummary;
     personalSchedules: Array<{
       workDate: Date;
@@ -130,12 +136,21 @@ type Props = {
       label: string;
       isCutiBersama: boolean;
     }>;
+    activeAnnouncements: Array<{
+      id: string;
+      title: string;
+      message: string;
+      publishAt: Date | string;
+      eventDate: Date | string | null;
+      priority: number;
+    }>;
   };
   qrSvg: string | null;
   days: { date: Date; dateKey: string; dayNumber: number }[];
   leadingBlankDays: number;
   todayKey: string;
   scheduleByDateMap: Record<string, { workMode: string; note: string | null }>;
+  attendanceByDateMap: Record<string, { status: string; isManualCorrection: boolean; workMode: string }>;
 };
 
 const statusLabel: Record<string, string> = {
@@ -204,8 +219,13 @@ export function AdminDashboardClient({
   leadingBlankDays,
   todayKey,
   scheduleByDateMap,
+  attendanceByDateMap,
 }: Props) {
   const [activeTab, setActiveTab] = useState<"personal" | "studio">(() => defaultTab ?? "personal");
+  const prevDate = new Date(data.selectedMonth.year, data.selectedMonth.monthIndex - 1, 1);
+  const nextDate = new Date(data.selectedMonth.year, data.selectedMonth.monthIndex + 1, 1);
+  const prevMonthKey = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, "0")}`;
+  const nextMonthKey = `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, "0")}`;
   const isWfhMode = data.todaySchedule?.workMode === "WFH" || data.todayRecord?.workMode === "WFH";
   const checkoutEligibility = data.todayRecord?.checkInAt && !data.todayRecord.checkOutAt
     ? getCheckoutEligibility({
@@ -486,179 +506,198 @@ export function AdminDashboardClient({
             })}
           </section>
 
-          {/* Today's Record */}
-          <Card className="shadow-none">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
-                <Clock3 className="size-5 text-blue-700 dark:text-blue-400" />
-                My Attendance Today
-              </CardTitle>
-              <CardDescription className="text-zinc-500 dark:text-zinc-400">
-                {formatFullDate(new Date())}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-3">
-              <div className="rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-3 shadow-none">
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Check-in</p>
-                <p className="mt-1 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                  {formatTime(data.todayRecord?.checkInAt ?? null)}
-                </p>
-              </div>
-              <div className="rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-3 shadow-none">
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Check-out</p>
-                <p className="mt-1 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                  {formatTime(data.todayRecord?.checkOutAt ?? null)}
-                </p>
-              </div>
-              <div className="rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-3 shadow-none">
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Status</p>
-                <div className="mt-1">
-                  {data.todayRecord ? (
-                    <Badge
-                      className={cn("text-xs font-semibold px-2 py-0.5 border shadow-none", statusColor[data.todayRecord.status])}
-                    >
-                      {statusLabel[data.todayRecord.status] ?? data.todayRecord.status}
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-xs px-2 py-0.5 shadow-none">
-                      Not Checked In
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-            <CardContent className="pt-0 flex flex-wrap gap-2">
-              <Link
-                href="/member/presensi/riwayat"
-                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "flex items-center gap-1.5")}
-              >
-                <History className="size-4" />
-                View My Attendance History
-              </Link>
-              {!isWfhMode && (!data.todayRecord || !data.todayRecord.checkOutAt) && (
-                isCheckoutLocked ? (
-                  <span
-                    aria-disabled="true"
-                    title={`Check-out baru dibuka pukul ${checkoutAvailableTime}`}
-                    className={cn(
-                      buttonVariants({ variant: "default", size: "sm" }),
-                      "flex cursor-not-allowed items-center gap-1.5 bg-zinc-200 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400"
-                    )}
-                  >
-                    <Camera className="size-4" />
-                    Check-out opens {checkoutAvailableTime}
-                  </span>
-                ) : (
-                  <Link
-                    href={data.todayRecord?.checkInAt ? "/login?action=checkout" : "/member/presensi"}
-                    className={cn(buttonVariants({ variant: "default", size: "sm" }), "flex items-center gap-1.5")}
-                  >
-                    <Camera className="size-4" />
-                    {data.todayRecord?.checkInAt ? "Scan WFO Check-out" : "WFO Attendance (Camera/QR)"}
-                  </Link>
-                )
-              )}
-            </CardContent>
-            {isWfhMode && (
-              <CardContent className="border-t border-zinc-100 dark:border-zinc-800 pt-4">
-                <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 p-4 bg-zinc-50/50 dark:bg-zinc-900/10">
-                  <h3 className="text-sm font-semibold mb-3 text-zinc-900 dark:text-zinc-50 flex items-center gap-1.5">
-                    <Home className="size-4 text-emerald-600" />
-                    WFH Attendance
-                  </h3>
-                  <WfhForm
-                    hasCheckedIn={!!data.todayRecord?.checkInAt}
-                    hasCheckedOut={!!data.todayRecord?.checkOutAt}
-                    checkInPlan={data.todayRecord?.wfhPlan}
-                  />
-                </div>
-              </CardContent>
-            )}
-            {!isWfhMode && data.todayRecord?.checkInAt && (
-              <CardContent className="border-t border-zinc-100 pt-4 dark:border-zinc-800">
-                <div className="rounded-lg border border-zinc-200 bg-zinc-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-900/10">
-                  <h3 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-zinc-900 dark:text-zinc-50">
-                    <ClipboardCheck className="size-4 text-emerald-600" />
-                    Today&apos;s WFO Journal
-                  </h3>
-                  <WfoJournalForm initialJournal={data.todayRecord.wfhReport} />
-                </div>
-              </CardContent>
-            )}
-          </Card>
-
-          {/* QR and Calendar */}
-          <div className="grid gap-6 lg:grid-cols-[0.35fr_0.65fr]">
-            {/* QR Card */}
-            <Card className="shadow-none">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
-                  <QrCode className="size-5 text-zinc-700 dark:text-zinc-400" />
-                  My QR Card
-                </CardTitle>
-                <CardDescription className="text-zinc-500 dark:text-zinc-400">
-                  Digital QR card for scanning office attendance.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {data.qrCredential ? (
-                  <>
-                    <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
-                      <div
-                        className="mx-auto flex size-44 items-center justify-center [&_svg]:size-40 dark:[&_svg_rect]:fill-zinc-900"
-                        dangerouslySetInnerHTML={{ __html: qrSvg ?? "" }}
-                      />
+          {/* Main Layout Grid */}
+          <div className="grid gap-6 lg:grid-cols-[1fr_2fr]">
+            <div className="space-y-6">
+              {/* Today's Record */}
+              <Card className="shadow-none h-full flex flex-col justify-between">
+                <div>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
+                      <Clock3 className="size-5 text-blue-700 dark:text-blue-400" />
+                      My Attendance Today
+                    </CardTitle>
+                    <CardDescription className="text-zinc-500 dark:text-zinc-400">
+                      {formatFullDate(new Date())}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="grid gap-3 grid-cols-3">
+                    <div className="rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-2.5 shadow-sm">
+                      <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">Check-in</p>
+                      <p className="mt-1 text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                        {formatTime(data.todayRecord?.checkInAt ?? null)}
+                      </p>
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">QR UID</p>
-                      <div className="rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 px-3 py-1 font-mono text-xs truncate text-zinc-700 dark:text-zinc-300">
-                        {data.qrCredential.qrUid}
+                    <div className="rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-2.5 shadow-sm">
+                      <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">Check-out</p>
+                      <p className="mt-1 text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                        {formatTime(data.todayRecord?.checkOutAt ?? null)}
+                      </p>
+                    </div>
+                    <div className="rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-2.5 shadow-sm">
+                      <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">Status</p>
+                      <div className="mt-1">
+                        {data.todayRecord ? (
+                          <Badge
+                            className={cn("text-[10px] font-semibold px-1.5 py-0 border shadow-none", statusColor[data.todayRecord.status])}
+                          >
+                            {statusLabel[data.todayRecord.status] ?? data.todayRecord.status}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-[10px] px-1.5 py-0 shadow-none">
+                            Absent
+                          </Badge>
+                        )}
                       </div>
                     </div>
-                    <div className="grid gap-2">
-                      <a
-                        href="/member/presensi/qr-card?format=html"
-                        className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-full flex items-center justify-center gap-1.5")}
-                      >
-                        <Download className="size-4" />
-                        View QR Card
-                      </a>
-                    </div>
-                  </>
-                ) : (
-                  <form action={createPersonalQrCredentialAction}>
-                    <Button type="submit" className="w-full">
-                      <ShieldCheck className="mr-1.5 size-4" />
-                      Activate QR Card
-                    </Button>
-                  </form>
-                )}
-              </CardContent>
-            </Card>
+                  </CardContent>
 
-            {/* Calendar */}
-            <Card className="shadow-none">
-              <CardHeader>
-                <CardTitle className="text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
-                  <CalendarDays className="size-5 text-blue-700 dark:text-blue-400" />
-                  My Work Calendar
-                </CardTitle>
-                <CardDescription className="text-zinc-500 dark:text-zinc-400">
-                  Your personal work mode calendar for this month.
-                </CardDescription>
+                  {isWfhMode && (
+                    <CardContent className="border-t border-zinc-100 dark:border-zinc-800 pt-3 mt-3">
+                      <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 p-3 bg-zinc-50/50 dark:bg-zinc-900/10">
+                        <h3 className="text-xs font-semibold mb-2 text-zinc-900 dark:text-zinc-50 flex items-center gap-1.5">
+                          <Home className="size-3.5 text-emerald-600" />
+                          WFH Attendance
+                        </h3>
+                        <WfhForm
+                          hasCheckedIn={!!data.todayRecord?.checkInAt}
+                          hasCheckedOut={!!data.todayRecord?.checkOutAt}
+                          checkInPlan={data.todayRecord?.wfhPlan}
+                        />
+                      </div>
+                    </CardContent>
+                  )}
+
+                  {!isWfhMode && data.todayRecord?.checkInAt && (
+                    <CardContent className="border-t border-zinc-100 dark:border-zinc-800 pt-3 mt-3">
+                      <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 p-3 bg-zinc-50/50 dark:bg-zinc-900/10">
+                        <h3 className="text-xs font-semibold mb-2 text-zinc-900 dark:text-zinc-50 flex items-center gap-1.5 font-sans">
+                          <ClipboardCheck className="size-3.5 text-emerald-600" />
+                          Today&apos;s WFO Journal
+                        </h3>
+                        <WfoJournalForm
+                          initialJournal={data.todayRecord.wfhReport}
+                        />
+                      </div>
+                    </CardContent>
+                  )}
+                </div>
+
+                <CardContent className="pt-3 border-t border-zinc-150 dark:border-zinc-850 flex flex-wrap gap-2 justify-between">
+                  <Link
+                    href="/member/presensi/riwayat"
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "flex items-center gap-1 text-xs")}
+                  >
+                    <History className="size-3.5" />
+                    History
+                  </Link>
+                  
+                  {!isWfhMode && (!data.todayRecord || !data.todayRecord.checkOutAt) && (
+                    isCheckoutLocked ? (
+                      <span
+                        aria-disabled="true"
+                        title={`Check-out opens at ${checkoutAvailableTime}`}
+                        className={cn(
+                          buttonVariants({ variant: "default", size: "sm" }),
+                          "flex cursor-not-allowed items-center gap-1 text-xs bg-zinc-200 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400"
+                        )}
+                      >
+                        <Camera className="size-3.5" />
+                        Locked {checkoutAvailableTime}
+                      </span>
+                    ) : (
+                      <Link
+                        href={data.todayRecord?.checkInAt ? "/login?action=checkout" : "/member/presensi"}
+                        className={cn(
+                          buttonVariants({ variant: "default", size: "sm" }),
+                          "flex items-center gap-1 text-xs bg-zinc-950 dark:bg-zinc-100 hover:bg-zinc-900 dark:hover:bg-zinc-200 text-white dark:text-zinc-950 cursor-pointer"
+                        )}
+                      >
+                        <Camera className="size-3.5" />
+                        {data.todayRecord?.checkInAt ? "Scan Out" : "Scan In"}
+                      </Link>
+                    )
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* QR Card Setup / View Banner */}
+              {data.qrCredential ? (
+                <div className="flex items-center justify-between p-3.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-sm animate-in fade-in duration-200">
+                  <div className="flex items-center gap-2 text-sm text-zinc-650 dark:text-zinc-400">
+                    <QrCode className="size-4 text-zinc-500" />
+                    <span className="font-medium text-zinc-700 dark:text-zinc-300">Your active QR Card is ready.</span>
+                  </div>
+                  <ViewQrCardClient />
+                </div>
+              ) : (
+                <Card className="shadow-none border-dashed border-2 border-zinc-200 dark:border-zinc-800">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50 text-base">
+                      <QrCode className="size-5 text-zinc-750 dark:text-zinc-400 animate-pulse" />
+                      Setup Your QR Card
+                    </CardTitle>
+                    <CardDescription className="text-zinc-550 dark:text-zinc-450 text-xs">
+                      You need to activate your digital QR Card once to check-in at the studio.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <form action={createPersonalQrCredentialAction}>
+                      <Button type="submit" size="sm" className="w-full sm:w-auto bg-zinc-950 text-white hover:bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200 font-semibold cursor-pointer">
+                        <ShieldCheck className="mr-1.5 size-4" />
+                        Activate QR Card
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Broadcast Announcements */}
+              <ActiveAnnouncementsClient announcements={data.activeAnnouncements} />
+            </div>
+
+            {/* Work Calendar */}
+            <Card className="shadow-none border border-zinc-200 dark:border-zinc-800">
+              <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-zinc-150 dark:border-zinc-800 pb-3">
+                <div>
+                  <CardTitle className="text-zinc-900 dark:text-zinc-50 text-base">My Work Calendar</CardTitle>
+                  <CardDescription className="text-zinc-550 dark:text-zinc-455 text-xs">
+                    Your personal work mode calendar for this month.
+                  </CardDescription>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Link
+                    href={`/admin?month=${prevMonthKey}`}
+                    className={cn(buttonVariants({ variant: "outline", size: "icon" }), "h-8 w-8 cursor-pointer")}
+                    title="Previous Month"
+                  >
+                    <ChevronLeft className="size-4" />
+                  </Link>
+                  <span className="text-xs font-bold min-w-[110px] text-center select-none text-zinc-850 dark:text-zinc-200">
+                    {data.monthLabel}
+                  </span>
+                  <Link
+                    href={`/admin?month=${nextMonthKey}`}
+                    className={cn(buttonVariants({ variant: "outline", size: "icon" }), "h-8 w-8 cursor-pointer")}
+                    title="Next Month"
+                  >
+                    <ChevronRight className="size-4" />
+                  </Link>
+                </div>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-7 border border-zinc-200 dark:border-zinc-800 rounded overflow-hidden">
-                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-                    <div key={d} className="bg-zinc-50 dark:bg-zinc-900/50 py-1.5 text-center text-[10px] font-bold text-zinc-500 border-b border-zinc-200 dark:border-zinc-800">
+              <CardContent className="pt-4">
+                <div className="grid grid-cols-7 border border-zinc-250 dark:border-zinc-800 rounded overflow-hidden">
+                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
+                    <div key={d} className="bg-zinc-50 dark:bg-zinc-900/50 py-1.5 text-center text-[10px] font-bold text-zinc-650 border-b border-zinc-200 dark:border-zinc-800">
                       {d}
                     </div>
                   ))}
                   {Array.from({ length: leadingBlankDays }, (_, idx) => (
-                    <div key={`blank-${idx}`} className="bg-zinc-50/50 dark:bg-zinc-900/10 border-b border-r border-zinc-100 dark:border-zinc-800 min-h-12" />
+                    <div key={`blank-${idx}`} className="bg-zinc-50/50 dark:bg-zinc-900/10 border-b border-r border-zinc-150 dark:border-zinc-800 min-h-12" />
                   ))}
                   {days.map((day) => {
                     const schedule = scheduleByDateMap[day.dateKey];
+                    const attendanceRecord = attendanceByDateMap[day.dateKey];
                     const isToday = day.dateKey === todayKey;
                     const dayHolidays = adminHolidaysMap.get(day.dateKey) ?? [];
 
@@ -674,20 +713,53 @@ export function AdminDashboardClient({
                       <div
                         key={day.dateKey}
                         className={cn(
-                          "min-h-16 p-1 bg-white dark:bg-zinc-950 flex flex-col justify-between transition-colors",
-                          isToday && "bg-blue-50/30 dark:bg-blue-950/10"
+                          "min-h-16 p-1 bg-white dark:bg-zinc-950 flex flex-col justify-between transition-colors border-b border-r border-zinc-150 dark:border-zinc-800",
+                          isToday && "bg-zinc-50 dark:bg-zinc-900/50"
                         )}
                       >
-                        <span
-                          className={cn(
-                            "inline-flex size-5 items-center justify-center rounded-full text-[10px] font-semibold",
-                            isToday
-                              ? "bg-blue-700 dark:bg-blue-400 text-white dark:text-zinc-950"
-                              : "text-zinc-500 dark:text-zinc-400"
-                          )}
-                        >
-                          {day.dayNumber}
-                        </span>
+                        <div className="flex items-center justify-between">
+                          <span
+                            className={cn(
+                              "inline-flex size-5 items-center justify-center rounded-full text-[10px] font-semibold",
+                              isToday
+                                ? "bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950"
+                                : "text-zinc-500 dark:text-zinc-400"
+                            )}
+                          >
+                            {day.dayNumber}
+                          </span>
+                          <div className="flex items-center gap-1 flex-wrap justify-end">
+                            {isRealHoliday ? (
+                              <span className="rounded px-1 py-0.5 text-[8px] font-semibold border bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-300 border-red-200 dark:border-red-900">
+                                Holiday
+                              </span>
+                            ) : attendanceRecord ? (
+                              <div className="flex flex-col items-end gap-0.5">
+                                <span className={cn("rounded px-1 py-0.5 text-[8px] font-semibold border uppercase", statusColor[attendanceRecord.status] || "bg-zinc-100 text-zinc-700 border-zinc-200")}>
+                                  {attendanceRecord.status === "PRESENT" ? "Present" : attendanceRecord.status}
+                                </span>
+                                {attendanceRecord.isManualCorrection && (
+                                  <span className="text-[7px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 px-1 py-0.2 rounded border border-blue-100 dark:border-blue-900/50">
+                                    Corrected
+                                  </span>
+                                )}
+                              </div>
+                            ) : schedule ? (
+                              <span className={cn(
+                                "rounded px-1 py-0.5 text-[8px] font-medium border",
+                                schedule.workMode === "WFH"
+                                  ? "bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-900"
+                                  : "bg-zinc-100 dark:bg-zinc-900 text-zinc-655 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800"
+                              )}>
+                                {schedule.workMode}
+                              </span>
+                            ) : (
+                              <span className="rounded px-1 py-0.5 text-[8px] font-medium border bg-zinc-100 dark:bg-zinc-900 text-zinc-655 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800">
+                                WFO
+                              </span>
+                            )}
+                          </div>
+                        </div>
 
                         <div className="space-y-0.5 mt-1">
                           {dayHolidays.map((h, hIdx) => (
@@ -699,7 +771,7 @@ export function AdminDashboardClient({
                                   ? "bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900"
                                   : h.type === "COMPANY_LEAVE"
                                   ? "bg-orange-50 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-900"
-                                  : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700"
+                                  : "bg-zinc-100 dark:bg-zinc-800 text-zinc-650 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700"
                               )}
                               title={h.title}
                             >
@@ -711,21 +783,23 @@ export function AdminDashboardClient({
                             <div className="text-[8px] font-bold px-1 py-0.5 rounded border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 text-center select-none font-semibold">
                               Holiday
                             </div>
-                          ) : schedule ? (
-                            <div
-                              className={cn(
-                                "text-[8px] font-bold px-1 py-0.5 rounded border truncate text-center select-none",
-                                workModeStyles[schedule.workMode]
-                              )}
-                              title={schedule.note || workModeLabels[schedule.workMode]}
-                            >
-                              {schedule.workMode}
-                            </div>
+                          ) : attendanceRecord ? (
+                            <p className="truncate text-[8px] text-zinc-500 font-medium italic">
+                              Mode: {attendanceRecord.workMode}
+                            </p>
+                          ) : schedule?.note ? (
+                            <p className="truncate text-[8px] text-zinc-400 font-medium" title={schedule.note}>
+                              {schedule.note}
+                            </p>
                           ) : hasReplacement ? (
-                            <div className="text-[8px] font-bold px-1 py-0.5 rounded border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 text-center select-none font-semibold">
-                              WFO
-                            </div>
-                          ) : null}
+                            <p className="truncate text-[8px] text-zinc-500 font-semibold" title="Replacement Workday">
+                              Replacement (WFO)
+                            </p>
+                          ) : (
+                            <p className="truncate text-[8px] text-zinc-300 dark:text-zinc-600 font-medium">
+                              Default WFO
+                            </p>
+                          )}
                         </div>
                       </div>
                     );
@@ -913,12 +987,25 @@ export function AdminDashboardClient({
                     There are no picket duty officers assigned for today.
                   </p>
                 ) : (
-                  <p className="text-sm text-zinc-700 dark:text-zinc-300">
-                    The picket duty officers for today are:{" "}
-                    <span className="font-semibold">
-                      {data.picketToday.map((p) => p.user.name).join(", ")}
-                    </span>
-                  </p>
+                  <div className="space-y-3">
+                    {data.picketToday.map((p) => (
+                      <div key={p.id} className="p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 text-xs">
+                        <div className="flex items-center justify-between font-semibold">
+                          <span className="text-sm text-zinc-900 dark:text-zinc-100">{p.user.name}</span>
+                          <span className="text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-650 dark:text-zinc-400 px-2 py-0.5 rounded border border-zinc-200 dark:border-zinc-700">
+                            Studio: {p.studio?.name ?? "N/A"}
+                          </span>
+                        </div>
+                        {p.note ? (
+                          <div className="mt-2 text-zinc-600 dark:text-zinc-400 italic bg-zinc-100/50 dark:bg-zinc-950/20 p-2 rounded border border-zinc-200/50 dark:border-zinc-800/50">
+                            Note: &ldquo;{p.note}&rdquo;
+                          </div>
+                        ) : (
+                          <p className="mt-1 text-[10px] text-zinc-400">No special instructions provided.</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 )}
               </CardContent>
             </Card>

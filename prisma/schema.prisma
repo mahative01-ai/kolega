@@ -113,6 +113,7 @@ model Studio {
   locationAttendances  AttendanceRecord[] @relation("AttendanceLocationStudio")
   picketSchedules      PicketSchedule[]
   reminders            Reminder[]
+  announcements        Announcement[]     @relation("StudioAnnouncements")
 }
 
 model User {
@@ -158,6 +159,7 @@ model User {
   auditLogs                  AuditLog[]             @relation("AuditActor")
   payslips                   Payslip[]
   passwordResetTokens        PasswordResetToken[]
+  createdAnnouncements       Announcement[]         @relation("CreatedAnnouncements")
 
   @@index([role])
   @@index([accountStatus])
@@ -465,4 +467,25 @@ model Payslip {
 
   @@unique([userId, month, year])
   @@index([userId])
+}
+
+model Announcement {
+  id             String    @id @default(uuid())
+  title          String
+  message        String    @db.Text
+  targetStudioId String?
+  targetStudio   Studio?   @relation("StudioAnnouncements", fields: [targetStudioId], references: [id])
+  allStudios     Boolean   @default(false)
+  publishAt      DateTime  @default(now())
+  eventDate      DateTime?
+  expiresAt      DateTime?
+  priority       Int       @default(0)
+  isActive       Boolean   @default(true)
+  createdById    String
+  createdBy      User      @relation("CreatedAnnouncements", fields: [createdById], references: [id])
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([targetStudioId, isActive])
+  @@index([publishAt, expiresAt])
 }

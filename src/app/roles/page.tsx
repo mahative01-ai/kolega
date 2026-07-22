@@ -112,8 +112,11 @@ async function getRoleData(actor: Awaited<ReturnType<typeof requireAnyRole>>) {
     isSuperAdmin
       ? prisma.user.findMany({
           where: {
-            role: { in: ["ADMIN", "SUPER_ADMIN"] },
             accountStatus: "ACTIVE",
+            OR: [
+              { role: "ADMIN" },
+              { role: "MEMBER", memberStatus: "TEAM" },
+            ],
           },
           select: { id: true, name: true },
           orderBy: { name: "asc" },
@@ -121,9 +124,12 @@ async function getRoleData(actor: Awaited<ReturnType<typeof requireAnyRole>>) {
       : actor.defaultStudioId
         ? prisma.user.findMany({
             where: {
-              role: { in: ["ADMIN", "SUPER_ADMIN"] },
               accountStatus: "ACTIVE",
               defaultStudioId: actor.defaultStudioId,
+              OR: [
+                { role: "ADMIN" },
+                { role: "MEMBER", memberStatus: "TEAM" },
+              ],
             },
             select: { id: true, name: true },
             orderBy: { name: "asc" },

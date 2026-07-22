@@ -212,7 +212,7 @@ export function LaporanPresensiTabsClient({
                   <TableRow>
                     <TableHead>
                       <button type="button" onClick={() => handleSort("name")} className="flex items-center gap-1 hover:text-zinc-950 dark:hover:text-zinc-50 transition-colors">
-                        Member
+                        Name
                         <ArrowUpDown className="size-3" />
                       </button>
                     </TableHead>
@@ -252,7 +252,6 @@ export function LaporanPresensiTabsClient({
                         <ArrowUpDown className="size-3" />
                       </button>
                     </TableHead>
-                    <TableHead>Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <AttendanceTableBodyClient

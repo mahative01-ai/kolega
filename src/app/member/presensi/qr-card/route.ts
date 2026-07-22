@@ -20,7 +20,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const format = searchParams.get("format") ?? "html";
 
-  if (!["html", "svg", "png"].includes(format)) {
+  if (!["html", "svg", "png", "jpeg"].includes(format)) {
     return new Response("Format QR Card tidak didukung.", { status: 400 });
   }
 
@@ -273,6 +273,19 @@ export async function GET(request: Request) {
         "Content-Disposition": 'attachment; filename="kolega-qr-card.svg"',
         "Cache-Control": "private, no-store",
       }
+    });
+  }
+
+  if (format === "jpeg") {
+    const imagePipeline = sharp(Buffer.from(svg));
+    const image = await imagePipeline.jpeg().toBuffer();
+
+    return new Response(new Uint8Array(image), {
+      headers: {
+        "Content-Type": "image/jpeg",
+        "Content-Disposition": 'attachment; filename="kolega-qr-card.jpg"',
+        "Cache-Control": "private, no-store",
+      },
     });
   }
 

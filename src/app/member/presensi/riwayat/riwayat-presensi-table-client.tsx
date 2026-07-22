@@ -263,7 +263,7 @@ export function RiwayatPresensiTableClient({ records }: Props) {
                         const diffTime = todayMidnight.getTime() - recordDate.getTime();
                         const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
-                        if (diffDays >= 2 && diffDays <= 7) {
+                        if (diffDays >= 0 && diffDays <= 7) {
                           return (
                             <Link
                               href={`/member/corrections?recordId=${record.id}`}

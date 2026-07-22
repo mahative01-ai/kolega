@@ -1,4 +1,4 @@
-export const dayLabels = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
+export const dayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 export const JAKARTA_TIME_ZONE = "Asia/Jakarta";
 
 export function dateOnly(date = new Date()) {
