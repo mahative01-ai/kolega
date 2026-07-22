@@ -19,6 +19,7 @@ function escapeXml(value: string) {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const format = searchParams.get("format") ?? "html";
+  const embed = searchParams.get("embed") === "1";
 
   if (!["html", "svg", "png", "jpeg"].includes(format)) {
     return new Response("Format QR Card tidak didukung.", { status: 400 });
@@ -95,6 +96,55 @@ export async function GET(request: Request) {
 </svg>`;
 
   if (format === "html") {
+    if (embed) {
+      return new Response(`
+        <!DOCTYPE html>
+        <html lang="id">
+          <head>
+            <title>QR Card Preview</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <style>
+              * { box-sizing: border-box; }
+              html, body {
+                width: 100%;
+                min-height: 100%;
+                margin: 0;
+                background: transparent;
+                font-family: Arial, Helvetica, sans-serif;
+              }
+              body {
+                display: grid;
+                place-items: center;
+                padding: 12px;
+              }
+              .card-container {
+                display: flex;
+                width: 100%;
+                justify-content: center;
+                overflow: hidden;
+              }
+              .card-container svg {
+                width: min(100%, 560px);
+                height: auto;
+                display: block;
+                filter: drop-shadow(0 8px 18px rgba(15, 23, 42, 0.10));
+              }
+            </style>
+          </head>
+          <body>
+            <div class="card-container">
+              ${svg}
+            </div>
+          </body>
+        </html>
+      `, {
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+          "Cache-Control": "no-store",
+        },
+      });
+    }
+
     return new Response(`
       <!DOCTYPE html>
       <html lang="id">

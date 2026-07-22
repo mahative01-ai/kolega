@@ -10,8 +10,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Megaphone, Calendar, ChevronRight } from "lucide-react";
+import { Megaphone, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 type AnnouncementItem = {
@@ -44,23 +43,44 @@ export function ActiveAnnouncementsClient({ announcements }: Props) {
     }).format(new Date(dateStr));
   };
 
+  const primary = displayList[0];
+
   return (
-    <Card className="shadow-none border border-zinc-200 dark:border-zinc-800">
-      <CardHeader className="pb-3 border-b border-zinc-150 dark:border-zinc-800 flex flex-row items-center justify-between">
-        <div>
-          <CardTitle className="text-sm font-bold flex items-center gap-1.5 text-zinc-900 dark:text-zinc-50">
-            <Megaphone className="size-4 text-blue-700 dark:text-blue-400" />
-            Studio Announcements
-          </CardTitle>
-          <CardDescription className="text-[10px] text-zinc-500">
-            Active announcements and upcoming events.
-          </CardDescription>
+    <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-950 shadow-sm dark:border-blue-900 dark:bg-blue-950/20 dark:text-blue-200">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex min-w-0 gap-3">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-blue-200 bg-white text-blue-700 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-300">
+            <Megaphone className="size-4" />
+          </div>
+          <div className="min-w-0 space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="font-bold text-blue-950 dark:text-blue-200">Studio Announcements</h3>
+              {announcements.length > 1 && (
+                <Badge variant="outline" className="border-blue-200 bg-white/70 text-[10px] text-blue-700 dark:border-blue-900 dark:bg-blue-950/30 dark:text-blue-300">
+                  {announcements.length} active
+                </Badge>
+              )}
+            </div>
+            <p className="font-semibold text-blue-900 dark:text-blue-200">{primary.title}</p>
+            <p className="line-clamp-2 text-xs leading-relaxed text-blue-800/80 dark:text-blue-300/80">
+              {primary.message}
+            </p>
+            <div className="flex flex-wrap items-center gap-2 pt-1 text-[10px] text-blue-700/70 dark:text-blue-300/70">
+              <span>Published: {formatDate(primary.publishAt)}</span>
+              {primary.eventDate && (
+                <span className="inline-flex items-center gap-1">
+                  <Calendar className="size-3" />
+                  Event: {formatDate(primary.eventDate)}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
         {hasMore && (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger
               render={
-                <Button variant="ghost" size="sm" className="h-7 text-xs text-blue-600 dark:text-blue-450 hover:underline cursor-pointer">
+                <Button variant="outline" size="sm" className="h-8 shrink-0 border-blue-200 bg-white text-xs text-blue-700 hover:bg-blue-50 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-950/60 cursor-pointer">
                   View all ({announcements.length})
                 </Button>
               }
@@ -110,35 +130,7 @@ export function ActiveAnnouncementsClient({ announcements }: Props) {
             </DialogContent>
           </Dialog>
         )}
-      </CardHeader>
-      <CardContent className="pt-4 space-y-3">
-        {displayList.map((ann) => (
-          <div key={ann.id} className="text-xs border-b border-zinc-100 dark:border-zinc-800 pb-3 last:border-b-0 last:pb-0">
-            <div className="flex items-center justify-between gap-2">
-              <span className="font-semibold text-zinc-900 dark:text-zinc-200">{ann.title}</span>
-              <div className="flex items-center gap-1 shrink-0">
-                {ann.priority > 0 && (
-                  <span className="bg-red-50 text-red-700 dark:bg-red-950/20 dark:text-red-400 border border-red-100 text-[8px] font-bold px-1 rounded">
-                    High
-                  </span>
-                )}
-                {ann.eventDate && (
-                  <span className="text-[9px] text-zinc-400 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-1 rounded flex items-center gap-0.5">
-                    <Calendar className="size-2.5" />
-                    {formatDate(ann.eventDate)}
-                  </span>
-                )}
-              </div>
-            </div>
-            <p className="text-zinc-600 dark:text-zinc-405 mt-1.5 leading-relaxed whitespace-pre-wrap">
-              {ann.message}
-            </p>
-            <span className="text-[9px] text-zinc-400 block mt-1">
-              Published: {formatDate(ann.publishAt)}
-            </span>
-          </div>
-        ))}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

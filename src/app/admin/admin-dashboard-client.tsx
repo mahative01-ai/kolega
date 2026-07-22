@@ -430,6 +430,43 @@ export function AdminDashboardClient({
       {/* ───── TAB 1: PERSONAL WORKSPACE (AKTIVITAS SAYA) ───── */}
       {activeTab === "personal" && (
         <div className="space-y-6 animate-in fade-in-50 duration-200">
+          <ActiveAnnouncementsClient announcements={data.activeAnnouncements} />
+
+          {data.qrCredential ? (
+            <div className="flex items-center justify-between rounded-xl border border-zinc-200 bg-white p-4 shadow-sm animate-in fade-in duration-200 dark:border-zinc-800 dark:bg-zinc-950">
+              <div className="flex items-center gap-3 text-sm text-zinc-650 dark:text-zinc-400">
+                <div className="flex size-9 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
+                  <QrCode className="size-4 text-zinc-500" />
+                </div>
+                <div>
+                  <p className="font-semibold text-zinc-900 dark:text-zinc-100">Your active QR Card is ready.</p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">Use this card for your personal WFO attendance.</p>
+                </div>
+              </div>
+              <ViewQrCardClient />
+            </div>
+          ) : (
+            <Card className="shadow-none border-dashed border-2 border-zinc-200 dark:border-zinc-800">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50 text-base">
+                  <QrCode className="size-5 text-zinc-750 dark:text-zinc-400 animate-pulse" />
+                  Setup Your QR Card
+                </CardTitle>
+                <CardDescription className="text-zinc-550 dark:text-zinc-450 text-xs">
+                  Activate your QR Card once to check in at the studio.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <form action={createPersonalQrCredentialAction}>
+                  <Button type="submit" size="sm" className="w-full sm:w-auto bg-zinc-950 text-white hover:bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200 font-semibold cursor-pointer">
+                    <ShieldCheck className="mr-1.5 size-4" />
+                    Activate QR Card
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Metrics */}
           <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             {personalMetrics.map((metric) => {
@@ -576,39 +613,6 @@ export function AdminDashboardClient({
                 </CardContent>
               </Card>
 
-              {/* QR Card Setup / View Banner */}
-              {data.qrCredential ? (
-                <div className="flex items-center justify-between p-3.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-sm animate-in fade-in duration-200">
-                  <div className="flex items-center gap-2 text-sm text-zinc-650 dark:text-zinc-400">
-                    <QrCode className="size-4 text-zinc-500" />
-                    <span className="font-medium text-zinc-700 dark:text-zinc-300">Your active QR Card is ready.</span>
-                  </div>
-                  <ViewQrCardClient />
-                </div>
-              ) : (
-                <Card className="shadow-none border-dashed border-2 border-zinc-200 dark:border-zinc-800">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50 text-base">
-                      <QrCode className="size-5 text-zinc-750 dark:text-zinc-400 animate-pulse" />
-                      Setup Your QR Card
-                    </CardTitle>
-                    <CardDescription className="text-zinc-550 dark:text-zinc-450 text-xs">
-                      You need to activate your digital QR Card once to check-in at the studio.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <form action={createPersonalQrCredentialAction}>
-                      <Button type="submit" size="sm" className="w-full sm:w-auto bg-zinc-950 text-white hover:bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200 font-semibold cursor-pointer">
-                        <ShieldCheck className="mr-1.5 size-4" />
-                        Activate QR Card
-                      </Button>
-                    </form>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Broadcast Announcements */}
-              <ActiveAnnouncementsClient announcements={data.activeAnnouncements} />
             </div>
 
             {/* Work Calendar */}
