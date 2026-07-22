@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -118,6 +120,17 @@ export function AttendanceDetailDialog({
   statusColor,
   statusLabel,
 }: Props) {
+  const hasCheckIn = typeof record?.checkInLatitude === "number" && typeof record?.checkInLongitude === "number";
+  const hasCheckOut = typeof record?.checkOutLatitude === "number" && typeof record?.checkOutLongitude === "number";
+
+  const [activeMapTab, setActiveMapTab] = useState<"in" | "out">("in");
+  const [prevRecordId, setPrevRecordId] = useState<string | null>(null);
+
+  if (record && record.id !== prevRecordId) {
+    setPrevRecordId(record.id);
+    setActiveMapTab(hasCheckIn ? "in" : "out");
+  }
+
   if (!record) return null;
 
   const mood = getMood(record.mood || record.user.currentMood);
@@ -348,6 +361,80 @@ export function AttendanceDetailDialog({
                     </div>
                   </div>
                 </div>
+
+                {/* Map Visualization */}
+                {(hasCheckIn || hasCheckOut) && (
+                  <div className="border-t border-zinc-100 dark:border-zinc-800/80 pt-4 space-y-3">
+                    <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
+                      <MapPin className="size-4 text-emerald-600" />
+                      Location Map Visualization
+                    </p>
+
+                    {/* Switcher if both check-in and check-out coordinates exist */}
+                    {hasCheckIn && hasCheckOut && (
+                      <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-900 p-1 rounded-lg w-fit">
+                        <button
+                          type="button"
+                          onClick={() => setActiveMapTab("in")}
+                          className={cn(
+                            "px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer",
+                            activeMapTab === "in"
+                              ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50 shadow-sm"
+                              : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                          )}
+                        >
+                          Check-in Map
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setActiveMapTab("out")}
+                          className={cn(
+                            "px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer",
+                            activeMapTab === "out"
+                              ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50 shadow-sm"
+                              : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                          )}
+                        >
+                          Check-out Map
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Map Iframe */}
+                    {(() => {
+                      const showInMap = activeMapTab === "in" && hasCheckIn;
+                      const lat = showInMap ? record.checkInLatitude : record.checkOutLatitude;
+                      const lng = showInMap ? record.checkInLongitude : record.checkOutLongitude;
+
+                      if (lat === null || lat === undefined || lng === null || lng === undefined) return null;
+
+                      return (
+                        <div className="rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-sm bg-zinc-50 dark:bg-zinc-950">
+                          <iframe
+                            src={`https://maps.google.com/maps?q=${lat},${lng}&t=&z=16&ie=UTF8&iwloc=&output=embed`}
+                            width="100%"
+                            height="280"
+                            style={{ border: 0 }}
+                            className="w-full block"
+                            allowFullScreen={true}
+                            loading="lazy"
+                          />
+                          <div className="px-3 py-2 bg-zinc-50/80 dark:bg-zinc-900/60 border-t border-zinc-100 dark:border-zinc-800/80 text-[11px] text-zinc-500 dark:text-zinc-400 flex items-center justify-between">
+                            <span>Showing {showInMap ? "Check-in" : "Check-out"} Coordinates: {lat.toFixed(6)}, {lng.toFixed(6)}</span>
+                            <a
+                              href={`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 dark:text-blue-400 hover:underline font-semibold"
+                            >
+                              Open in Google Maps
+                            </a>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
               </div>
             </TabsContent>
 
