@@ -152,6 +152,9 @@ export async function GET(request: Request) {
         <head>
           <title>Kolega QR Card</title>
           <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+          <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
           <style>
             * {
               box-sizing: border-box;
@@ -159,78 +162,141 @@ export async function GET(request: Request) {
             body {
               min-height: 100vh;
               margin: 0;
-              background-color: #f4f4f5;
-              color: #18181b;
-              font-family: Arial, Helvetica, sans-serif;
+              background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+              color: #0f172a;
+              font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
             }
             main {
-              width: min(100%, 860px);
+              width: min(100%, 800px);
+              padding: 40px 24px;
               margin: 0 auto;
-              padding: 32px 18px;
             }
             .toolbar {
               display: flex;
-              flex-wrap: wrap;
-              align-items: center;
-              justify-content: space-between;
+              flex-direction: column;
               gap: 16px;
-              margin-bottom: 20px;
+              margin-bottom: 28px;
+            }
+            @media (min-width: 640px) {
+              .toolbar {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+              }
             }
             .title {
               margin: 0;
-              font-size: 24px;
-              line-height: 1.2;
+              font-size: 28px;
+              font-weight: 800;
+              letter-spacing: -0.5px;
+              color: #09090b;
             }
             .description {
               margin: 6px 0 0;
-              color: #71717a;
+              color: #64748b;
               font-size: 14px;
+              font-weight: 400;
             }
             .actions {
               display: flex;
               flex-wrap: wrap;
-              gap: 8px;
+              gap: 10px;
             }
             .button {
               display: inline-flex;
               align-items: center;
               justify-content: center;
-              min-height: 38px;
-              border-radius: 10px;
-              border: 1px solid #d4d4d8;
+              min-height: 40px;
+              border-radius: 12px;
+              border: 1px solid #e2e8f0;
               background: #ffffff;
-              color: #18181b;
-              padding: 0 14px;
-              font-size: 14px;
-              font-weight: 700;
+              color: #334155;
+              padding: 0 16px;
+              font-size: 13px;
+              font-weight: 600;
               text-decoration: none;
               cursor: pointer;
+              transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+              box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            }
+            .button:hover {
+              background: #f8fafc;
+              border-color: #cbd5e1;
+              color: #0f172a;
+              transform: translateY(-1px);
             }
             .button.primary {
-              border-color: #18181b;
-              background: #18181b;
+              border-color: #09090b;
+              background: #09090b;
               color: #ffffff;
+              box-shadow: 0 4px 12px rgba(9, 9, 11, 0.15);
+            }
+            .button.primary:hover {
+              background: #27272a;
+              border-color: #27272a;
+              color: #ffffff;
+              box-shadow: 0 6px 16px rgba(9, 9, 11, 0.25);
+            }
+            .button.secondary {
+              background: transparent;
+              border: 1px solid transparent;
+              box-shadow: none;
+              color: #64748b;
+            }
+            .button.secondary:hover {
+              background: #e2e8f0;
+              color: #0f172a;
             }
             .card-container {
               display: flex;
               justify-content: center;
-              overflow: auto;
-              padding: 16px;
-              border: 1px solid #e4e4e7;
-              border-radius: 28px;
-              background: white;
-              box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+              overflow: hidden;
+              padding: 24px;
+              border: 1px solid rgba(226, 232, 240, 0.8);
+              border-radius: 32px;
+              background: rgba(255, 255, 255, 0.8);
+              backdrop-filter: blur(12px);
+              -webkit-backdrop-filter: blur(12px);
+              box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.08), 
+                          0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+              transition: all 0.3s ease;
+            }
+            .card-container:hover {
+              transform: scale(1.01);
+              box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.12);
             }
             .card-container svg {
-              width: min(100%, 720px);
+              width: 100%;
               height: auto;
-              flex: 0 0 auto;
+              max-width: 720px;
+              display: block;
+              filter: drop-shadow(0 10px 20px rgba(15, 23, 42, 0.04));
+            }
+            .hint-box {
+              margin-top: 24px;
+              padding: 16px 20px;
+              border-radius: 16px;
+              background: #ffffff;
+              border: 1px solid #f1f5f9;
+              display: flex;
+              align-items: flex-start;
+              gap: 12px;
+              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+            }
+            .hint-icon {
+              font-size: 18px;
+              line-height: 1;
+              margin-top: 1px;
             }
             .hint {
-              margin: 16px 0 0;
-              color: #71717a;
+              margin: 0;
+              color: #64748b;
               font-size: 13px;
-              line-height: 1.5;
+              line-height: 1.6;
             }
             @media print {
               body {
@@ -241,7 +307,7 @@ export async function GET(request: Request) {
                 width: 100%;
               }
               .toolbar,
-              .hint {
+              .hint-box {
                 display: none;
               }
               .card-container {
@@ -261,18 +327,33 @@ export async function GET(request: Request) {
                 <p class="description">Preview your QR Card before saving or printing.</p>
               </div>
               <div class="actions">
-                <a class="button" href="${dashboardPath}">Back to Dashboard</a>
-                <button class="button" onclick="window.print()">Print / PDF</button>
-                <a class="button" href="/member/qr-card?format=svg" download="kolega-qr-card.svg">SVG</a>
-                <button class="button primary" onclick="downloadPngClient()">PNG</button>
+                <a class="button secondary" href="${dashboardPath}">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                  Back
+                </a>
+                <button class="button" onclick="window.print()">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                  Print / PDF
+                </button>
+                <a class="button" href="/member/qr-card?format=svg" download="kolega-qr-card.svg">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  SVG
+                </a>
+                <button class="button primary" onclick="downloadPngClient()">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                  PNG
+                </button>
               </div>
             </div>
             <div class="card-container">
               ${svg}
             </div>
-            <p class="hint">
-              To save this card as an image, open this page on the device you intend to use and take a screenshot, or print it to save as a PDF.
-            </p>
+            <div class="hint-box">
+              <span class="hint-icon">💡</span>
+              <p class="hint">
+                To save this card as an image, open this page on the device you intend to use and take a screenshot, or click <b>PNG</b> / <b>SVG</b>.
+              </p>
+            </div>
           </main>
 
           <script>
