@@ -99,7 +99,7 @@ export async function GET(request: Request) {
     if (embed) {
       return new Response(`
         <!DOCTYPE html>
-        <html lang="id">
+        <html lang="en">
           <head>
             <title>QR Card Preview</title>
             <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -107,27 +107,27 @@ export async function GET(request: Request) {
               * { box-sizing: border-box; }
               html, body {
                 width: 100%;
-                min-height: 100%;
+                height: 100%;
                 margin: 0;
+                padding: 0;
                 background: transparent;
+                overflow: hidden;
                 font-family: Arial, Helvetica, sans-serif;
               }
-              body {
-                display: grid;
-                place-items: center;
-                padding: 12px;
-              }
               .card-container {
-                display: flex;
                 width: 100%;
+                height: 100%;
+                display: flex;
+                align-items: center;
                 justify-content: center;
-                overflow: hidden;
               }
               .card-container svg {
-                width: min(100%, 560px);
+                width: 100%;
                 height: auto;
+                max-width: 720px;
+                max-height: 460px;
                 display: block;
-                filter: drop-shadow(0 8px 18px rgba(15, 23, 42, 0.10));
+                filter: drop-shadow(0 8px 18px rgba(15, 23, 42, 0.08));
               }
             </style>
           </head>

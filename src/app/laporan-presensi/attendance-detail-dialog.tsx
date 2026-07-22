@@ -17,6 +17,9 @@ import {
   ShieldCheck,
   Building,
   Mail,
+  Clock,
+  AlertCircle,
+  Hourglass,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -120,7 +123,7 @@ export function AttendanceDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-3xl overflow-hidden p-0 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 border-zinc-200 dark:border-zinc-800">
+      <DialogContent className="max-h-[90vh] sm:max-w-2xl md:max-w-3xl overflow-hidden p-0 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 border-zinc-200 dark:border-zinc-800">
         <DialogHeader className="border-b border-zinc-150 px-6 pt-6 pb-5 dark:border-zinc-800">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
@@ -140,7 +143,7 @@ export function AttendanceDetailDialog({
                     Mood: {mood.label}
                   </Badge>
                 </div>
-                <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-600 dark:text-zinc-400">
+                <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-650 dark:text-zinc-400">
                   <span className="inline-flex items-center gap-1"><Mail className="size-3.5 text-zinc-400 dark:text-zinc-500" /> {record.user.email}</span>
                   <span className="inline-flex items-center gap-1"><Building className="size-3.5 text-zinc-400 dark:text-zinc-500" /> Home: {record.user.defaultStudio?.name || record.ownerStudio.name}</span>
                 </div>
@@ -167,7 +170,7 @@ export function AttendanceDetailDialog({
 
         <div className="max-h-[62vh] overflow-y-auto px-6 py-5">
           <Tabs defaultValue="summary" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-zinc-100 dark:bg-zinc-900 p-1 rounded-lg">
+            <TabsList className="grid w-full grid-cols-3 bg-zinc-105 dark:bg-zinc-900 p-1 rounded-lg">
               <TabsTrigger value="summary" className="text-xs font-semibold py-1.5 cursor-pointer">
                 Summary
               </TabsTrigger>
@@ -182,35 +185,55 @@ export function AttendanceDetailDialog({
             {/* Summary Tab */}
             <TabsContent value="summary" className="space-y-4 pt-3">
               {/* Daily timing stats grid */}
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 p-3 shadow-sm">
-                  <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">Check-in</span>
-                  <span className="mt-2 block text-lg font-bold text-emerald-600 dark:text-emerald-400">
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                {/* Check-in */}
+                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-4 flex flex-col justify-between shadow-sm relative overflow-hidden">
+                  <div className="flex items-center justify-between text-zinc-400 dark:text-zinc-500">
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Check-in</span>
+                    <Clock className="size-4 text-emerald-600 dark:text-emerald-500" />
+                  </div>
+                  <span className="mt-2 block text-xl font-bold text-emerald-600 dark:text-emerald-400">
                     {formatTime(record.checkInAt)}
                   </span>
                 </div>
                 
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 p-3 shadow-sm">
-                  <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">Check-out</span>
-                  <span className="mt-2 block text-lg font-bold text-blue-600 dark:text-blue-400">
+                {/* Check-out */}
+                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-4 flex flex-col justify-between shadow-sm relative overflow-hidden">
+                  <div className="flex items-center justify-between text-zinc-400 dark:text-zinc-500">
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Check-out</span>
+                    <Clock className="size-4 text-blue-600 dark:text-blue-500" />
+                  </div>
+                  <span className="mt-2 block text-xl font-bold text-blue-600 dark:text-blue-400">
                     {formatTime(record.checkOutAt)}
                   </span>
                 </div>
 
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 p-3 shadow-sm">
-                  <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">Late</span>
-                  <span className={`mt-2 block text-lg font-bold ${record.lateMinutes > 0 ? "text-orange-600 dark:text-orange-400" : "text-zinc-650 dark:text-zinc-400"}`}>
-                    {record.lateMinutes}
-                  </span>
-                  <span className="text-[10px] text-zinc-400">{record.lateMinutes > 0 ? "minutes" : "On time"}</span>
+                {/* Late */}
+                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-4 flex flex-col justify-between shadow-sm relative overflow-hidden">
+                  <div className="flex items-center justify-between text-zinc-400 dark:text-zinc-500">
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Late Time</span>
+                    <AlertCircle className="size-4 text-orange-500" />
+                  </div>
+                  <div>
+                    <span className={`mt-2 block text-xl font-bold ${record.lateMinutes > 0 ? "text-orange-600 dark:text-orange-450" : "text-zinc-600 dark:text-zinc-400"}`}>
+                      {record.lateMinutes}
+                    </span>
+                    <span className="text-[10px] text-zinc-400 font-medium">{record.lateMinutes > 0 ? "minutes" : "On time"}</span>
+                  </div>
                 </div>
 
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/20 p-3 shadow-sm">
-                  <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">Early out</span>
-                  <span className={`mt-2 block text-lg font-bold ${record.earlyCheckoutMinutes > 0 ? "text-orange-600 dark:text-orange-400" : "text-zinc-650 dark:text-zinc-400"}`}>
-                    {record.earlyCheckoutMinutes}
-                  </span>
-                  <span className="text-[10px] text-zinc-400">minutes</span>
+                {/* Early out */}
+                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-4 flex flex-col justify-between shadow-sm relative overflow-hidden">
+                  <div className="flex items-center justify-between text-zinc-400 dark:text-zinc-500">
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Early Out</span>
+                    <Hourglass className="size-4 text-amber-500" />
+                  </div>
+                  <div>
+                    <span className={`mt-2 block text-xl font-bold ${record.earlyCheckoutMinutes > 0 ? "text-orange-600 dark:text-orange-450" : "text-zinc-600 dark:text-zinc-400"}`}>
+                      {record.earlyCheckoutMinutes}
+                    </span>
+                    <span className="text-[10px] text-zinc-400 font-medium">{record.earlyCheckoutMinutes > 0 ? "minutes" : "No early out"}</span>
+                  </div>
                 </div>
               </div>
 
