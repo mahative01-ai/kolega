@@ -20,7 +20,6 @@ import { WfhForm } from "@/app/member/presensi/wfh-form";
 import { WfoJournalForm } from "@/app/member/presensi/wfo-journal-form";
 import { FileText } from "lucide-react";
 import { ActiveAnnouncementsClient } from "@/components/active-announcements-client";
-import { ViewQrCardClient } from "@/components/view-qr-card-client";
 import { ConfettiTrigger } from "@/components/confetti-trigger";
 import { DailySignalsBanner } from "@/components/daily-signals-banner";
 import { getDailySignals } from "@/lib/daily-signals";
@@ -769,7 +768,16 @@ export default async function MemberDashboardPage({
                 <p className="text-xs text-zinc-500 dark:text-zinc-400">Use this card for WFO check-in and check-out.</p>
               </div>
             </div>
-            <ViewQrCardClient />
+            <Link
+              href="/member/qr-card"
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "h-8 text-xs flex items-center gap-1.5 cursor-pointer font-sans"
+              )}
+            >
+              <QrCode className="size-3.5" />
+              View My Card
+            </Link>
           </div>
         ) : (
           <Card className="shadow-none border-dashed border-2 border-zinc-200 dark:border-zinc-800">

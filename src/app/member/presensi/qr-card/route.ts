@@ -22,13 +22,14 @@ export async function GET(request: Request) {
   const embed = searchParams.get("embed") === "1";
 
   if (!["html", "svg", "png", "jpeg"].includes(format)) {
-    return new Response("Format QR Card tidak didukung.", { status: 400 });
+    return new Response("QR Card format not supported.", { status: 400 });
   }
 
   // Set FONTCONFIG_PATH so Sharp / librsvg can locate fonts inside Next.js process
   process.env.FONTCONFIG_PATH = path.join(process.cwd(), "fonts");
 
   const currentUser = await requireAnyRole(["ADMIN", "MEMBER"]);
+  const dashboardPath = currentUser.role === "ADMIN" ? "/admin" : "/member";
   const credential = await prisma.qrCredential.findFirst({
     where: {
       userId: currentUser.id,
@@ -44,7 +45,7 @@ export async function GET(request: Request) {
   });
 
   if (!credential) {
-    return new Response("QR Card belum aktif.", { status: 404 });
+    return new Response("QR Card is not active.", { status: 404 });
   }
 
   const qrSvg = await QRCode.toString(credential.qrUid, {
@@ -53,13 +54,13 @@ export async function GET(request: Request) {
     width: 260,
     errorCorrectionLevel: "M",
   });
-  const issuedAt = new Intl.DateTimeFormat("id-ID", {
+  const issuedAt = new Intl.DateTimeFormat("en-US", {
     dateStyle: "medium",
     timeZone: "Asia/Jakarta",
   }).format(credential.issuedAt);
   const name = escapeXml(currentUser.name);
   const email = escapeXml(currentUser.email);
-  const studio = escapeXml(currentUser.defaultStudio?.name ?? "Belum ada studio");
+  const studio = escapeXml(currentUser.defaultStudio?.name ?? "No studio assigned");
   const qrUid = escapeXml(credential.qrUid);
 
   const fontStyleDef = `<defs>
@@ -86,13 +87,13 @@ export async function GET(request: Request) {
   <g transform="translate(54 150)">
     ${qrSvg.replace("<svg", '<svg x="0" y="0"')}
   </g>
-  <text x="350" y="174" fill="#71717a" font-size="13" font-weight="700">NAMA</text>
+  <text x="350" y="174" fill="#71717a" font-size="13" font-weight="700">NAME</text>
   <text x="350" y="202" fill="#18181b" font-size="28" font-weight="700">${name}</text>
   <text x="350" y="235" fill="#71717a" font-size="13" font-weight="700">EMAIL</text>
   <text x="350" y="262" fill="#27272a" font-size="17">${email}</text>
   <text x="350" y="295" fill="#71717a" font-size="13" font-weight="700">QR UID</text>
   <text x="350" y="322" fill="#09090b" font-size="20" font-weight="700">${qrUid}</text>
-  <text x="350" y="360" fill="#71717a" font-size="13">Aktif sejak ${escapeXml(issuedAt)}</text>
+  <text x="350" y="360" fill="#71717a" font-size="13">Active since ${escapeXml(issuedAt)}</text>
 </svg>`;
 
   if (format === "html") {
@@ -147,9 +148,9 @@ export async function GET(request: Request) {
 
     return new Response(`
       <!DOCTYPE html>
-      <html lang="id">
+      <html lang="en">
         <head>
-          <title>QR Card - Kolega</title>
+          <title>Kolega QR Card</title>
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <style>
             * {
@@ -256,11 +257,12 @@ export async function GET(request: Request) {
           <main>
             <div class="toolbar">
               <div>
-                <h1 class="title">QR Card Kolega</h1>
-                <p class="description">Preview kartu QR sebelum disimpan atau dicetak.</p>
+                <h1 class="title">Kolega QR Card</h1>
+                <p class="description">Preview your QR Card before saving or printing.</p>
               </div>
               <div class="actions">
-                <button class="button primary" onclick="window.print()">PDF</button>
+                <a class="button" href="${dashboardPath}">Back to Dashboard</a>
+                <button class="button" onclick="window.print()">Print / PDF</button>
                 <a class="button" href="/member/presensi/qr-card?format=svg" download="kolega-qr-card.svg">SVG</a>
                 <button class="button primary" onclick="downloadPngClient()">PNG</button>
               </div>
@@ -269,7 +271,7 @@ export async function GET(request: Request) {
               ${svg}
             </div>
             <p class="hint">
-              Jika ingin menyimpan sebagai gambar, buka dari perangkat yang akan dipakai lalu gunakan fitur screenshot atau cetak sebagai PDF.
+              To save this card as an image, open this page on the device you intend to use and take a screenshot, or print it to save as a PDF.
             </p>
           </main>
 
@@ -350,4 +352,3 @@ export async function GET(request: Request) {
     },
   });
 }
-

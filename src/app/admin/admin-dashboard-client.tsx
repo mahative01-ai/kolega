@@ -42,7 +42,6 @@ import { quickReviewCorrectionAction } from "./corrections/actions";
 import { dedupeCalendarEvents, isApiHolidayCoveredByDbEvent } from "@/lib/calendar-events";
 import { formatMinutesAsClock, getCheckoutEligibility } from "@/lib/checkout-policy";
 import { ActiveAnnouncementsClient } from "@/components/active-announcements-client";
-import { ViewQrCardClient } from "@/components/view-qr-card-client";
 
 type Props = {
   currentUser: {
@@ -443,7 +442,16 @@ export function AdminDashboardClient({
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">Use this card for your personal WFO attendance.</p>
                 </div>
               </div>
-              <ViewQrCardClient />
+              <Link
+                href="/member/qr-card"
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "sm" }),
+                  "h-8 text-xs flex items-center gap-1.5 cursor-pointer font-sans"
+                )}
+              >
+                <QrCode className="size-3.5" />
+                View My Card
+              </Link>
             </div>
           ) : (
             <Card className="shadow-none border-dashed border-2 border-zinc-200 dark:border-zinc-800">

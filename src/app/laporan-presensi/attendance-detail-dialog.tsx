@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -123,52 +124,57 @@ export function AttendanceDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] sm:max-w-2xl md:max-w-3xl overflow-hidden p-0 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 border-zinc-200 dark:border-zinc-800">
-        <DialogHeader className="border-b border-zinc-150 px-6 pt-6 pb-5 dark:border-zinc-800">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-4">
-              {/* Mood Avatar */}
-              <div
-                className={`flex size-16 shrink-0 items-center justify-center rounded-2xl border-2 shadow-inner text-3xl select-none ${mood.bgColor} ${mood.borderColor}`}
-                title={mood.label}
-              >
-                {mood.emoji}
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2.5">
-                  <DialogTitle className="text-xl font-bold text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
-                    {record.user.name}
-                  </DialogTitle>
-                  <Badge variant="outline" className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-[11px] text-zinc-500 dark:text-zinc-400 font-normal">
-                    Mood: {mood.label}
-                  </Badge>
+      <DialogContent className="max-h-[90vh] overflow-y-auto border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 sm:max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Attendance Details</DialogTitle>
+          <DialogDescription className="text-zinc-500 dark:text-zinc-400">
+            Profile and daily attendance details.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid gap-5 py-2 text-sm">
+          {/* 👤 User Profile Header Card */}
+          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/80 dark:bg-zinc-900/60 p-5 shadow-sm dark:shadow-lg">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-4">
+                {/* Mood Avatar */}
+                <div
+                  className={`flex size-16 shrink-0 items-center justify-center rounded-2xl border-2 shadow-inner text-3xl select-none ${mood.bgColor} ${mood.borderColor}`}
+                  title={mood.label}
+                >
+                  {mood.emoji}
                 </div>
-                <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-650 dark:text-zinc-400">
-                  <span className="inline-flex items-center gap-1"><Mail className="size-3.5 text-zinc-400 dark:text-zinc-500" /> {record.user.email}</span>
-                  <span className="inline-flex items-center gap-1"><Building className="size-3.5 text-zinc-400 dark:text-zinc-500" /> Home: {record.user.defaultStudio?.name || record.ownerStudio.name}</span>
-                </div>
-                <div className="flex flex-wrap items-center gap-2 pt-1">
-                  <Badge className="border-blue-500/30 bg-blue-500/15 text-blue-700 dark:text-blue-300 text-[10px] font-semibold uppercase">
-                    {record.user.role}
-                  </Badge>
-                  {record.user.memberStatus && (
-                    <Badge className="border-sky-500/30 bg-sky-500/15 text-sky-700 dark:text-sky-300 text-[10px] font-semibold uppercase">
-                      {record.user.memberStatus}
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2.5">
+                    <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">{record.user.name}</h3>
+                    <Badge variant="outline" className="border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-[11px] text-zinc-500 dark:text-zinc-400 font-normal">
+                      Mood: {mood.label}
                     </Badge>
-                  )}
-                  <Badge className="border-zinc-500/30 bg-zinc-500/15 text-zinc-700 dark:text-zinc-300 text-[10px] font-semibold uppercase">
-                    {record.workMode}
-                  </Badge>
-                  <Badge className={`text-[10px] font-semibold uppercase ${statusColor[record.status]}`}>
-                    {statusLabel[record.status] ?? record.status}
-                  </Badge>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-650 dark:text-zinc-400">
+                    <span className="inline-flex items-center gap-1"><Mail className="size-3.5 text-zinc-400 dark:text-zinc-500" /> {record.user.email}</span>
+                    <span className="inline-flex items-center gap-1"><Building className="size-3.5 text-zinc-400 dark:text-zinc-500" /> Home: {record.user.defaultStudio?.name || record.ownerStudio.name}</span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    <Badge className="border-blue-500/30 bg-blue-500/15 text-blue-700 dark:text-blue-300 text-[10px] font-semibold uppercase">
+                      {record.user.role}
+                    </Badge>
+                    {record.user.memberStatus && (
+                      <Badge className="border-sky-500/30 bg-sky-500/15 text-sky-700 dark:text-sky-300 text-[10px] font-semibold uppercase">
+                        {record.user.memberStatus}
+                      </Badge>
+                    )}
+                    <Badge className="border-zinc-500/30 bg-zinc-500/15 text-zinc-700 dark:text-zinc-300 text-[10px] font-semibold uppercase">
+                      {record.workMode}
+                    </Badge>
+                    <Badge className={`text-[10px] font-semibold uppercase ${statusColor[record.status]}`}>
+                      {statusLabel[record.status] ?? record.status}
+                    </Badge>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </DialogHeader>
-
-        <div className="max-h-[62vh] overflow-y-auto px-6 py-5">
           <Tabs defaultValue="summary" className="w-full">
             <TabsList className="grid w-full grid-cols-3 bg-zinc-105 dark:bg-zinc-900 p-1 rounded-lg">
               <TabsTrigger value="summary" className="text-xs font-semibold py-1.5 cursor-pointer">
@@ -385,11 +391,16 @@ export function AttendanceDetailDialog({
           </Tabs>
         </div>
 
-        <DialogFooter className="border-t border-zinc-150 bg-zinc-50 px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900/30">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <div className="mt-4 flex items-center justify-end border-t border-zinc-200 dark:border-zinc-800/80 pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            className="h-9 px-5 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-50 rounded-xl transition-colors"
+          >
             Close
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
