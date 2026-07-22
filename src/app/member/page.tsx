@@ -8,12 +8,18 @@ import {
   Brush,
   ChevronLeft,
   ChevronRight,
+  AlertTriangle,
+  CheckCircle2,
+  HeartPulse,
+  CalendarDays,
+  Calendar,
 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { createPersonalQrCredentialAction } from "@/app/member/presensi/actions";
 import { WfhForm } from "@/app/member/presensi/wfh-form";
@@ -434,6 +440,72 @@ export default async function MemberDashboardPage({
     }).format(date);
   }
 
+  const monthName = data.monthLabel.split(" ")[0];
+
+  const metrics = [
+    {
+      label: `Attendance ${monthName}`,
+      value: data.summary.total,
+      icon: CheckCircle2,
+      color: "text-blue-700 dark:text-blue-400",
+    },
+    {
+      label: `WFH ${monthName}`,
+      value: data.summary.wfh,
+      icon: Home,
+      color: "text-sky-700 dark:text-sky-400",
+    },
+    {
+      label: `Sick Leave ${monthName}`,
+      value: data.summary.sick,
+      icon: HeartPulse,
+      color: "text-violet-700 dark:text-violet-400",
+    },
+    {
+      label: `Leave ${monthName}`,
+      value: data.summary.leave,
+      icon: Calendar,
+      color: "text-emerald-700 dark:text-emerald-400",
+    },
+    {
+      label: `Late ${monthName}`,
+      value: data.summary.late,
+      subValue: data.lateMakeupMinutes > 0 ? `Owed: ${data.lateMakeupMinutes} m` : "None",
+      icon: Clock3,
+      color: "text-orange-700 dark:text-orange-400",
+    },
+    {
+      label: `Alpha ${monthName}`,
+      value: data.summary.alpha,
+      icon: AlertTriangle,
+      color: "text-red-700 dark:text-red-400",
+    },
+    ...(data.memberStatus === "TEAM" ? [{
+      label: "Annual Leave Balance",
+      value: data.annualLeaveBalance,
+      subValue: `${data.annualLeaveBalance} days remaining`,
+      icon: CalendarDays,
+      color: "text-blue-700 dark:text-blue-400",
+    }] : []),
+    {
+      label: "Workday Balance",
+      value: data.workDayBalance,
+      subValue:
+        data.workDayBalance < 0
+          ? `Owed ${Math.abs(data.workDayBalance)} d`
+          : data.workDayBalance > 0
+            ? `Surplus ${data.workDayBalance} d`
+            : "None",
+      icon: ShieldCheck,
+      color:
+        data.workDayBalance < 0
+          ? "text-red-700 dark:text-red-400"
+          : data.workDayBalance > 0
+            ? "text-emerald-700 dark:text-emerald-400"
+            : "text-zinc-700 dark:text-zinc-300",
+    },
+  ];
+
   return (
     <DashboardShell
       user={currentUser}
@@ -458,6 +530,45 @@ export default async function MemberDashboardPage({
       <DailySignalsBanner signals={data.dailySignals} currentUserId={currentUser.id} />
 
       <ActiveAnnouncementsClient announcements={data.announcements} />
+
+      {/* Metrics Grid */}
+      <section className="grid gap-3 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-8 my-6 animate-in fade-in-50 duration-200">
+        {metrics.map((metric) => {
+          const Icon = metric.icon;
+
+          return (
+            <HoverCard key={metric.label}>
+              <HoverCardTrigger
+                render={
+                  <Card className="shadow-none h-full flex flex-col justify-between cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm">
+                    <CardHeader className="pb-2">
+                      <CardDescription className="flex items-center gap-2 text-xs">
+                        <Icon className={cn("size-4 shrink-0", metric.color)} />
+                        <span className="truncate">{metric.label}</span>
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <p className={cn("text-2xl font-bold", metric.color)}>
+                        {metric.value.toLocaleString("en-US")}
+                      </p>
+                      {metric.subValue && (
+                        <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-1 truncate">
+                          {metric.subValue}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                }
+              />
+              <HoverCardContent side="top" align="center" className="w-auto px-3 py-1.5 text-xs">
+                <span className="font-semibold">{metric.label}:</span>{" "}
+                <span className={cn("font-bold", metric.color)}>{metric.value}</span>
+                {metric.subValue && ` (${metric.subValue})`}
+              </HoverCardContent>
+            </HoverCard>
+          );
+        })}
+      </section>
 
       <div className="grid items-start gap-6 lg:grid-cols-[1fr_2fr] my-6">
         <div className="space-y-6">

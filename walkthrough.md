@@ -88,3 +88,20 @@ Seluruh perbaikan bug dan masukan fitur telah sukses diimplementasikan dan diver
 
 *   **Prisma Client**: Sukses diregenerasikan menggunakan perintah `npx prisma generate` untuk memetakan kolom baru `proposedCheckInTime`.
 *   **Next.js Production Build**: Perintah `npm run build` berhasil dieksekusi dengan status **SUKSES** tanpa ada masalah tipe data (TypeScript) maupun rendering halaman statis.
+
+### 10. Pengembalian Matriks Dashboard Halaman Member
+*   **Berkas Dimodifikasi**:
+    *   [page.tsx (Member)](file:///c:/Users/zxsyn/Documents/Codex/2026-06-23/aku/mahateams-new-gen/src/app/member/page.tsx)
+*   **Perubahan**:
+    *   Mengembalikan visualisasi grid matriks kehadiran bulanan (metrics grid) di bagian atas dashboard halaman Member yang sebelumnya hilang.
+    *   Matriks mencakup 8 metrik utama:
+        1. **Attendance**: Jumlah total presensi.
+        2. **WFH**: Jumlah hari kehadiran WFH.
+        3. **Sick Leave**: Jumlah hari absen sakit.
+        4. **Leave**: Jumlah hari cuti pengganti.
+        5. **Late**: Jumlah hari terlambat (menampilkan sisa utang waktu terlambat jika ada).
+        6. **Alpha**: Jumlah hari alpha/tanpa keterangan.
+        7. **Annual Leave Balance** (khusus member berstatus `TEAM`): Sisa kuota cuti tahunan.
+        8. **Workday Balance**: Sisa/Utang saldo hari kerja.
+    *   Setiap metrik dilengkapi dengan indikator warna HSL modern, ikon representatif dari Lucide React, serta `HoverCard` deskripsi tips interaktif.
+    *   Seluruh build produksi Next.js terkompilasi dengan **SUKSES** pasca perbaikan.
