@@ -4,8 +4,16 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { CalendarDays, AlertCircle } from "lucide-react";
+import { CalendarDays, AlertCircle, HelpCircle } from "lucide-react";
 import { createRequestAction } from "./actions";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 type Props = {
   canRequestReplacementDay: boolean;
@@ -66,8 +74,40 @@ export function RequestFormClient({ canRequestReplacementDay }: Props) {
       className="grid gap-4"
     >
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="request-type" className="text-sm font-medium">
-          Request Type <span className="text-red-500">*</span>
+        <label htmlFor="request-type" className="text-sm font-medium flex items-center gap-1.5">
+          <span>Request Type</span>
+          <span className="text-red-500">*</span>
+          <Dialog>
+            <DialogTrigger asChild>
+              <HelpCircle className="size-4 text-zinc-450 hover:text-zinc-650 cursor-pointer shrink-0" />
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
+              <DialogHeader>
+                <DialogTitle>Ketentuan Pengajuan Izin & Sakit</DialogTitle>
+                <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
+                  Peraturan pengajuan ketidakhadiran dan status khusus:
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+                <div>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-200">1. Izin Sakit (SICK)</h4>
+                  <p className="mt-0.5">Wajib diajukan pada hari-H paling lambat pukul <b>07:00 pagi</b> (1 jam sebelum jam kerja). Jika sakit mendadak di tengah hari, silakan ikuti ketentuan sakit di tengah kerja.</p>
+                </div>
+                <div>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-200">2. Cuti Tahunan (LEAVE) & Izin Lainnya</h4>
+                  <p className="mt-0.5">Wajib diajukan minimal <b>H-1</b> sebelum hari pelaksanaan. Karyawan magang (Intern) tidak memiliki jatah cuti tahunan.</p>
+                </div>
+                <div>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-200">3. Work From Home (WFH)</h4>
+                  <p className="mt-0.5">Hanya berlaku untuk status Team (karyawan magang/Intern dilarang WFH) dan memerlukan persetujuan Super Admin.</p>
+                </div>
+                <div className="rounded-lg bg-zinc-50 dark:bg-zinc-900/50 p-2.5 border border-zinc-100 dark:border-zinc-800/80">
+                  <h4 className="font-bold text-blue-700 dark:text-blue-400">Sakit di Tengah Kerja (Pulang Cepat)</h4>
+                  <p className="mt-0.5 text-zinc-600 dark:text-zinc-400">Jika Anda sudah masuk pagi lalu sakit dan tidak kuat melanjutkan kerja, Anda diperbolehkan pulang tanpa utang jam kerja (dianggap masuk penuh). Jika keesokan harinya Anda masih sakit, Anda wajib mengajukan izin sakit resmi dengan melampirkan surat dokter di form ini.</p>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </label>
         <select
           id="request-type"

@@ -104,6 +104,7 @@ export async function createUserAction(formData: FormData) {
     const annualLeaveBalance = memberStatus === "INTERN" ? 0 : (annualLeaveBalanceInput ? Number(annualLeaveBalanceInput) : 12);
     const placementStudioId = memberStatus === "INTERN" ? (String(formData.get("placementStudioId") ?? "") || null) : null;
     const picketDay = String(formData.get("picketDay") ?? "") || null;
+    const notes = String(formData.get("notes") ?? "").trim() || null;
 
     if (!name || !email || password.length < 6) {
       throw new Error("Name, email, and a password of at least 6 characters are required.");
@@ -170,6 +171,7 @@ export async function createUserAction(formData: FormData) {
           annualLeaveBalance,
           defaultStudioId,
           picketDay,
+          notes,
         },
         select: { id: true },
       });
@@ -248,6 +250,7 @@ export async function updateUserAction(formData: FormData) {
     const defaultStudioId = String(formData.get("defaultStudioId") ?? "") || null;
     const placementStudioId = memberStatus === "INTERN" ? (String(formData.get("placementStudioId") ?? "") || null) : null;
     const picketDay = String(formData.get("picketDay") ?? "") || null;
+    const notes = String(formData.get("notes") ?? "").trim() || null;
     const annualLeaveBalanceInput = formData.get("annualLeaveBalance");
     const annualLeaveBalance = memberStatus === "INTERN" ? 0 : (annualLeaveBalanceInput ? Number(annualLeaveBalanceInput) : 12);
     const workDayBalanceInput = formData.get("workDayBalance");
@@ -378,6 +381,7 @@ export async function updateUserAction(formData: FormData) {
           workDayBalance: actor.role === "SUPER_ADMIN" ? workDayBalance : target.workDayBalance,
           defaultStudioId,
           picketDay,
+          notes,
         },
       });
 

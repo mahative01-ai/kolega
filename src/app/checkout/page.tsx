@@ -10,10 +10,10 @@ export const dynamic = "force-dynamic";
 export default async function CheckoutPage() {
   const currentUser = await getCurrentUser();
 
-  let statusText = "Scan QR Card untuk check-out";
+  let statusText = "Scan QR Card to check-out";
   let statusColor = "bg-zinc-100 text-zinc-500 border-zinc-200 dark:bg-zinc-950 dark:border-zinc-800 dark:text-zinc-400";
   let checkoutDisabled = false;
-  let disabledMessage = "Check-out belum tersedia.";
+  let disabledMessage = "Check-out is not available yet.";
 
   if (currentUser) {
     const todayDate = dateOnlyFromKey(getJakartaDateKey());
@@ -40,10 +40,10 @@ export default async function CheckoutPage() {
     ]);
 
     if (attendance?.checkOutAt) {
-      statusText = "Sudah check-out hari ini";
+      statusText = "Already checked out today";
       statusColor = "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/50";
       checkoutDisabled = true;
-      disabledMessage = "Anda sudah check-out hari ini.";
+      disabledMessage = "You have already checked out today.";
     } else if (attendance?.checkInAt) {
       const currentStudioId = activePlacement?.studioId ?? currentUser.defaultStudioId;
       const policy = currentStudioId
@@ -59,18 +59,18 @@ export default async function CheckoutPage() {
       });
 
       if (eligibility.isAllowed) {
-        statusText = "Siap check-out";
+        statusText = "Ready to check-out";
         statusColor = "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/50";
       } else {
         const allowedClock = formatMinutesAsClock(eligibility.allowedCheckoutMinutes);
-        statusText = `Check-out dibuka ${allowedClock}`;
+        statusText = `Check-out opens at ${allowedClock}`;
         statusColor = "bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-950 dark:border-zinc-800 dark:text-zinc-300";
         checkoutDisabled = true;
-        disabledMessage = `Check-out baru dibuka pukul ${allowedClock}. Sisa ${eligibility.remainingMinutes} menit.`;
+        disabledMessage = `Check-out opens at ${allowedClock}. ${eligibility.remainingMinutes} minutes remaining.`;
       }
     } else {
       checkoutDisabled = true;
-      disabledMessage = "Anda belum check-in WFO hari ini.";
+      disabledMessage = "You have not checked in (WFO) today.";
     }
   }
 
@@ -83,7 +83,7 @@ export default async function CheckoutPage() {
           </div>
           <h1 className="text-xl font-bold tracking-tight">Check-out WFO</h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Scan QR Card dan izinkan lokasi untuk menyelesaikan presensi hari ini.
+            Scan your QR Card and allow location access to complete today's attendance.
           </p>
         </div>
 

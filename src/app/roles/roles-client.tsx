@@ -33,6 +33,7 @@ import { ROLE_LABEL } from "@/lib/roles";
 import { createUserAction, updateUserAction } from "./actions";
 import { getMood } from "@/lib/moods";
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
+import { Textarea } from "@/components/ui/textarea";
 
 type UserWithRelations = {
   id: string;
@@ -47,6 +48,7 @@ type UserWithRelations = {
   workDayBalance: number;
   defaultStudioId: string | null;
   picketDay: string | null;
+  notes: string | null;
   currentMood: string;
   defaultStudio: { name: string } | null;
   placements: Array<{
@@ -727,6 +729,15 @@ export function RolesClient({
               </div>
             )}
 
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold">Admin Notes</label>
+              <Textarea
+                name="notes"
+                placeholder="Add special notes for this member (e.g. sick mid-work, compensation time dispensations, etc.)"
+                className="min-h-[80px]"
+              />
+            </div>
+
             {addMemberStatus === "INTERN" && (
               <div className="rounded-lg border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/40 p-3 grid gap-2.5 mt-1">
                 <div className="text-xs font-bold text-zinc-700 dark:text-zinc-300">Intern Profile</div>
@@ -943,6 +954,16 @@ export function RolesClient({
                     <p className="text-[10px] text-zinc-500">Current annual leave balance. Default is 12 days.</p>
                   </div>
                 )}
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold">Admin Notes</label>
+                <Textarea
+                  name="notes"
+                  defaultValue={selectedUser.notes || ""}
+                  placeholder="Add special notes for this member (e.g. sick mid-work, compensation time dispensations, etc.)"
+                  className="min-h-[80px]"
+                />
               </div>
 
               {editMemberStatus === "INTERN" && (
@@ -1353,6 +1374,15 @@ export function RolesClient({
                     <span>Period: <b className="text-zinc-900 dark:text-zinc-100">{formatDate(viewUser.internProfile.startDate)} - {formatDate(viewUser.internProfile.endDate)}</b></span>
                     <span>Mentor: <b className="text-zinc-900 dark:text-zinc-100">{mentors.find((m) => m.id === viewUser.internProfile?.mentorId)?.name || "No mentor assigned"}</b></span>
                   </div>
+                </div>
+              )}
+
+              {viewUser.notes && (
+                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-900/50 p-4">
+                  <h4 className="text-xs font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Admin Notes</h4>
+                  <p className="mt-2 text-xs text-zinc-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed">
+                    {viewUser.notes}
+                  </p>
                 </div>
               )}
 

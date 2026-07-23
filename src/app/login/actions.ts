@@ -180,7 +180,7 @@ export async function loginAndAttendWithQrAction(
   if (unfinishedRecord) {
     return {
       success: true,
-      warning: `Anda belum check-out pada hari sebelumnya (${formatDate(unfinishedRecord.attendanceDate)}). Silakan ajukan koreksi presensi di dashboard.`,
+      warning: `You did not check out on the previous work day (${formatDate(unfinishedRecord.attendanceDate)}). Please submit an attendance correction in your dashboard.`,
       redirectUrl: getDashboardPath(user.role),
     };
   }

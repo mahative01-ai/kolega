@@ -10,19 +10,19 @@ import { submitWfoAttendanceAction } from "./actions";
 function getCameraErrorMessage(error: unknown) {
   if (error instanceof DOMException) {
     if (error.name === "NotAllowedError") {
-      return "Izin kamera ditolak. Izinkan akses kamera dari browser, lalu coba lagi.";
+      return "Camera permission denied. Allow camera access in your browser and try again.";
     }
 
     if (error.name === "NotFoundError") {
-      return "Kamera tidak ditemukan di perangkat ini.";
+      return "Camera not found on this device.";
     }
 
     if (error.name === "NotReadableError") {
-      return "Kamera sedang dipakai aplikasi lain. Tutup aplikasi kamera/meeting, lalu coba lagi.";
+      return "Camera is currently in use by another application. Close other camera/meeting apps and try again.";
     }
 
     if (error.name === "OverconstrainedError") {
-      return "Kamera belakang tidak tersedia. Coba gunakan perangkat lain atau kamera default.";
+      return "Rear camera is not available. Try another device or the default camera.";
     }
   }
 
@@ -30,7 +30,7 @@ function getCameraErrorMessage(error: unknown) {
     return error.message;
   }
 
-  return "Kamera belum bisa dibuka. Periksa izin kamera browser, lalu coba lagi.";
+  return "Could not open camera. Check browser camera permissions and try again.";
 }
 
 export function QrScannerForm({
@@ -45,7 +45,7 @@ export function QrScannerForm({
   const [scanValue, setScanValue] = useState("");
   const [isScanning, setIsScanning] = useState(false);
   const [message, setMessage] = useState(
-    "Scan QR Card yang sudah kamu simpan untuk membuka tombol presensi."
+    "Scan your saved QR Card to activate the attendance button."
   );
   
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -57,7 +57,7 @@ export function QrScannerForm({
     setGeoError(null);
     setCoords(null);
     if (!navigator.geolocation) {
-      setGeoError("Browser Anda tidak mendukung Geolocation.");
+      setGeoError("Your browser does not support Geolocation.");
       setIsLoadingGeo(false);
       return;
     }
@@ -74,8 +74,8 @@ export function QrScannerForm({
         console.error(err);
         setGeoError(
           err.code === 1
-            ? "Akses lokasi ditolak. Harap aktifkan GPS & izin lokasi browser."
-            : "Gagal mendapatkan koordinat GPS. Pastikan GPS aktif."
+            ? "Location access denied. Please enable GPS and allow location access in your browser."
+            : "Failed to retrieve GPS coordinates. Make sure GPS is enabled."
         );
         setIsLoadingGeo(false);
       },
@@ -117,12 +117,12 @@ export function QrScannerForm({
     }
 
     if (!navigator.mediaDevices?.getUserMedia) {
-      setMessage("Akses kamera tidak tersedia di browser ini.");
+      setMessage("Camera access is not supported in this browser.");
       return;
     }
 
     setScanValue("");
-    setMessage("Membuka kamera...");
+    setMessage("Opening camera...");
 
     try {
       await stopScanner();
@@ -148,16 +148,16 @@ export function QrScannerForm({
           }
 
           setScanValue(qrValue);
-          setMessage("QR terbaca. Kamu bisa lanjut presensi.");
+          setMessage("QR read successfully. You can proceed with attendance.");
           void stopScanner();
         },
         () => {
-          setMessage("Arahkan kamera ke QR Card sampai terbaca.");
+          setMessage("Point your camera at the QR Card until it is read.");
         }
       );
 
       setIsScanning(true);
-      setMessage("Arahkan kamera ke QR Card.");
+      setMessage("Point your camera at the QR Card.");
     } catch (error) {
       await stopScanner();
       setMessage(getCameraErrorMessage(error));
@@ -179,7 +179,7 @@ export function QrScannerForm({
         />
         {!isScanning ? (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-zinc-300">
-            Kamera belum aktif
+            Camera not active
           </div>
         ) : null}
       </div>
@@ -192,7 +192,7 @@ export function QrScannerForm({
           disabled={disabled || isScanning}
         >
           <Camera aria-hidden="true" />
-          Buka Kamera
+          Open Camera
         </Button>
         {isScanning ? (
           <Button
@@ -211,12 +211,12 @@ export function QrScannerForm({
         {isLoadingGeo ? (
           <p className="text-zinc-500 flex items-center gap-1.5 animate-pulse">
             <span className="h-2 w-2 rounded-full bg-zinc-400" />
-            Sedang melacak koordinat GPS Anda...
+            Tracking your GPS coordinates...
           </p>
         ) : coords ? (
           <p className="text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5 font-medium">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            Lokasi GPS Terverifikasi: {coords.lat.toFixed(6)}, {coords.lng.toFixed(6)}
+            GPS Location Verified: {coords.lat.toFixed(6)}, {coords.lng.toFixed(6)}
           </p>
         ) : (
           <div className="flex items-center justify-between gap-2">
@@ -230,7 +230,7 @@ export function QrScannerForm({
               onClick={refreshLocation}
               className="text-[10px] h-6 py-0 px-2 shadow-none"
             >
-              Coba Lagi
+              Try Again
             </Button>
           </div>
         )}
@@ -241,13 +241,13 @@ export function QrScannerForm({
         <input type="hidden" name="longitude" value={coords?.lng ?? ""} />
         <div className="flex flex-col gap-2">
           <label htmlFor="qrUid" className="text-sm font-medium">
-            Hasil Scan QR
+            QR Scan Result
           </label>
           <Input
             id="qrUid"
             name="qrUid"
             value={scanValue}
-            placeholder="Belum ada QR yang terbaca"
+            placeholder="No QR code read yet"
             disabled={disabled}
             readOnly
             required

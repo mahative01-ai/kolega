@@ -70,7 +70,7 @@ export function NotificationBellClient({ initialNotifications, initialUnreadCoun
       <button
         onClick={() => setOpen(true)}
         className="relative rounded-full p-2 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-        aria-label="Notifikasi"
+        aria-label="Notifications"
       >
         <Bell className="size-5" />
         {unreadCount > 0 && (
@@ -86,23 +86,23 @@ export function NotificationBellClient({ initialNotifications, initialUnreadCoun
             <div>
               <DialogTitle className="text-base flex items-center gap-1.5 text-zinc-950 dark:text-zinc-50">
                 <Bell className="size-4 text-blue-700 dark:text-blue-400" />
-                Notifikasi
+                Notifications
               </DialogTitle>
               <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
-                Anda memiliki {unreadCount} pesan belum dibaca
+                You have {unreadCount} unread messages
               </DialogDescription>
             </div>
             {unreadCount > 0 && (
               <Button variant="ghost" size="sm" className="h-8 text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100" onClick={handleMarkAllRead} disabled={isPending}>
                 <Check className="size-3 mr-1" />
-                Semua Dibaca
+                Mark All Read
               </Button>
             )}
           </DialogHeader>
 
           <div className="max-h-72 overflow-y-auto py-2 divide-y divide-zinc-100 dark:divide-zinc-800">
             {notifications.length === 0 ? (
-              <p className="text-center py-8 text-xs text-zinc-400">Tidak ada notifikasi baru.</p>
+              <p className="text-center py-8 text-xs text-zinc-400">No new notifications.</p>
             ) : (
               notifications.map((n) => {
                 const dateStr = new Intl.DateTimeFormat("id-ID", {
@@ -132,7 +132,7 @@ export function NotificationBellClient({ initialNotifications, initialUnreadCoun
                         className="h-6 w-6 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded"
                         onClick={() => handleMarkRead(n.id)}
                         disabled={isPending}
-                        title="Tandai dibaca"
+                        title="Mark as read"
                       >
                         <Check className="size-3" />
                       </Button>
@@ -149,7 +149,7 @@ export function NotificationBellClient({ initialNotifications, initialUnreadCoun
               onClick={() => setOpen(false)}
               className="text-xs font-medium text-blue-700 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline"
             >
-              Lihat Semua Notifikasi
+              View All Notifications
             </Link>
           </div>
         </DialogContent>

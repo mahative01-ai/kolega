@@ -1,9 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Send, FileText, Loader2 } from "lucide-react";
+import { Send, FileText, Loader2, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { submitWfhAttendanceAction } from "./actions";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export function WfhForm({
   hasCheckedIn,
@@ -37,9 +45,23 @@ export function WfhForm({
     >
       {!hasCheckedIn ? (
         <div className="flex flex-col gap-2">
-          <label htmlFor="wfhPlan" className="text-sm font-medium flex items-center gap-1.5 text-zinc-700">
+          <label htmlFor="wfhPlan" className="text-sm font-medium flex items-center gap-1.5 text-zinc-700 dark:text-zinc-300">
             <FileText className="size-4 text-blue-600" />
-            Rencana Kerja WFH
+            <span>Rencana Kerja WFH</span>
+            <Dialog>
+              <DialogTrigger asChild>
+                <HelpCircle className="size-3.5 text-zinc-400 hover:text-zinc-650 cursor-pointer shrink-0" />
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
+                <DialogHeader>
+                  <DialogTitle>Ketentuan Rencana Kerja WFH</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-2 text-xs text-zinc-600 dark:text-zinc-450 leading-relaxed">
+                  <p>Setiap melakukan Check-in WFH (Work From Home) di pagi hari, Anda wajib mengisi rencana pekerjaan tertulis yang akan Anda selesaikan hari ini.</p>
+                  <p className="text-[10px] text-zinc-500">Ketentuan ini wajib dipenuhi agar presensi WFH dianggap valid dan dapat disetujui oleh manajemen.</p>
+                </div>
+              </DialogContent>
+            </Dialog>
           </label>
           <textarea
             id="wfhPlan"
@@ -63,9 +85,23 @@ export function WfhForm({
             <p className="mt-1 text-sm text-zinc-700 whitespace-pre-wrap">{checkInPlan}</p>
           </div>
           <div className="flex flex-col gap-2">
-            <label htmlFor="wfhReport" className="text-sm font-medium flex items-center gap-1.5 text-zinc-700">
+            <label htmlFor="wfhReport" className="text-sm font-medium flex items-center gap-1.5 text-zinc-700 dark:text-zinc-300">
               <FileText className="size-4 text-emerald-600" />
-              Laporan Hasil Kerja WFH
+              <span>Laporan Hasil Kerja WFH</span>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <HelpCircle className="size-3.5 text-zinc-400 hover:text-zinc-650 cursor-pointer shrink-0" />
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
+                  <DialogHeader>
+                    <DialogTitle>Ketentuan Laporan Kerja WFH</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-2 text-xs text-zinc-600 dark:text-zinc-450 leading-relaxed">
+                    <p>Setiap melakukan Check-out WFH (Work From Home) di sore hari, Anda wajib mengisi laporan pekerjaan tertulis mengenai apa saja hasil yang telah Anda capai hari ini.</p>
+                    <p className="text-[10px] text-zinc-500">Ketentuan ini wajib dipenuhi agar presensi WFH dianggap valid dan dapat disetujui oleh manajemen.</p>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </label>
             <textarea
               id="wfhReport"
