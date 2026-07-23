@@ -110,19 +110,19 @@ export function CorrectionFormClient({
             </DialogTrigger>
             <DialogContent className="sm:max-w-md border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
               <DialogHeader>
-                <DialogTitle>Ketentuan Koreksi Presensi</DialogTitle>
+                <DialogTitle>Attendance Correction Rules</DialogTitle>
                 <DialogDescription className="text-xs text-zinc-550">
-                  Peraturan pengajuan koreksi presensi lampau:
+                  Regulations for submitting past attendance corrections:
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
                 <div>
-                  <h4 className="font-bold text-zinc-900 dark:text-zinc-250">1. Rentang Tanggal Koreksi</h4>
-                  <p className="mt-0.5">Koreksi presensi hanya diperbolehkan untuk riwayat tanggal yang berkisar antara <b>2 hingga 7 hari yang lalu</b>. Hari H, H-1, dan hari di luar rentang 7 hari tidak dapat dipilih.</p>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-250">1. Correction Date Range</h4>
+                  <p className="mt-0.5">Attendance corrections are only allowed for dates ranging from <b>2 to 7 days ago</b>. Today (H-0), yesterday (H-1), and dates outside the 7-day range cannot be selected.</p>
                 </div>
                 <div>
-                  <h4 className="font-bold text-zinc-900 dark:text-zinc-250">2. Estimasi Waktu Masuk/Pulang</h4>
-                  <p className="mt-0.5">Jika mengoreksi status ke kehadiran fisik (On Time atau Late), Anda wajib menyertakan jam masuk yang diusulkan agar sistem dapat menghitung menit keterlambatan/utang waktu secara akurat.</p>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-250">2. Estimated Check-in/out Time</h4>
+                  <p className="mt-0.5">If correcting your status to physical presence (On Time or Late), you must provide the proposed check-in time so the system can calculate late minutes and time debt accurately.</p>
                 </div>
               </div>
             </DialogContent>
