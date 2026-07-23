@@ -606,7 +606,7 @@ export default async function MemberDashboardPage({
                           Regulations for physical presence (Work From Office):
                         </DialogDescription>
                       </DialogHeader>
-                      <div className="space-y-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400"
+                      <div className="rules-rich-editor space-y-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400"
                            dangerouslySetInnerHTML={helpRules.rules_wfo ? { __html: helpRules.rules_wfo } : undefined}>
                         {!helpRules.rules_wfo && (
                           <>

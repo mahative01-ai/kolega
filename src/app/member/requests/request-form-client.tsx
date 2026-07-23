@@ -89,7 +89,7 @@ export function RequestFormClient({ canRequestReplacementDay }: Props) {
                   Regulations for submitting absences and special statuses:
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400"
+              <div className="rules-rich-editor space-y-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400"
                    dangerouslySetInnerHTML={rulesContent ? { __html: rulesContent } : undefined}>
                 {!rulesContent && (
                   <>

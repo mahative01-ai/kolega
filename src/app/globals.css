@@ -130,3 +130,34 @@
     @apply font-sans;
   }
 }
+
+/* Rich text editor and popup formatted HTML styles */
+.rules-rich-editor ul {
+  list-style-type: disc !important;
+  padding-left: 1.25rem !important;
+  margin-top: 0.25rem !important;
+  margin-bottom: 0.25rem !important;
+}
+.rules-rich-editor ol {
+  list-style-type: decimal !important;
+  padding-left: 1.25rem !important;
+  margin-top: 0.25rem !important;
+  margin-bottom: 0.25rem !important;
+}
+.rules-rich-editor h3 {
+  font-weight: 700 !important;
+  font-size: 1rem !important;
+  margin-top: 0.75rem !important;
+  margin-bottom: 0.25rem !important;
+}
+.rules-rich-editor h4 {
+  font-weight: 700 !important;
+  font-size: 0.875rem !important;
+  margin-top: 0.75rem !important;
+  margin-bottom: 0.25rem !important;
+}
+.rules-rich-editor p {
+  margin-top: 0.25rem !important;
+  margin-bottom: 0.25rem !important;
+}
+

@@ -60,7 +60,7 @@ export function WfhForm({
                 <DialogHeader>
                   <DialogTitle>WFH Work Plan Rules</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-2 text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed"
+                <div className="rules-rich-editor space-y-2 text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed"
                      dangerouslySetInnerHTML={rulesPlanContent ? { __html: rulesPlanContent } : undefined}>
                   {!rulesPlanContent && (
                     <>
@@ -105,7 +105,7 @@ export function WfhForm({
                   <DialogHeader>
                     <DialogTitle>WFH Work Report Rules</DialogTitle>
                   </DialogHeader>
-                  <div className="space-y-2 text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed"
+                  <div className="rules-rich-editor space-y-2 text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed"
                        dangerouslySetInnerHTML={rulesReportContent ? { __html: rulesReportContent } : undefined}>
                     {!rulesReportContent && (
                       <>
