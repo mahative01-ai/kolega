@@ -106,22 +106,22 @@ export function CorrectionFormClient({
           <span className="text-red-500">*</span>
           <Dialog>
             <DialogTrigger asChild>
-              <HelpCircle className="size-4 text-zinc-450 hover:text-zinc-650 cursor-pointer shrink-0" />
+              <HelpCircle className="size-4 text-zinc-400 hover:text-zinc-600 cursor-pointer shrink-0" />
             </DialogTrigger>
             <DialogContent className="sm:max-w-md border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
               <DialogHeader>
                 <DialogTitle>Attendance Correction Rules</DialogTitle>
-                <DialogDescription className="text-xs text-zinc-550">
+                <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-450">
                   Regulations for submitting past attendance corrections:
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
                 <div>
-                  <h4 className="font-bold text-zinc-900 dark:text-zinc-250">1. Correction Date Range</h4>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-200">1. Correction Date Range</h4>
                   <p className="mt-0.5">Attendance corrections are only allowed for dates ranging from <b>2 to 7 days ago</b>. Today (H-0), yesterday (H-1), and dates outside the 7-day range cannot be selected.</p>
                 </div>
                 <div>
-                  <h4 className="font-bold text-zinc-900 dark:text-zinc-250">2. Estimated Check-in/out Time</h4>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-200">2. Estimated Check-in/out Time</h4>
                   <p className="mt-0.5">If correcting your status to physical presence (On Time or Late), you must provide the proposed check-in time so the system can calculate late minutes and time debt accurately.</p>
                 </div>
               </div>

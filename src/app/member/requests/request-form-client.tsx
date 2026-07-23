@@ -79,7 +79,7 @@ export function RequestFormClient({ canRequestReplacementDay }: Props) {
           <span className="text-red-500">*</span>
           <Dialog>
             <DialogTrigger asChild>
-              <HelpCircle className="size-4 text-zinc-450 hover:text-zinc-650 cursor-pointer shrink-0" />
+              <HelpCircle className="size-4 text-zinc-400 hover:text-zinc-600 cursor-pointer shrink-0" />
             </DialogTrigger>
             <DialogContent className="sm:max-w-md border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
               <DialogHeader>

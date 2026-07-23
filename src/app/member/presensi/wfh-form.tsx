@@ -50,13 +50,13 @@ export function WfhForm({
             <span>WFH Work Plan</span>
             <Dialog>
               <DialogTrigger asChild>
-                <HelpCircle className="size-3.5 text-zinc-400 hover:text-zinc-650 cursor-pointer shrink-0" />
+                <HelpCircle className="size-3.5 text-zinc-400 hover:text-zinc-600 cursor-pointer shrink-0" />
               </DialogTrigger>
               <DialogContent className="sm:max-w-md border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
                 <DialogHeader>
                   <DialogTitle>WFH Work Plan Rules</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-2 text-xs text-zinc-600 dark:text-zinc-450 leading-relaxed">
+                <div className="space-y-2 text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
                   <p>Every time you Check-in for WFH (Work From Home) in the morning, you must fill in a written work plan containing the tasks you plan to complete today.</p>
                   <p className="text-[10px] text-zinc-500">This requirement must be met for WFH attendance to be considered valid and approved by management.</p>
                 </div>
@@ -90,13 +90,13 @@ export function WfhForm({
               <span>WFH Work Report</span>
               <Dialog>
                 <DialogTrigger asChild>
-                  <HelpCircle className="size-3.5 text-zinc-400 hover:text-zinc-650 cursor-pointer shrink-0" />
+                  <HelpCircle className="size-3.5 text-zinc-400 hover:text-zinc-600 cursor-pointer shrink-0" />
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-md border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
                   <DialogHeader>
                     <DialogTitle>WFH Work Report Rules</DialogTitle>
                   </DialogHeader>
-                  <div className="space-y-2 text-xs text-zinc-600 dark:text-zinc-450 leading-relaxed">
+                  <div className="space-y-2 text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
                     <p>Every time you Check-out for WFH (Work From Home) in the afternoon, you must fill in a written report of the results you have achieved today.</p>
                     <p className="text-[10px] text-zinc-500">This requirement must be met for WFH attendance to be considered valid and approved by management.</p>
                   </div>
