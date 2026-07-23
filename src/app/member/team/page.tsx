@@ -20,6 +20,7 @@ export default async function TeamMoodPage() {
 
   const whereClause: Prisma.UserWhereInput = {
     accountStatus: "ACTIVE",
+    role: { not: "SUPER_ADMIN" },
   };
 
   if (currentUser.role !== "SUPER_ADMIN" && currentUser.defaultStudioId) {
