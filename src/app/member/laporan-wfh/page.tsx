@@ -78,7 +78,7 @@ export default async function MemberLaporanWfhPage({
   }));
 
   const monthOptions = getMonthOptions();
-  const monthLabel = formatMonthLabel(monthInfo.year, monthInfo.monthIndex + 1);
+  const monthLabel = formatMonthLabel(monthInfo.year, monthInfo.monthIndex);
 
   return (
     <DashboardShell
