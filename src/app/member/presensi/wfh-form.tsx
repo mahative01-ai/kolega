@@ -17,10 +17,14 @@ export function WfhForm({
   hasCheckedIn,
   hasCheckedOut,
   checkInPlan,
+  rulesPlanContent,
+  rulesReportContent,
 }: {
   hasCheckedIn: boolean;
   hasCheckedOut: boolean;
   checkInPlan?: string | null;
+  rulesPlanContent?: string;
+  rulesReportContent?: string;
 }) {
   const [loading, setLoading] = useState(false);
   const [text, setText] = useState("");
@@ -56,9 +60,14 @@ export function WfhForm({
                 <DialogHeader>
                   <DialogTitle>WFH Work Plan Rules</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-2 text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                  <p>Every time you Check-in for WFH (Work From Home) in the morning, you must fill in a written work plan containing the tasks you plan to complete today.</p>
-                  <p className="text-[10px] text-zinc-500">This requirement must be met for WFH attendance to be considered valid and approved by management.</p>
+                <div className="space-y-2 text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed"
+                     dangerouslySetInnerHTML={rulesPlanContent ? { __html: rulesPlanContent } : undefined}>
+                  {!rulesPlanContent && (
+                    <>
+                      <p>Every time you Check-in for WFH (Work From Home) in the morning, you must fill in a written work plan containing the tasks you plan to complete today.</p>
+                      <p className="text-[10px] text-zinc-500">This requirement must be met for WFH attendance to be considered valid and approved by management.</p>
+                    </>
+                  )}
                 </div>
               </DialogContent>
             </Dialog>
@@ -96,9 +105,14 @@ export function WfhForm({
                   <DialogHeader>
                     <DialogTitle>WFH Work Report Rules</DialogTitle>
                   </DialogHeader>
-                  <div className="space-y-2 text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                    <p>Every time you Check-out for WFH (Work From Home) in the afternoon, you must fill in a written report of the results you have achieved today.</p>
-                    <p className="text-[10px] text-zinc-500">This requirement must be met for WFH attendance to be considered valid and approved by management.</p>
+                  <div className="space-y-2 text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed"
+                       dangerouslySetInnerHTML={rulesReportContent ? { __html: rulesReportContent } : undefined}>
+                    {!rulesReportContent && (
+                      <>
+                        <p>Every time you Check-out for WFH (Work From Home) in the afternoon, you must fill in a written report of the results you have achieved today.</p>
+                        <p className="text-[10px] text-zinc-500">This requirement must be met for WFH attendance to be considered valid and approved by management.</p>
+                      </>
+                    )}
                   </div>
                 </DialogContent>
               </Dialog>

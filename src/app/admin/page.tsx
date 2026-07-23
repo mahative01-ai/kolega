@@ -21,6 +21,7 @@ import {
 } from "@/lib/calendar";
 
 export const dynamic = "force-dynamic";
+import { getHelpRules } from "@/lib/default-help-rules";
 
 async function getAdminDashboardData(userId: string, defaultStudioId: string | null, selectedMonthKey?: string) {
   const reportMonth = normalizeReportMonth(selectedMonthKey);
@@ -383,7 +384,10 @@ export default async function AdminDashboardPage({
     searchParams,
   ]);
 
-  const data = await getAdminDashboardData(currentUser.id, currentUser.defaultStudioId, params.month);
+  const [data, helpRules] = await Promise.all([
+    getAdminDashboardData(currentUser.id, currentUser.defaultStudioId, params.month),
+    getHelpRules(),
+  ]);
   const currentDate = new Date();
   const birthDate = currentUser.birthDate ? new Date(currentUser.birthDate) : null;
   const isBirthday = birthDate &&
@@ -449,6 +453,8 @@ export default async function AdminDashboardPage({
         todayKey={todayKey}
         scheduleByDateMap={scheduleByDateMap}
         attendanceByDateMap={attendanceByDateMap}
+        rulesPlanContent={helpRules.rules_wfh_plan}
+        rulesReportContent={helpRules.rules_wfh_report}
       />
     </DashboardShell>
   );

@@ -248,3 +248,47 @@ export async function updateStudioGeofenceAction(
 
   revalidatePath("/settings");
 }
+
+export async function updateHelpRulesAction(rules: {
+  rules_wfo: string;
+  rules_leave_sick: string;
+  rules_correction: string;
+  rules_wfh_plan: string;
+  rules_wfh_report: string;
+}) {
+  await requireRole("SUPER_ADMIN");
+
+  await prisma.$transaction([
+    prisma.systemSetting.upsert({
+      where: { key: "rules_wfo" },
+      create: { key: "rules_wfo", value: rules.rules_wfo },
+      update: { value: rules.rules_wfo },
+    }),
+    prisma.systemSetting.upsert({
+      where: { key: "rules_leave_sick" },
+      create: { key: "rules_leave_sick", value: rules.rules_leave_sick },
+      update: { value: rules.rules_leave_sick },
+    }),
+    prisma.systemSetting.upsert({
+      where: { key: "rules_correction" },
+      create: { key: "rules_correction", value: rules.rules_correction },
+      update: { value: rules.rules_correction },
+    }),
+    prisma.systemSetting.upsert({
+      where: { key: "rules_wfh_plan" },
+      create: { key: "rules_wfh_plan", value: rules.rules_wfh_plan },
+      update: { value: rules.rules_wfh_plan },
+    }),
+    prisma.systemSetting.upsert({
+      where: { key: "rules_wfh_report" },
+      create: { key: "rules_wfh_report", value: rules.rules_wfh_report },
+      update: { value: rules.rules_wfh_report },
+    }),
+  ]);
+
+  revalidatePath("/settings");
+  revalidatePath("/member");
+  revalidatePath("/member/requests");
+  revalidatePath("/member/corrections");
+}
+

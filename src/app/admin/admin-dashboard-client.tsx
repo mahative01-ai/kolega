@@ -146,6 +146,8 @@ type Props = {
   todayKey: string;
   scheduleByDateMap: Record<string, { workMode: string; note: string | null }>;
   attendanceByDateMap: Record<string, { status: string; isManualCorrection: boolean; workMode: string }>;
+  rulesPlanContent?: string;
+  rulesReportContent?: string;
 };
 
 const statusLabel: Record<string, string> = {
@@ -565,6 +567,8 @@ export function AdminDashboardClient({
                           hasCheckedIn={!!data.todayRecord?.checkInAt}
                           hasCheckedOut={!!data.todayRecord?.checkOutAt}
                           checkInPlan={data.todayRecord?.wfhPlan}
+                          rulesPlanContent={rulesPlanContent}
+                          rulesReportContent={rulesReportContent}
                         />
                       </div>
                     </CardContent>

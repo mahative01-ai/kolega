@@ -29,6 +29,7 @@ type Props = {
   statusColor: Record<string, string>;
   memberStatus?: string;
   action: (formData: FormData) => void;
+  rulesContent?: string;
 };
 
 const CORRECTION_HELPER_TEXT: Record<string, { title: string; desc: string; variant: "amber" | "violet" | "emerald" | "blue" | "rose" }> = {
@@ -115,15 +116,20 @@ export function CorrectionFormClient({
                   Regulations for submitting past attendance corrections:
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-                <div>
-                  <h4 className="font-bold text-zinc-900 dark:text-zinc-200">1. Correction Date Range</h4>
-                  <p className="mt-0.5">Attendance corrections are only allowed for dates ranging from <b>2 to 7 days ago</b>. Today (H-0), yesterday (H-1), and dates outside the 7-day range cannot be selected.</p>
-                </div>
-                <div>
-                  <h4 className="font-bold text-zinc-900 dark:text-zinc-200">2. Estimated Check-in/out Time</h4>
-                  <p className="mt-0.5">If correcting your status to physical presence (On Time or Late), you must provide the proposed check-in time so the system can calculate late minutes and time debt accurately.</p>
-                </div>
+              <div className="space-y-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400"
+                   dangerouslySetInnerHTML={rulesContent ? { __html: rulesContent } : undefined}>
+                {!rulesContent && (
+                  <>
+                    <div>
+                      <h4 className="font-bold text-zinc-900 dark:text-zinc-200">1. Correction Date Range</h4>
+                      <p className="mt-0.5">Attendance corrections are only allowed for dates ranging from <b>2 to 7 days ago</b>. Today (H-0), yesterday (H-1), and dates outside the 7-day range cannot be selected.</p>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-zinc-900 dark:text-zinc-200">2. Estimated Check-in/out Time</h4>
+                      <p className="mt-0.5">If correcting your status to physical presence (On Time or Late), you must provide the proposed check-in time so the system can calculate late minutes and time debt accurately.</p>
+                    </div>
+                  </>
+                )}
               </div>
             </DialogContent>
           </Dialog>

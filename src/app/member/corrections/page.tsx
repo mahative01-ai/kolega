@@ -27,6 +27,7 @@ import { prisma } from "@/lib/prisma";
 import { createCorrectionAction, cancelCorrectionAction } from "./actions";
 import { getJakartaDateKey } from "@/lib/attendance-time";
 import { CorrectionFormClient } from "./correction-form-client";
+import { getHelpRules } from "@/lib/default-help-rules";
 
 export const dynamic = "force-dynamic";
 
@@ -139,6 +140,13 @@ export default async function MemberCorrectionsPage({
   } catch (error) {
     console.error("Failed to load correction attendance records", error);
     loadErrors.push("Latest attendance records could not be loaded.");
+  }
+
+  let helpRules = { rules_correction: "" };
+  try {
+    helpRules = await getHelpRules();
+  } catch (error) {
+    console.error("Failed to load help rules", error);
   }
 
   // If recordId param is provided, fetch it
@@ -257,6 +265,7 @@ export default async function MemberCorrectionsPage({
               statusColor={statusColor}
               memberStatus={currentUser.memberStatus}
               action={createCorrectionAction}
+              rulesContent={helpRules.rules_correction}
             />
           </CardContent>
         </Card>

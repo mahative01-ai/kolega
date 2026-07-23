@@ -25,6 +25,7 @@ import { createPersonalQrCredentialAction } from "@/app/member/presensi/actions"
 import { WfhForm } from "@/app/member/presensi/wfh-form";
 import { WfoJournalForm } from "@/app/member/presensi/wfo-journal-form";
 import { FileText, HelpCircle } from "lucide-react";
+import { getHelpRules } from "@/lib/default-help-rules";
 import {
   Dialog,
   DialogContent,
@@ -352,7 +353,10 @@ export default async function MemberDashboardPage({
     searchParams,
   ]);
 
-  const data = await getMemberDashboardData(currentUser.id, params.month);
+  const [data, helpRules] = await Promise.all([
+    getMemberDashboardData(currentUser.id, params.month),
+    getHelpRules(),
+  ]);
   const currentDate = new Date();
   const birthDate = currentUser.birthDate ? new Date(currentUser.birthDate) : null;
   const isBirthday = birthDate &&
@@ -602,23 +606,28 @@ export default async function MemberDashboardPage({
                           Regulations for physical presence (Work From Office):
                         </DialogDescription>
                       </DialogHeader>
-                      <div className="space-y-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-                        <div>
-                          <h4 className="font-bold text-zinc-900 dark:text-zinc-200">1. Late Limit</h4>
-                          <p className="mt-0.5">Regular check-in is at <b>08:00 AM</b> with a grace period of <b>10 minutes</b> (08:10 AM). Checking in after this will be marked as Late.</p>
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-zinc-900 dark:text-zinc-200">2. Absent (Alpha) Threshold</h4>
-                          <p className="mt-0.5">Employees who have not checked in by <b>12:00 PM (noon)</b> will automatically be marked as Absent (Alpha) for that day.</p>
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-zinc-900 dark:text-zinc-200">3. Early Check-out Lock</h4>
-                          <p className="mt-0.5">The check-out button is locked until the minimum work duration (8 hours from check-in) is met to prevent premature checkout.</p>
-                        </div>
-                        <div className="rounded-lg bg-zinc-50 dark:bg-zinc-900/50 p-2.5 border border-zinc-100 dark:border-zinc-800/80">
-                          <h4 className="font-bold text-orange-700 dark:text-orange-400">Personal Matters & Early Checkout</h4>
-                          <p className="mt-0.5 text-zinc-600 dark:text-zinc-400">If you must leave early for urgent personal matters, you must compensate for the missing hours. The remaining minutes will be added to your time debt balance (Late Owed) to be replaced on another day.</p>
-                        </div>
+                      <div className="space-y-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400"
+                           dangerouslySetInnerHTML={helpRules.rules_wfo ? { __html: helpRules.rules_wfo } : undefined}>
+                        {!helpRules.rules_wfo && (
+                          <>
+                            <div>
+                              <h4 className="font-bold text-zinc-900 dark:text-zinc-200">1. Late Limit</h4>
+                              <p className="mt-0.5">Regular check-in is at <b>08:00 AM</b> with a grace period of <b>10 minutes</b> (08:10 AM). Checking in after this will be marked as Late.</p>
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-zinc-900 dark:text-zinc-200">2. Absent (Alpha) Threshold</h4>
+                              <p className="mt-0.5">Employees who have not checked in by <b>12:00 PM (noon)</b> will automatically be marked as Absent (Alpha) for that day.</p>
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-zinc-900 dark:text-zinc-200">3. Early Check-out Lock</h4>
+                              <p className="mt-0.5">The check-out button is locked until the minimum work duration (8 hours from check-in) is met to prevent premature checkout.</p>
+                            </div>
+                            <div className="rounded-lg bg-zinc-50 dark:bg-zinc-900/50 p-2.5 border border-zinc-100 dark:border-zinc-800/80">
+                              <h4 className="font-bold text-orange-700 dark:text-orange-400">Personal Matters & Early Checkout</h4>
+                              <p className="mt-0.5 text-zinc-600 dark:text-zinc-400">If you must leave early for urgent personal matters, you must compensate for the missing hours. The remaining minutes will be added to your time debt balance (Late Owed) to be replaced on another day.</p>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </DialogContent>
                   </Dialog>
@@ -669,6 +678,8 @@ export default async function MemberDashboardPage({
                       hasCheckedIn={!!data.todayRecord?.checkInAt}
                       hasCheckedOut={!!data.todayRecord?.checkOutAt}
                       checkInPlan={data.todayRecord?.wfhPlan}
+                      rulesPlanContent={helpRules.rules_wfh_plan}
+                      rulesReportContent={helpRules.rules_wfh_report}
                     />
                   </div>
                 </CardContent>

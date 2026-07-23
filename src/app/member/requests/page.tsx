@@ -27,6 +27,7 @@ import { requireAnyRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { cancelRequestAction } from "./actions";
 import { RequestFormClient } from "./request-form-client";
+import { getHelpRules } from "@/lib/default-help-rules";
 
 export const dynamic = "force-dynamic";
 
@@ -98,12 +99,15 @@ const errorMessages: Record<string, string> = {
 
 export default async function MemberRequestsPage() {
   const currentUser = await requireAnyRole(["ADMIN", "MEMBER"]);
+  const [userWithBalance, helpRules] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: currentUser.id },
+      select: { annualLeaveBalance: true },
+    }),
+    getHelpRules()
+  ]);
   const canRequestReplacementDay = currentUser.memberStatus === "TEAM";
 
-  const userWithBalance = await prisma.user.findUnique({
-    where: { id: currentUser.id },
-    select: { annualLeaveBalance: true },
-  });
   const leaveBalance = userWithBalance?.annualLeaveBalance ?? 12;
 
   const requests = await prisma.request.findMany({
@@ -164,7 +168,7 @@ export default async function MemberRequestsPage() {
                 </p>
               </div>
             )}
-            <RequestFormClient canRequestReplacementDay={canRequestReplacementDay} />
+            <RequestFormClient canRequestReplacementDay={canRequestReplacementDay} rulesContent={helpRules.rules_leave_sick} />
           </CardContent>
         </Card>
 
