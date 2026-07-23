@@ -80,7 +80,7 @@ const statusColor: Record<string, string> = {
 };
 
 function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("id-ID", {
+  return new Intl.DateTimeFormat("en-US", {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -89,7 +89,7 @@ function formatDate(date: Date) {
 }
 
 async function getMemberDashboardData(userId: string, selectedMonthKey?: string) {
-  const reportMonth = normalizeReportMonth();
+  const reportMonth = normalizeReportMonth(selectedMonthKey);
   const { start, endExclusive } = getMonthRange(reportMonth);
 
   const month = parseMonthKey(selectedMonthKey);
@@ -749,6 +749,7 @@ export default async function MemberDashboardPage({
                 );
                 const hasReplacement = dayHolidays.some(h => h.type === "REPLACEMENT_WORKDAY");
                 const isRealHoliday = hasHoliday && !hasReplacement;
+                const isSundayOrMonday = day.date.getDay() === 0 || day.date.getDay() === 1;
 
                 return (
                   <div
@@ -790,14 +791,13 @@ export default async function MemberDashboardPage({
                               </span>
                             )}
                           </div>
-                        ) : (
-                          <span className={cn(
-                            "rounded px-1 py-0.5 text-[8px] font-medium border",
-                            isWfh
-                              ? "bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-900"
-                              : "bg-zinc-100 dark:bg-zinc-900 text-zinc-655 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800"
-                          )}>
-                            {isWfh ? "WFH" : "WFO"}
+                        ) : isWfh ? (
+                          <span className="rounded px-1 py-0.5 text-[8px] font-medium border bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-900">
+                            WFH
+                          </span>
+                        ) : isSundayOrMonday ? null : (
+                          <span className="rounded px-1 py-0.5 text-[8px] font-medium border bg-zinc-100 dark:bg-zinc-900 text-zinc-655 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800">
+                            WFO
                           </span>
                         )}
                       </div>
@@ -835,7 +835,7 @@ export default async function MemberDashboardPage({
                         <p className="truncate text-[8px] text-zinc-500 font-semibold" title="Replacement Workday">
                           Replacement (WFO)
                         </p>
-                      ) : (
+                      ) : isSundayOrMonday ? null : (
                         <p className="truncate text-[8px] text-zinc-300 dark:text-zinc-600 font-medium">
                           Default WFO
                         </p>

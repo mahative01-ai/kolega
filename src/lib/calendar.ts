@@ -62,7 +62,7 @@ export function getCalendarDays(year: number, monthIndex: number) {
 }
 
 export function formatMonthLabel(year: number, monthIndex: number) {
-  return new Intl.DateTimeFormat("id-ID", {
+  return new Intl.DateTimeFormat("en-US", {
     month: "long",
     year: "numeric",
   }).format(new Date(year, monthIndex, 1));

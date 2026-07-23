@@ -23,7 +23,7 @@ import {
 export const dynamic = "force-dynamic";
 
 async function getAdminDashboardData(userId: string, defaultStudioId: string | null, selectedMonthKey?: string) {
-  const reportMonth = normalizeReportMonth();
+  const reportMonth = normalizeReportMonth(selectedMonthKey);
   const { start, endExclusive } = getMonthRange(reportMonth);
   const studioFilter = defaultStudioId ? { ownerStudioId: defaultStudioId } : {};
   const userFilter = defaultStudioId ? { defaultStudioId } : {};
@@ -327,7 +327,7 @@ async function getAdminDashboardData(userId: string, defaultStudioId: string | n
       (t) => t.attendanceDate.getTime() === d.getTime()
     );
 
-    const dateLabel = new Intl.DateTimeFormat("id-ID", {
+    const dateLabel = new Intl.DateTimeFormat("en-US", {
       weekday: "short",
       day: "2-digit",
       month: "2-digit",

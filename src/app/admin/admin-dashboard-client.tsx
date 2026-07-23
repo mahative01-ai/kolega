@@ -42,6 +42,7 @@ import { quickReviewCorrectionAction } from "./corrections/actions";
 import { dedupeCalendarEvents, isApiHolidayCoveredByDbEvent } from "@/lib/calendar-events";
 import { formatMinutesAsClock, getCheckoutEligibility } from "@/lib/checkout-policy";
 import { ActiveAnnouncementsClient } from "@/components/active-announcements-client";
+import { formatMonthLabel } from "@/lib/calendar";
 
 type Props = {
   currentUser: {
@@ -641,7 +642,7 @@ export function AdminDashboardClient({
                     <ChevronLeft className="size-4" />
                   </Link>
                   <span className="text-xs font-bold min-w-[110px] text-center select-none text-zinc-850 dark:text-zinc-200">
-                    {data.monthLabel}
+                    {formatMonthLabel(data.selectedMonth.year, data.selectedMonth.monthIndex)}
                   </span>
                   <Link
                     href={`/admin?month=${nextMonthKey}`}
@@ -667,6 +668,7 @@ export function AdminDashboardClient({
                     const attendanceRecord = attendanceByDateMap[day.dateKey];
                     const isToday = day.dateKey === todayKey;
                     const dayHolidays = adminHolidaysMap.get(day.dateKey) ?? [];
+                    const isSundayOrMonday = day.date.getDay() === 0 || day.date.getDay() === 1;
 
                     const hasHoliday = dayHolidays.some(h => 
                       h.type === "NATIONAL_HOLIDAY" || 
@@ -720,7 +722,7 @@ export function AdminDashboardClient({
                               )}>
                                 {schedule.workMode}
                               </span>
-                            ) : (
+                            ) : isSundayOrMonday ? null : (
                               <span className="rounded px-1 py-0.5 text-[8px] font-medium border bg-zinc-100 dark:bg-zinc-900 text-zinc-655 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800">
                                 WFO
                               </span>
@@ -762,7 +764,7 @@ export function AdminDashboardClient({
                             <p className="truncate text-[8px] text-zinc-500 font-semibold" title="Replacement Workday">
                               Replacement (WFO)
                             </p>
-                          ) : (
+                          ) : isSundayOrMonday ? null : (
                             <p className="truncate text-[8px] text-zinc-300 dark:text-zinc-600 font-medium">
                               Default WFO
                             </p>

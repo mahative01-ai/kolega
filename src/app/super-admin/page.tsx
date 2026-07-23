@@ -82,8 +82,8 @@ type TrendPoint = {
   count: number;
 };
 
-async function getSuperAdminDashboardData() {
-  const month = normalizeReportMonth();
+async function getSuperAdminDashboardData(selectedMonthKey?: string) {
+  const month = normalizeReportMonth(selectedMonthKey);
   const { start: monthStart, endExclusive: monthEnd } = getMonthRange(month);
 
   const todayKey = getJakartaDateKey();
@@ -302,10 +302,17 @@ async function getSuperAdminDashboardData() {
   };
 }
 
-export default async function SuperAdminDashboardPage() {
-  const currentUser = await requireRole("SUPER_ADMIN");
+export default async function SuperAdminDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string }>;
+}) {
+  const [currentUser, params] = await Promise.all([
+    requireRole("SUPER_ADMIN"),
+    searchParams,
+  ]);
 
-  const data = await getSuperAdminDashboardData();
+  const data = await getSuperAdminDashboardData(params.month);
   const currentDate = new Date();
   const birthDate = currentUser.birthDate ? new Date(currentUser.birthDate) : null;
   const isBirthday = birthDate &&

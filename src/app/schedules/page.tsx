@@ -402,6 +402,7 @@ export default async function WorkSchedulesPage({
               );
               const hasReplacement = dayHolidays.some(h => h.type === "REPLACEMENT_WORKDAY");
               const isRealHoliday = hasHoliday && !hasReplacement;
+              const isSundayOrMonday = day.date.getDay() === 0 || day.date.getDay() === 1;
 
               return (
                 <div
@@ -426,16 +427,19 @@ export default async function WorkSchedulesPage({
                         >
                           Holiday
                         </Badge>
-                      ) : (
+                      ) : isWfh ? (
                         <Badge
                           variant="secondary"
-                          className={
-                            isWfh
-                              ? "bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-900"
-                              : "bg-zinc-100 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800"
-                          }
+                          className="bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-900"
                         >
-                          {isWfh ? "WFH" : "WFO"}
+                          WFH
+                        </Badge>
+                      ) : isSundayOrMonday ? null : (
+                        <Badge
+                          variant="secondary"
+                          className="bg-zinc-100 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800"
+                        >
+                          WFO
                         </Badge>
                       )}
                     </div>
@@ -447,7 +451,7 @@ export default async function WorkSchedulesPage({
                         (schedule?.note ?? "WFH from monthly schedule").replace("WFH diatur oleh Super Admin", "WFH set by Super Admin")
                       ) : hasReplacement ? (
                         "Replacement Day (WFO)"
-                      ) : (
+                      ) : isSundayOrMonday ? null : (
                         "Default WFO"
                       )}
                     </p>
