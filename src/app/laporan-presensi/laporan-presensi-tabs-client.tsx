@@ -338,7 +338,7 @@ export function LaporanPresensiTabsClient({
                           )}
                         </TableCell>
                         <TableCell className="pt-3 pb-3">
-                          <div className="rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-2.5 text-xs text-zinc-700 dark:text-zinc-350 whitespace-pre-line leading-relaxed">
+                          <div className="rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-2.5 text-xs text-zinc-700 dark:text-zinc-300 whitespace-pre-line leading-relaxed">
                             {item.wfhReport || "—"}
                           </div>
                         </TableCell>
