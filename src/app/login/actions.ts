@@ -249,6 +249,7 @@ export async function loginAndAttendWithQrAction(
         status: true,
         checkInAt: true,
         checkOutAt: true,
+        wfhReport: true,
       },
     }),
     prisma.attendancePolicy.findFirst({
@@ -402,6 +403,13 @@ export async function loginAndAttendWithQrAction(
 
     if (existingRecord.checkInAt && !existingRecord.checkOutAt) {
       if (action === "checkout") {
+        if (existingRecord.workMode !== "WFH" && (!existingRecord.wfhReport || !existingRecord.wfhReport.trim())) {
+          return {
+            success: false,
+            error: "WFO Journal wajib diisi dan disimpan sebelum melakukan Check-out.",
+          };
+        }
+
         const checkoutEligibility = getCheckoutEligibility({
           checkInAt: existingRecord.checkInAt,
           now,

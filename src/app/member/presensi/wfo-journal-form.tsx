@@ -1,19 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { Send, FileText, Loader2, CheckCircle2 } from "lucide-react";
+import { Send, FileText, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { saveWfoJournalAction } from "./actions";
 import { toast } from "sonner";
 
 type Props = {
   initialJournal?: string | null;
+  hasCheckedIn?: boolean;
+  hasCheckedOut?: boolean;
 };
 
-export function WfoJournalForm({ initialJournal }: Props) {
+export function WfoJournalForm({ initialJournal, hasCheckedIn, hasCheckedOut }: Props) {
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [text, setText] = useState(initialJournal || "");
+  const isJournalRequiredForCheckout = Boolean(hasCheckedIn && !hasCheckedOut && !initialJournal?.trim());
 
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -37,6 +40,13 @@ export function WfoJournalForm({ initialJournal }: Props) {
 
   return (
     <form onSubmit={handleSave} className="grid gap-3 font-sans">
+      {isJournalRequiredForCheckout && !saved && (
+        <div className="text-[11px] font-medium text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded p-2 flex items-center gap-1.5">
+          <AlertCircle className="size-3.5 text-amber-600 shrink-0" />
+          Please fill and save your WFO Journal before checking out.
+        </div>
+      )}
+
       <div className="flex flex-col gap-2">
         <label htmlFor="wfoJournal" className="text-xs font-semibold text-zinc-500 flex items-center gap-1">
           <FileText className="size-3.5 text-zinc-400" />
