@@ -25,7 +25,8 @@ import {
   X,
   Loader2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createPersonalQrCredentialAction } from "@/app/member/presensi/actions";
@@ -578,6 +579,8 @@ export function AdminDashboardClient({
                         </h3>
                         <WfoJournalForm
                           initialJournal={data.todayRecord.wfhReport}
+                          hasCheckedIn={!!data.todayRecord?.checkInAt}
+                          hasCheckedOut={!!data.todayRecord?.checkOutAt}
                         />
                       </div>
                     </CardContent>
@@ -594,7 +597,19 @@ export function AdminDashboardClient({
                   </Link>
                   
                   {!isWfhMode && (!data.todayRecord || !data.todayRecord.checkOutAt) && (
-                    isCheckoutLocked ? (
+                    (data.todayRecord?.checkInAt && !data.todayRecord?.wfhReport?.trim()) ? (
+                      <span
+                        aria-disabled="true"
+                        title="Please fill and save your Today's WFO Journal before checking out."
+                        className={cn(
+                          buttonVariants({ variant: "default", size: "sm" }),
+                          "flex cursor-not-allowed items-center gap-1 text-xs bg-amber-100 dark:bg-amber-950/40 text-amber-850 dark:text-amber-300 border border-amber-200 dark:border-amber-900"
+                        )}
+                      >
+                        <FileText className="size-3.5 text-amber-600" />
+                        Fill WFO Journal First
+                      </span>
+                    ) : isCheckoutLocked ? (
                       <span
                         aria-disabled="true"
                         title={`Check-out opens at ${checkoutAvailableTime}`}
