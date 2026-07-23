@@ -1,12 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 type RecordItem = {
   id: string;
@@ -93,8 +101,32 @@ export function CorrectionFormClient({
   return (
     <form action={action} method="POST" encType="multipart/form-data" className="grid gap-4">
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="record-select" className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-          Select Attendance Record / Date <span className="text-red-500">*</span>
+        <label htmlFor="record-select" className="text-sm font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+          <span>Select Attendance Record / Date</span>
+          <span className="text-red-500">*</span>
+          <Dialog>
+            <DialogTrigger asChild>
+              <HelpCircle className="size-4 text-zinc-450 hover:text-zinc-650 cursor-pointer shrink-0" />
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
+              <DialogHeader>
+                <DialogTitle>Ketentuan Koreksi Presensi</DialogTitle>
+                <DialogDescription className="text-xs text-zinc-550">
+                  Peraturan pengajuan koreksi presensi lampau:
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+                <div>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-250">1. Rentang Tanggal Koreksi</h4>
+                  <p className="mt-0.5">Koreksi presensi hanya diperbolehkan untuk riwayat tanggal yang berkisar antara <b>2 hingga 7 hari yang lalu</b>. Hari H, H-1, dan hari di luar rentang 7 hari tidak dapat dipilih.</p>
+                </div>
+                <div>
+                  <h4 className="font-bold text-zinc-900 dark:text-zinc-250">2. Estimasi Waktu Masuk/Pulang</h4>
+                  <p className="mt-0.5">Jika mengoreksi status ke kehadiran fisik (On Time atau Late), Anda wajib menyertakan jam masuk yang diusulkan agar sistem dapat menghitung menit keterlambatan/utang waktu secara akurat.</p>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </label>
         {preselectedRecord ? (
           <>

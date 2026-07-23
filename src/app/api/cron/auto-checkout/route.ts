@@ -56,7 +56,7 @@ export async function GET(request: Request) {
       data: {
         userId: record.userId,
         title: "Auto Check-out",
-        message: `Sistem mendeteksi Anda belum melakukan check-out hari ini. Anda telah di-checkout otomatis pada jam ${checkoutTime} WIB.`,
+        message: `The system detected that you did not check out today. You have been automatically checked out at ${checkoutTime} WIB.`,
       },
     });
 

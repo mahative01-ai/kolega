@@ -201,16 +201,16 @@ export function QrLoginScanner({
   return (
     <div className="grid gap-3">
       {currentUser && (
-        <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-sm shadow-sm flex flex-col gap-2">
+        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/20 p-4 text-sm shadow-sm flex flex-col gap-3">
           <div>
-            <p className="font-semibold text-zinc-950">{currentUser.name}</p>
-            <p className="text-xs text-zinc-500">
+            <p className="font-bold text-zinc-950 dark:text-zinc-50 text-base">{currentUser.name}</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
               {currentUser.role === "ADMIN" ? "Admin" : "Member"} • {currentUser.studioName}
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-zinc-200/60 mt-1">
-            <span className="text-[11px] text-zinc-400 font-medium">Today&apos;s status:</span>
-            <span className={`text-[11px] font-semibold px-2 py-0.5 rounded border ${currentUser.statusColor}`}>
+          <div className="flex flex-col gap-1.5 pt-2.5 border-t border-zinc-200 dark:border-zinc-800/80">
+            <span className="text-xs text-zinc-500 dark:text-zinc-450 font-semibold">Today&apos;s status:</span>
+            <span className={`text-sm font-bold px-3 py-2.5 rounded-lg border text-center shadow-sm ${currentUser.statusColor}`}>
               {currentUser.statusText}
             </span>
           </div>

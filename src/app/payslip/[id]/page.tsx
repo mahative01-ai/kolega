@@ -152,7 +152,7 @@ export default async function PrintablePayslipPage({
 
             <div className="grid grid-cols-2 px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 text-sm">
               <div className="text-zinc-700 dark:text-zinc-300">File</div>
-              <div className="text-right font-medium">{payslip.pdfFileName ?? "PDF slip gaji"}</div>
+              <div className="text-right font-medium">{payslip.pdfFileName ?? "Salary slip PDF"}</div>
             </div>
           </div>
         </div>
@@ -160,7 +160,7 @@ export default async function PrintablePayslipPage({
         {/* Notes (If present) */}
         {payslip.notes && (
           <div className="p-4 bg-zinc-50 dark:bg-zinc-900/40 rounded-lg border border-zinc-150 dark:border-zinc-850 text-xs text-zinc-600 dark:text-zinc-400 mb-8 leading-relaxed">
-            <span className="font-semibold block mb-1">Catatan Tambahan:</span>
+            <span className="font-semibold block mb-1">Additional Notes:</span>
             {payslip.notes}
           </div>
         )}
@@ -169,12 +169,12 @@ export default async function PrintablePayslipPage({
         <div className="grid grid-cols-2 gap-8 pt-8 mt-12 text-sm border-t border-zinc-100 dark:border-zinc-900 text-center">
           <div className="flex flex-col items-center">
             <span className="text-zinc-400 dark:text-zinc-500 text-xs uppercase tracking-wider mb-12">
-              Diterima Oleh
+              Received By
             </span>
             <div className="border-b border-zinc-300 dark:border-zinc-700 w-40 mb-1 font-semibold text-zinc-900 dark:text-zinc-50">
               {payslip.user.name}
             </div>
-            <span className="text-[10px] text-zinc-400">Member Tim</span>
+            <span className="text-[10px] text-zinc-400">Team Member</span>
           </div>
           <div className="flex flex-col items-center">
             <span className="text-zinc-400 dark:text-zinc-500 text-xs uppercase tracking-wider mb-12">

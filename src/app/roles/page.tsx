@@ -47,6 +47,7 @@ async function getRoleData(actor: Awaited<ReturnType<typeof requireAnyRole>>) {
         workDayBalance: true,
         defaultStudioId: true,
         picketDay: true,
+        notes: true,
         currentMood: true,
         defaultStudio: {
           select: {

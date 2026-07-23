@@ -138,7 +138,7 @@ export default async function MemberCorrectionsPage({
     });
   } catch (error) {
     console.error("Failed to load correction attendance records", error);
-    loadErrors.push("Catatan presensi terbaru belum bisa dimuat.");
+    loadErrors.push("Latest attendance records could not be loaded.");
   }
 
   // If recordId param is provided, fetch it
@@ -158,7 +158,7 @@ export default async function MemberCorrectionsPage({
         });
       } catch (error) {
         console.error("Failed to load preselected correction record", error);
-        loadErrors.push("Catatan presensi yang dipilih belum bisa dimuat.");
+        loadErrors.push("The selected attendance record could not be loaded.");
       }
     }
   }

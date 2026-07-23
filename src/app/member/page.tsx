@@ -24,7 +24,15 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { createPersonalQrCredentialAction } from "@/app/member/presensi/actions";
 import { WfhForm } from "@/app/member/presensi/wfh-form";
 import { WfoJournalForm } from "@/app/member/presensi/wfo-journal-form";
-import { FileText } from "lucide-react";
+import { FileText, HelpCircle } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { ActiveAnnouncementsClient } from "@/components/active-announcements-client";
 import { ConfettiTrigger } from "@/components/confetti-trigger";
 import { DailySignalsBanner } from "@/components/daily-signals-banner";
@@ -101,7 +109,7 @@ async function getMemberDashboardData(userId: string, selectedMonthKey?: string)
 
   const userObj = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, role: true, defaultStudioId: true, workDayBalance: true, picketDay: true, annualLeaveBalance: true, memberStatus: true }
+    select: { id: true, role: true, defaultStudioId: true, workDayBalance: true, picketDay: true, annualLeaveBalance: true, memberStatus: true, notes: true }
   });
 
   const dailySignals = userObj
@@ -321,6 +329,7 @@ async function getMemberDashboardData(userId: string, selectedMonthKey?: string)
     annualLeaveBalance: userObj?.annualLeaveBalance ?? 12,
     memberStatus: userObj?.memberStatus ?? "TEAM",
     picketDay: userObj?.picketDay ?? null,
+    notes: userObj?.notes ?? null,
     announcements,
     monthlyAttendance,
     picketCalendar,
@@ -581,7 +590,38 @@ export default async function MemberDashboardPage({
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
                   <Clock3 className="size-5 text-blue-700 dark:text-blue-400" />
-                  Today&apos;s Attendance
+                  <span>Today&apos;s Attendance</span>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <HelpCircle className="size-4 text-zinc-400 hover:text-zinc-650 cursor-pointer shrink-0" />
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
+                      <DialogHeader>
+                        <DialogTitle>Peraturan Jam Masuk & Pulang WFO</DialogTitle>
+                        <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
+                          Ketentuan presensi fisik (Work From Office):
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+                        <div>
+                          <h4 className="font-bold text-zinc-900 dark:text-zinc-200">1. Batas Terlambat</h4>
+                          <p className="mt-0.5">Jam masuk reguler adalah <b>08:00 WIB</b> dengan toleransi keterlambatan <b>10 menit</b> (08:10 WIB). Check-in setelah itu akan terhitung Late.</p>
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-zinc-900 dark:text-zinc-200">2. Batas Alpha</h4>
+                          <p className="mt-0.5">Karyawan yang belum melakukan check-in hingga pukul <b>12:00 siang</b> akan otomatis dianggap <b>Alpha</b> pada hari tersebut.</p>
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-zinc-900 dark:text-zinc-200">3. Kunci Check-out Awal</h4>
+                          <p className="mt-0.5">Tombol check-out dikunci sampai jam kerja minimum (8 jam kerja dari jam check-in) terpenuhi untuk mencegah kepulangan sebelum waktunya.</p>
+                        </div>
+                        <div className="rounded-lg bg-zinc-50 dark:bg-zinc-900/50 p-2.5 border border-zinc-100 dark:border-zinc-800/80">
+                          <h4 className="font-bold text-orange-700 dark:text-orange-400">Urusan Mendadak & Pulang Cepat</h4>
+                          <p className="mt-0.5 text-zinc-600 dark:text-zinc-400">Jika terpaksa pulang cepat karena urusan mendadak, sisa waktu kerja yang kurang wajib diganti. Menit yang kurang akan dimasukkan ke saldo utang waktu Anda (Late Owed) untuk diganti hari lain.</p>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </CardTitle>
                 <CardDescription className="text-zinc-500 dark:text-zinc-400">
                   {formatFullDate(new Date())}
@@ -686,6 +726,20 @@ export default async function MemberDashboardPage({
               )}
             </CardContent>
           </Card>
+
+          {data.notes && (
+            <Card className="shadow-none border border-zinc-200 dark:border-zinc-800 bg-zinc-50/40 dark:bg-zinc-900/10">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-sm font-bold text-zinc-900 dark:text-zinc-50">
+                  <FileText className="size-4 text-blue-600 dark:text-blue-450" />
+                  Admin / Management Notes
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-xs text-zinc-600 dark:text-zinc-400 whitespace-pre-line leading-relaxed pb-3">
+                {data.notes}
+              </CardContent>
+            </Card>
+          )}
 
         </div>
 
