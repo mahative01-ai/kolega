@@ -196,11 +196,7 @@ export function RiwayatPresensiTableClient({ records }: Props) {
                     Late <ArrowUpDown className="size-3 text-zinc-400" />
                   </div>
                 </TableHead>
-                <TableHead onClick={() => handleSort("early")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
-                  <div className="flex items-center gap-1">
-                    Early Checkout <ArrowUpDown className="size-3 text-zinc-400" />
-                  </div>
-                </TableHead>
+
                 <TableHead onClick={() => handleSort("studio")} className="cursor-pointer select-none hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                   <div className="flex items-center gap-1">
                     Default Studio <ArrowUpDown className="size-3 text-zinc-400" />
@@ -218,7 +214,7 @@ export function RiwayatPresensiTableClient({ records }: Props) {
               {sortedAndFilteredRecords.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={10}
+                    colSpan={9}
                     className="h-24 text-center text-sm text-zinc-500"
                   >
                     No attendance records found.
@@ -246,11 +242,7 @@ export function RiwayatPresensiTableClient({ records }: Props) {
                         ? `${record.lateMinutes} min`
                         : "-"}
                     </TableCell>
-                    <TableCell className="text-xs">
-                      {record.earlyCheckoutMinutes > 0
-                        ? `${record.earlyCheckoutMinutes} min`
-                        : "-"}
-                    </TableCell>
+
                     <TableCell className="text-xs">{record.ownerStudio.name}</TableCell>
                     <TableCell className="text-xs">
                       {record.locationStudio?.name ?? "No location required"}
