@@ -79,9 +79,11 @@ export function RequestFormClient({ canRequestReplacementDay, rulesContent }: Pr
           <span>Request Type</span>
           <span className="text-red-500">*</span>
           <Dialog>
-            <DialogTrigger asChild>
-              <HelpCircle className="size-4 text-zinc-400 hover:text-zinc-600 cursor-pointer shrink-0" />
-            </DialogTrigger>
+            <DialogTrigger
+              render={
+                <HelpCircle className="size-4 text-zinc-400 hover:text-zinc-600 cursor-pointer shrink-0" />
+              }
+            />
             <DialogContent className="sm:max-w-md border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
               <DialogHeader>
                 <DialogTitle>Leave & Sick Request Rules</DialogTitle>

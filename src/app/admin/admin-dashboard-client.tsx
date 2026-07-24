@@ -206,6 +206,8 @@ export function AdminDashboardClient({
   todayKey,
   scheduleByDateMap,
   attendanceByDateMap,
+  rulesPlanContent,
+  rulesReportContent,
 }: Props) {
   const [activeTab, setActiveTab] = useState<"personal" | "studio">(() => defaultTab ?? "personal");
   const prevDate = new Date(data.selectedMonth.year, data.selectedMonth.monthIndex - 1, 1);

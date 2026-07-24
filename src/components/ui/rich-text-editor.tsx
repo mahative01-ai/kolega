@@ -299,7 +299,7 @@ export function RichTextEditor({
         contentEditable
         onInput={handleInput}
         className="p-3 min-h-[160px] focus:outline-none text-xs leading-relaxed max-w-none text-zinc-800 dark:text-zinc-200 rules-rich-editor"
-        placeholder={placeholder}
+        {...({ placeholder } as any)}
       />
     </div>
   );
