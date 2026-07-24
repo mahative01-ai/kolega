@@ -48,7 +48,7 @@ const SYARAT_KETERANGAN: Record<string, { title: string; desc: string; variant: 
   },
 };
 
-export function RequestFormClient({ canRequestReplacementDay }: Props) {
+export function RequestFormClient({ canRequestReplacementDay, rulesContent }: Props) {
   const [selectedType, setSelectedType] = useState<string>("PERMISSION");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");

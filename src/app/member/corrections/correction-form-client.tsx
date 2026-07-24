@@ -77,6 +77,7 @@ export function CorrectionFormClient({
   statusColor,
   memberStatus,
   action,
+  rulesContent,
 }: Props) {
   const [newStatus, setNewStatus] = useState("ON_TIME");
   const [selectedRecordId, setSelectedRecordId] = useState(preselectedRecord?.id ?? "");
