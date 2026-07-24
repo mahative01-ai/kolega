@@ -1,41 +1,40 @@
 "use client";
 
 import { useState } from "react";
-import { Send, FileText, Loader2, HelpCircle } from "lucide-react";
+import { Send, FileText, Loader2, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { submitWfhAttendanceAction } from "./actions";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-export function WfhForm({
-  hasCheckedIn,
-  hasCheckedOut,
-  checkInPlan,
-}: {
+type Props = {
   hasCheckedIn: boolean;
   hasCheckedOut: boolean;
   checkInPlan?: string | null;
-}) {
+};
+
+export function WfhForm({ hasCheckedIn, hasCheckedOut, checkInPlan }: Props) {
   const [loading, setLoading] = useState(false);
   const [text, setText] = useState("");
-
-  if (hasCheckedOut) {
-    return (
-      <div className="rounded-md border border-emerald-200 bg-emerald-50/50 p-4 text-emerald-800">
-        <p className="text-sm font-medium">Presensi WFH hari ini selesai.</p>
-      </div>
-    );
-  }
 
   const handleSubmit = () => {
     setLoading(true);
   };
+
+  if (hasCheckedIn && hasCheckedOut) {
+    return (
+      <div className="rounded-md border border-emerald-200 bg-emerald-50 p-4 text-center dark:border-emerald-900 dark:bg-emerald-950/20">
+        <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
+          Anda sudah menyelesaikan presensi WFH hari ini (Check-in & Check-out).
+        </p>
+      </div>
+    );
+  }
 
   return (
     <form
@@ -45,12 +44,18 @@ export function WfhForm({
     >
       {!hasCheckedIn ? (
         <div className="flex flex-col gap-2">
-          <label htmlFor="wfhPlan" className="text-sm font-medium flex items-center gap-1.5 text-zinc-700 dark:text-zinc-300">
-            <FileText className="size-4 text-blue-600" />
-            <span>Rencana Kerja WFH</span>
+          <label htmlFor="wfhPlan" className="text-sm font-medium flex items-center justify-between gap-1.5 text-zinc-700 dark:text-zinc-300">
+            <div className="flex items-center gap-1.5">
+              <FileText className="size-4 text-blue-600" />
+              <span>Rencana Kerja WFH</span>
+            </div>
             <Dialog>
-              <DialogTrigger asChild>
-                <HelpCircle className="size-3.5 text-zinc-400 hover:text-zinc-650 cursor-pointer shrink-0" />
+              <DialogTrigger
+                type="button"
+                className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer shrink-0 shadow-none"
+              >
+                <span>Rules & Info</span>
+                <ChevronRight className="size-3.5 text-zinc-500" />
               </DialogTrigger>
               <DialogContent className="sm:max-w-md border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
                 <DialogHeader>
@@ -85,12 +90,18 @@ export function WfhForm({
             <p className="mt-1 text-sm text-zinc-700 whitespace-pre-wrap">{checkInPlan}</p>
           </div>
           <div className="flex flex-col gap-2">
-            <label htmlFor="wfhReport" className="text-sm font-medium flex items-center gap-1.5 text-zinc-700 dark:text-zinc-300">
-              <FileText className="size-4 text-emerald-600" />
-              <span>Laporan Hasil Kerja WFH</span>
+            <label htmlFor="wfhReport" className="text-sm font-medium flex items-center justify-between gap-1.5 text-zinc-700 dark:text-zinc-300">
+              <div className="flex items-center gap-1.5">
+                <FileText className="size-4 text-emerald-600" />
+                <span>Laporan Hasil Kerja WFH</span>
+              </div>
               <Dialog>
-                <DialogTrigger asChild>
-                  <HelpCircle className="size-3.5 text-zinc-400 hover:text-zinc-650 cursor-pointer shrink-0" />
+                <DialogTrigger
+                  type="button"
+                  className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer shrink-0 shadow-none"
+                >
+                  <span>Rules & Info</span>
+                  <ChevronRight className="size-3.5 text-zinc-500" />
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-md border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
                   <DialogHeader>

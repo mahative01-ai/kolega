@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { PlusCircle, HelpCircle } from "lucide-react";
+import { PlusCircle, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -101,12 +101,18 @@ export function CorrectionFormClient({
   return (
     <form action={action} method="POST" encType="multipart/form-data" className="grid gap-4">
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="record-select" className="text-sm font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
-          <span>Select Attendance Record / Date</span>
-          <span className="text-red-500">*</span>
+        <label htmlFor="record-select" className="text-sm font-medium text-zinc-900 dark:text-zinc-100 flex items-center justify-between gap-1.5">
+          <div className="flex items-center gap-1.5">
+            <span>Select Attendance Record / Date</span>
+            <span className="text-red-500">*</span>
+          </div>
           <Dialog>
-            <DialogTrigger asChild>
-              <HelpCircle className="size-4 text-zinc-450 hover:text-zinc-650 cursor-pointer shrink-0" />
+            <DialogTrigger
+              type="button"
+              className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer shrink-0 shadow-none ml-auto"
+            >
+              <span>Rules & Info</span>
+              <ChevronRight className="size-3.5 text-zinc-500" />
             </DialogTrigger>
             <DialogContent className="sm:max-w-md border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
               <DialogHeader>

@@ -36,6 +36,14 @@ import { DashboardCharts } from "@/components/dashboard-charts";
 import { AttendanceSummary } from "@/lib/attendance-report";
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   broadcastAnnouncementAction,
 } from "./actions";
 import { quickReviewRequestAction } from "./requests/actions";
@@ -515,9 +523,42 @@ export function AdminDashboardClient({
               <Card className="shadow-none flex flex-col">
                 <div>
                   <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
-                      <Clock3 className="size-5 text-blue-700 dark:text-blue-400" />
-                      My Attendance Today
+                    <CardTitle className="flex items-center justify-between text-zinc-900 dark:text-zinc-50">
+                      <div className="flex items-center gap-2">
+                        <Clock3 className="size-5 text-blue-700 dark:text-blue-400" />
+                        <span>My Attendance Today</span>
+                      </div>
+                      <Dialog>
+                        <DialogTrigger
+                          type="button"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer shrink-0 shadow-none"
+                        >
+                          <span>Rules & Info</span>
+                          <ChevronRight className="size-3.5 text-zinc-500" />
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
+                          <DialogHeader>
+                            <DialogTitle>Peraturan Jam Masuk & Pulang WFO</DialogTitle>
+                            <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
+                              Ketentuan presensi fisik (Work From Office):
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+                            <div>
+                              <h4 className="font-bold text-zinc-900 dark:text-zinc-200">1. Batas Terlambat</h4>
+                              <p className="mt-0.5">Jam masuk reguler adalah <b>08:00 WIB</b> dengan toleransi keterlambatan <b>10 menit</b> (08:10 WIB). Check-in setelah itu akan terhitung Late.</p>
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-zinc-900 dark:text-zinc-200">2. Waktu Check-out Early</h4>
+                              <p className="mt-0.5">Jam pulang standar adalah <b>16:00 WIB</b>. Melakukan Check-out sebelum jam pulang akan mencatat menit early checkout.</p>
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-zinc-900 dark:text-zinc-200">3. WFO Journal Wajib</h4>
+                              <p className="mt-0.5">WFO Journal wajib diisi dan disimpan sebelum Anda melakukan Check-out di sore hari.</p>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </CardTitle>
                     <CardDescription className="text-zinc-500 dark:text-zinc-400">
                       {formatFullDate(new Date())}

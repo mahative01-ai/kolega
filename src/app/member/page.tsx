@@ -24,7 +24,7 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { createPersonalQrCredentialAction } from "@/app/member/presensi/actions";
 import { WfhForm } from "@/app/member/presensi/wfh-form";
 import { WfoJournalForm } from "@/app/member/presensi/wfo-journal-form";
-import { FileText, HelpCircle } from "lucide-react";
+import { FileText } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -588,12 +588,18 @@ export default async function MemberDashboardPage({
           <Card className="shadow-none flex flex-col">
             <div>
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
-                  <Clock3 className="size-5 text-blue-700 dark:text-blue-400" />
-                  <span>Today&apos;s Attendance</span>
+                <CardTitle className="flex items-center justify-between text-zinc-900 dark:text-zinc-50">
+                  <div className="flex items-center gap-2">
+                    <Clock3 className="size-5 text-blue-700 dark:text-blue-400" />
+                    <span>Today&apos;s Attendance</span>
+                  </div>
                   <Dialog>
-                    <DialogTrigger asChild>
-                      <HelpCircle className="size-4 text-zinc-400 hover:text-zinc-650 cursor-pointer shrink-0" />
+                    <DialogTrigger
+                      type="button"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer shrink-0 shadow-none"
+                    >
+                      <span>Rules & Info</span>
+                      <ChevronRight className="size-3.5 text-zinc-500" />
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-md border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
                       <DialogHeader>
