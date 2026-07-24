@@ -204,7 +204,7 @@ export function AttendanceDetailDialog({
             {/* Summary Tab */}
             <TabsContent value="summary" className="space-y-4 pt-3">
               {/* Daily timing stats grid */}
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                 {/* Check-in */}
                 <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-4 flex flex-col justify-between shadow-sm relative overflow-hidden">
                   <div className="flex items-center justify-between text-zinc-400 dark:text-zinc-500">
@@ -238,20 +238,6 @@ export function AttendanceDetailDialog({
                       {record.lateMinutes}
                     </span>
                     <span className="text-[10px] text-zinc-400 font-medium">{record.lateMinutes > 0 ? "minutes" : "On time"}</span>
-                  </div>
-                </div>
-
-                {/* Early out */}
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/10 p-4 flex flex-col justify-between shadow-sm relative overflow-hidden">
-                  <div className="flex items-center justify-between text-zinc-400 dark:text-zinc-500">
-                    <span className="text-[10px] font-bold uppercase tracking-wider">Early Out</span>
-                    <Hourglass className="size-4 text-amber-500" />
-                  </div>
-                  <div>
-                    <span className={`mt-2 block text-xl font-bold ${record.earlyCheckoutMinutes > 0 ? "text-orange-600 dark:text-orange-450" : "text-zinc-600 dark:text-zinc-400"}`}>
-                      {record.earlyCheckoutMinutes}
-                    </span>
-                    <span className="text-[10px] text-zinc-400 font-medium">{record.earlyCheckoutMinutes > 0 ? "minutes" : "No early out"}</span>
                   </div>
                 </div>
               </div>

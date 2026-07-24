@@ -86,7 +86,6 @@ export function AttendanceReportExportClient({ records, monthLabel }: Props) {
         "Check-in": formatTime(r.checkInAt),
         "Check-out": formatTime(r.checkOutAt),
         "Late Minutes": r.lateMinutes > 0 ? `${r.lateMinutes} minutes` : "-",
-        "Early Out": r.earlyCheckoutMinutes > 0 ? `${r.earlyCheckoutMinutes} minutes` : "-",
       }));
 
       const ws = XLSX.utils.json_to_sheet(data);
