@@ -62,6 +62,7 @@ const errorMessages: Record<string, string> = {
   "location-required": "GPS / Location is required to verify WFO attendance.",
   "studio-location-missing": "Studio GPS location has not been configured by admin.",
   "checkout-too-early": "Check-out is not open yet. Minimum work duration not reached.",
+  "outside-radius": "Tidak bisa presensi karena berada di luar radius studio.",
 };
 
 export default async function MemberPresensiPage({

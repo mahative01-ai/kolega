@@ -12,13 +12,19 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-type Props = {
+export function WfhForm({
+  hasCheckedIn,
+  hasCheckedOut,
+  checkInPlan,
+  rulesPlanContent,
+  rulesReportContent,
+}: {
   hasCheckedIn: boolean;
   hasCheckedOut: boolean;
   checkInPlan?: string | null;
-};
-
-export function WfhForm({ hasCheckedIn, hasCheckedOut, checkInPlan }: Props) {
+  rulesPlanContent?: string;
+  rulesReportContent?: string;
+}) {
   const [loading, setLoading] = useState(false);
   const [text, setText] = useState("");
 
@@ -30,7 +36,7 @@ export function WfhForm({ hasCheckedIn, hasCheckedOut, checkInPlan }: Props) {
     return (
       <div className="rounded-md border border-emerald-200 bg-emerald-50 p-4 text-center dark:border-emerald-900 dark:bg-emerald-950/20">
         <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
-          Anda sudah menyelesaikan presensi WFH hari ini (Check-in & Check-out).
+          WFH attendance completed for today.
         </p>
       </div>
     );
@@ -47,24 +53,35 @@ export function WfhForm({ hasCheckedIn, hasCheckedOut, checkInPlan }: Props) {
           <label htmlFor="wfhPlan" className="text-sm font-medium flex items-center justify-between gap-1.5 text-zinc-700 dark:text-zinc-300">
             <div className="flex items-center gap-1.5">
               <FileText className="size-4 text-blue-600" />
-              <span>Rencana Kerja WFH</span>
+              <span>WFH Work Plan</span>
             </div>
             <Dialog>
               <DialogTrigger
-                type="button"
-                className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer shrink-0 shadow-none"
-              >
-                <span>Rules & Info</span>
-                <ChevronRight className="size-3.5 text-zinc-500" />
-              </DialogTrigger>
+                render={
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer shrink-0 shadow-none"
+                  >
+                    <span>Rules & Info</span>
+                    <ChevronRight className="size-3.5 text-zinc-500" />
+                  </button>
+                }
+              />
               <DialogContent className="sm:max-w-md border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
                 <DialogHeader>
-                  <DialogTitle>Ketentuan Rencana Kerja WFH</DialogTitle>
+                  <DialogTitle>WFH Work Plan Rules</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-2 text-xs text-zinc-600 dark:text-zinc-450 leading-relaxed">
-                  <p>Setiap melakukan Check-in WFH (Work From Home) di pagi hari, Anda wajib mengisi rencana pekerjaan tertulis yang akan Anda selesaikan hari ini.</p>
-                  <p className="text-[10px] text-zinc-500">Ketentuan ini wajib dipenuhi agar presensi WFH dianggap valid dan dapat disetujui oleh manajemen.</p>
-                </div>
+                {rulesPlanContent ? (
+                  <div
+                    className="rules-rich-editor space-y-2 text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: rulesPlanContent }}
+                  />
+                ) : (
+                  <div className="rules-rich-editor space-y-2 text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                    <p>Every time you Check-in for WFH (Work From Home) in the morning, you must fill in a written work plan containing the tasks you plan to complete today.</p>
+                    <p className="text-[10px] text-zinc-500">This requirement must be met for WFH attendance to be considered valid and approved by management.</p>
+                  </div>
+                )}
               </DialogContent>
             </Dialog>
           </label>
@@ -74,43 +91,54 @@ export function WfhForm({ hasCheckedIn, hasCheckedOut, checkInPlan }: Props) {
             rows={4}
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Tuliskan rencana pekerjaan yang akan Anda selesaikan hari ini..."
+            placeholder="Write down the work plan that you will complete today..."
             className="w-full rounded-lg border border-input bg-transparent p-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50"
             required
             disabled={loading}
           />
           <p className="text-xs text-zinc-500">
-            Rencana kerja wajib diisi sebelum melakukan Check-in WFH.
+            The work plan must be filled in before WFH Check-in.
           </p>
         </div>
       ) : (
         <div className="grid gap-4">
           <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3">
-            <p className="text-xs font-semibold text-zinc-500">Rencana Kerja Anda:</p>
+            <p className="text-xs font-semibold text-zinc-500">Your Work Plan:</p>
             <p className="mt-1 text-sm text-zinc-700 whitespace-pre-wrap">{checkInPlan}</p>
           </div>
           <div className="flex flex-col gap-2">
             <label htmlFor="wfhReport" className="text-sm font-medium flex items-center justify-between gap-1.5 text-zinc-700 dark:text-zinc-300">
               <div className="flex items-center gap-1.5">
                 <FileText className="size-4 text-emerald-600" />
-                <span>Laporan Hasil Kerja WFH</span>
+                <span>WFH Work Report</span>
               </div>
               <Dialog>
                 <DialogTrigger
-                  type="button"
-                  className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer shrink-0 shadow-none"
-                >
-                  <span>Rules & Info</span>
-                  <ChevronRight className="size-3.5 text-zinc-500" />
-                </DialogTrigger>
+                  render={
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer shrink-0 shadow-none"
+                    >
+                      <span>Rules & Info</span>
+                      <ChevronRight className="size-3.5 text-zinc-500" />
+                    </button>
+                  }
+                />
                 <DialogContent className="sm:max-w-md border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
                   <DialogHeader>
-                    <DialogTitle>Ketentuan Laporan Kerja WFH</DialogTitle>
+                    <DialogTitle>WFH Work Report Rules</DialogTitle>
                   </DialogHeader>
-                  <div className="space-y-2 text-xs text-zinc-600 dark:text-zinc-450 leading-relaxed">
-                    <p>Setiap melakukan Check-out WFH (Work From Home) di sore hari, Anda wajib mengisi laporan pekerjaan tertulis mengenai apa saja hasil yang telah Anda capai hari ini.</p>
-                    <p className="text-[10px] text-zinc-500">Ketentuan ini wajib dipenuhi agar presensi WFH dianggap valid dan dapat disetujui oleh manajemen.</p>
-                  </div>
+                  {rulesReportContent ? (
+                    <div
+                      className="rules-rich-editor space-y-2 text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: rulesReportContent }}
+                    />
+                  ) : (
+                    <div className="rules-rich-editor space-y-2 text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                      <p>Every time you Check-out for WFH (Work From Home) in the afternoon, you must fill in a written report of the results you have achieved today.</p>
+                      <p className="text-[10px] text-zinc-500">This requirement must be met for WFH attendance to be considered valid and approved by management.</p>
+                    </div>
+                  )}
                 </DialogContent>
               </Dialog>
             </label>
@@ -120,25 +148,30 @@ export function WfhForm({ hasCheckedIn, hasCheckedOut, checkInPlan }: Props) {
               rows={4}
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Tuliskan laporan pekerjaan/hasil yang telah Anda capai hari ini..."
+              placeholder="Write down your work report results achieved today..."
               className="w-full rounded-lg border border-input bg-transparent p-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50"
               required
               disabled={loading}
             />
             <p className="text-xs text-zinc-500">
-              Laporan kerja wajib diisi sebelum melakukan Check-out WFH.
+              The work report must be filled in before WFH Check-out.
             </p>
           </div>
         </div>
       )}
 
-      <Button type="submit" disabled={loading || !text.trim()} className="w-full">
+      <Button type="submit" disabled={loading || !text.trim()} className="w-full sm:w-auto self-start">
         {loading ? (
-          <Loader2 className="size-4 animate-spin" />
+          <>
+            <Loader2 className="mr-2 size-4 animate-spin" />
+            Submitting...
+          </>
         ) : (
-          <Send aria-hidden="true" className="size-4" />
+          <>
+            <Send className="mr-2 size-4" />
+            {!hasCheckedIn ? "Submit WFH Plan & Check-in" : "Submit WFH Report & Check-out"}
+          </>
         )}
-        {loading ? "Memproses..." : !hasCheckedIn ? "Check-in WFH" : "Check-out WFH"}
       </Button>
     </form>
   );

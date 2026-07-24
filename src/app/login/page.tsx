@@ -24,6 +24,7 @@ const errorMessages: Record<string, string> = {
   "need-presence": "Dashboard access locked. Please scan your QR attendance card or submit an approved request for today.",
   "archived": "Your account is currently archived. Please contact an administrator for assistance.",
   "inactive": "Your account is currently disabled. Please contact an administrator.",
+  "outside-radius": "Tidak bisa presensi karena berada di luar radius studio.",
 };
 
 const successMessages: Record<string, string> = {

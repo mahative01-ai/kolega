@@ -102,6 +102,33 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
+  const stats = useMemo(() => {
+    let totalWorking = 0;
+    let completed = 0;
+
+    records.forEach((r) => {
+      const isNonWorking = ["ALPHA", "SICK", "LEAVE", "PERMISSION"].includes(r.status);
+      if (!isNonWorking) {
+        totalWorking++;
+        const isWfh = r.workMode === "WFH";
+        const hasPlan = r.wfhPlan && r.wfhPlan.trim() !== "";
+        const hasReport = r.wfhReport && r.wfhReport.trim() !== "";
+        const isComplete = isWfh ? (hasPlan && hasReport) : hasReport;
+        if (isComplete) {
+          completed++;
+        }
+      }
+    });
+
+    const missing = totalWorking - completed;
+
+    return {
+      totalWorking,
+      completed,
+      missing,
+    };
+  }, [records]);
+
   const filteredRecords = useMemo(() => {
     if (!selectedDate) return records;
     return records.filter((r) => r.attendanceDate.split("T")[0] === selectedDate);
@@ -235,6 +262,45 @@ export function LaporanWfhClient({ initialRecords, monthKey, monthOptions, month
           </div>
         </CardContent>
       </Card>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card className="shadow-none border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">Total Work Days</p>
+              <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 mt-1">{stats.totalWorking}</h3>
+            </div>
+            <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg text-blue-600 dark:text-blue-400">
+              <Calendar className="size-5" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-none border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">Completed Journals</p>
+              <h3 className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{stats.completed}</h3>
+            </div>
+            <div className="p-2 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg text-emerald-600 dark:text-emerald-400">
+              <CheckCircle className="size-5" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-none border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">Missing/Unfilled</p>
+              <h3 className={`text-2xl font-bold mt-1 ${stats.missing > 0 ? "text-amber-600 dark:text-amber-400" : "text-zinc-500 dark:text-zinc-400"}`}>{stats.missing}</h3>
+            </div>
+            <div className={`p-2 rounded-lg ${stats.missing > 0 ? "bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400" : "bg-zinc-50 dark:bg-zinc-950/30 text-zinc-400"}`}>
+              <AlertCircle className="size-5" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Records List */}
       <Card className="shadow-none border-zinc-200 dark:border-zinc-800">

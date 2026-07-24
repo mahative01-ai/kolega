@@ -29,6 +29,7 @@ type Props = {
   statusColor: Record<string, string>;
   memberStatus?: string;
   action: (formData: FormData) => void;
+  rulesContent?: string;
 };
 
 const CORRECTION_HELPER_TEXT: Record<string, { title: string; desc: string; variant: "amber" | "violet" | "emerald" | "blue" | "rose" }> = {
@@ -76,6 +77,7 @@ export function CorrectionFormClient({
   statusColor,
   memberStatus,
   action,
+  rulesContent,
 }: Props) {
   const [newStatus, setNewStatus] = useState("ON_TIME");
   const [selectedRecordId, setSelectedRecordId] = useState(preselectedRecord?.id ?? "");
@@ -108,29 +110,40 @@ export function CorrectionFormClient({
           </div>
           <Dialog>
             <DialogTrigger
-              type="button"
-              className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer shrink-0 shadow-none ml-auto"
-            >
-              <span>Rules & Info</span>
-              <ChevronRight className="size-3.5 text-zinc-500" />
-            </DialogTrigger>
+              render={
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer shrink-0 shadow-none ml-auto"
+                >
+                  <span>Rules & Info</span>
+                  <ChevronRight className="size-3.5 text-zinc-500" />
+                </button>
+              }
+            />
             <DialogContent className="sm:max-w-md border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
               <DialogHeader>
-                <DialogTitle>Ketentuan Koreksi Presensi</DialogTitle>
-                <DialogDescription className="text-xs text-zinc-550">
-                  Peraturan pengajuan koreksi presensi lampau:
+                <DialogTitle>Attendance Correction Rules</DialogTitle>
+                <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-450">
+                  Regulations for submitting past attendance corrections:
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-                <div>
-                  <h4 className="font-bold text-zinc-900 dark:text-zinc-250">1. Rentang Tanggal Koreksi</h4>
-                  <p className="mt-0.5">Koreksi presensi hanya diperbolehkan untuk riwayat tanggal yang berkisar antara <b>2 hingga 7 hari yang lalu</b>. Hari H, H-1, dan hari di luar rentang 7 hari tidak dapat dipilih.</p>
+              {rulesContent ? (
+                <div
+                  className="rules-rich-editor space-y-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400"
+                  dangerouslySetInnerHTML={{ __html: rulesContent }}
+                />
+              ) : (
+                <div className="rules-rich-editor space-y-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+                  <div>
+                    <h4 className="font-bold text-zinc-900 dark:text-zinc-200">1. Correction Date Range</h4>
+                    <p className="mt-0.5">Attendance corrections are only allowed for dates ranging from <b>2 to 7 days ago</b>. Today (H-0), yesterday (H-1), and dates outside the 7-day range cannot be selected.</p>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-zinc-900 dark:text-zinc-200">2. Estimated Check-in/out Time</h4>
+                    <p className="mt-0.5">If correcting your status to physical presence (On Time or Late), you must provide the proposed check-in time so the system can calculate late minutes and time debt accurately.</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-bold text-zinc-900 dark:text-zinc-250">2. Estimasi Waktu Masuk/Pulang</h4>
-                  <p className="mt-0.5">Jika mengoreksi status ke kehadiran fisik (On Time atau Late), Anda wajib menyertakan jam masuk yang diusulkan agar sistem dapat menghitung menit keterlambatan/utang waktu secara akurat.</p>
-                </div>
-              </div>
+              )}
             </DialogContent>
           </Dialog>
         </label>

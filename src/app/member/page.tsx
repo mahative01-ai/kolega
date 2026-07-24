@@ -25,6 +25,7 @@ import { createPersonalQrCredentialAction } from "@/app/member/presensi/actions"
 import { WfhForm } from "@/app/member/presensi/wfh-form";
 import { WfoJournalForm } from "@/app/member/presensi/wfo-journal-form";
 import { FileText } from "lucide-react";
+import { getHelpRules } from "@/lib/default-help-rules";
 import {
   Dialog,
   DialogContent,
@@ -352,7 +353,10 @@ export default async function MemberDashboardPage({
     searchParams,
   ]);
 
-  const data = await getMemberDashboardData(currentUser.id, params.month);
+  const [data, helpRules] = await Promise.all([
+    getMemberDashboardData(currentUser.id, params.month),
+    getHelpRules(),
+  ]);
   const currentDate = new Date();
   const birthDate = currentUser.birthDate ? new Date(currentUser.birthDate) : null;
   const isBirthday = birthDate &&
@@ -595,37 +599,48 @@ export default async function MemberDashboardPage({
                   </div>
                   <Dialog>
                     <DialogTrigger
-                      type="button"
-                      className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer shrink-0 shadow-none"
-                    >
-                      <span>Rules & Info</span>
-                      <ChevronRight className="size-3.5 text-zinc-500" />
-                    </DialogTrigger>
+                      render={
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer shrink-0 shadow-none"
+                        >
+                          <span>Rules & Info</span>
+                          <ChevronRight className="size-3.5 text-zinc-500" />
+                        </button>
+                      }
+                    />
                     <DialogContent className="sm:max-w-md border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
                       <DialogHeader>
-                        <DialogTitle>Peraturan Jam Masuk & Pulang WFO</DialogTitle>
+                        <DialogTitle>WFO Check-in & Check-out Rules</DialogTitle>
                         <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
-                          Ketentuan presensi fisik (Work From Office):
+                          Regulations for physical presence (Work From Office):
                         </DialogDescription>
                       </DialogHeader>
-                      <div className="space-y-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-                        <div>
-                          <h4 className="font-bold text-zinc-900 dark:text-zinc-200">1. Batas Terlambat</h4>
-                          <p className="mt-0.5">Jam masuk reguler adalah <b>08:00 WIB</b> dengan toleransi keterlambatan <b>10 menit</b> (08:10 WIB). Check-in setelah itu akan terhitung Late.</p>
+                      {helpRules.rules_wfo ? (
+                        <div
+                          className="rules-rich-editor space-y-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400"
+                          dangerouslySetInnerHTML={{ __html: helpRules.rules_wfo }}
+                        />
+                      ) : (
+                        <div className="rules-rich-editor space-y-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+                          <div>
+                            <h4 className="font-bold text-zinc-900 dark:text-zinc-200">1. Late Limit</h4>
+                            <p className="mt-0.5">Regular check-in is at <b>08:00 AM</b> with a grace period of <b>10 minutes</b> (08:10 AM). Checking in after this will be marked as Late.</p>
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-zinc-900 dark:text-zinc-200">2. Absent (Alpha) Threshold</h4>
+                            <p className="mt-0.5">Employees who have not checked in by <b>12:00 PM (noon)</b> will automatically be marked as Absent (Alpha) for that day.</p>
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-zinc-900 dark:text-zinc-200">3. Early Check-out Lock</h4>
+                            <p className="mt-0.5">The check-out button is locked until the minimum work duration (8 hours from check-in) is met to prevent premature checkout.</p>
+                          </div>
+                          <div className="rounded-lg bg-zinc-50 dark:bg-zinc-900/50 p-2.5 border border-zinc-100 dark:border-zinc-800/80">
+                            <h4 className="font-bold text-orange-700 dark:text-orange-400">Personal Matters & Early Checkout</h4>
+                            <p className="mt-0.5 text-zinc-600 dark:text-zinc-400">If you must leave early for urgent personal matters, you must compensate for the missing hours. The remaining minutes will be added to your time debt balance (Late Owed) to be replaced on another day.</p>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="font-bold text-zinc-900 dark:text-zinc-200">2. Batas Alpha</h4>
-                          <p className="mt-0.5">Karyawan yang belum melakukan check-in hingga pukul <b>12:00 siang</b> akan otomatis dianggap <b>Alpha</b> pada hari tersebut.</p>
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-zinc-900 dark:text-zinc-200">3. Kunci Check-out Awal</h4>
-                          <p className="mt-0.5">Tombol check-out dikunci sampai jam kerja minimum (8 jam kerja dari jam check-in) terpenuhi untuk mencegah kepulangan sebelum waktunya.</p>
-                        </div>
-                        <div className="rounded-lg bg-zinc-50 dark:bg-zinc-900/50 p-2.5 border border-zinc-100 dark:border-zinc-800/80">
-                          <h4 className="font-bold text-orange-700 dark:text-orange-400">Urusan Mendadak & Pulang Cepat</h4>
-                          <p className="mt-0.5 text-zinc-600 dark:text-zinc-400">Jika terpaksa pulang cepat karena urusan mendadak, sisa waktu kerja yang kurang wajib diganti. Menit yang kurang akan dimasukkan ke saldo utang waktu Anda (Late Owed) untuk diganti hari lain.</p>
-                        </div>
-                      </div>
+                      )}
                     </DialogContent>
                   </Dialog>
                 </CardTitle>
@@ -675,6 +690,8 @@ export default async function MemberDashboardPage({
                       hasCheckedIn={!!data.todayRecord?.checkInAt}
                       hasCheckedOut={!!data.todayRecord?.checkOutAt}
                       checkInPlan={data.todayRecord?.wfhPlan}
+                      rulesPlanContent={helpRules.rules_wfh_plan}
+                      rulesReportContent={helpRules.rules_wfh_report}
                     />
                   </div>
                 </CardContent>

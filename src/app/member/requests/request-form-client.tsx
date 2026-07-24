@@ -17,6 +17,7 @@ import {
 
 type Props = {
   canRequestReplacementDay: boolean;
+  rulesContent?: string;
 };
 
 const SYARAT_KETERANGAN: Record<string, { title: string; desc: string; variant: "blue" | "emerald" | "violet" | "amber" | "rose" }> = {
@@ -47,7 +48,7 @@ const SYARAT_KETERANGAN: Record<string, { title: string; desc: string; variant: 
   },
 };
 
-export function RequestFormClient({ canRequestReplacementDay }: Props) {
+export function RequestFormClient({ canRequestReplacementDay, rulesContent }: Props) {
   const [selectedType, setSelectedType] = useState<string>("PERMISSION");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -81,37 +82,48 @@ export function RequestFormClient({ canRequestReplacementDay }: Props) {
           </div>
           <Dialog>
             <DialogTrigger
-              type="button"
-              className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer shrink-0 shadow-none ml-auto"
-            >
-              <span>Rules & Info</span>
-              <ChevronRight className="size-3.5 text-zinc-500" />
-            </DialogTrigger>
+              render={
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-full border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer shrink-0 shadow-none ml-auto"
+                >
+                  <span>Rules & Info</span>
+                  <ChevronRight className="size-3.5 text-zinc-500" />
+                </button>
+              }
+            />
             <DialogContent className="sm:max-w-md border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
               <DialogHeader>
-                <DialogTitle>Ketentuan Pengajuan Izin & Sakit</DialogTitle>
+                <DialogTitle>Leave & Sick Request Rules</DialogTitle>
                 <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
-                  Peraturan pengajuan ketidakhadiran dan status khusus:
+                  Regulations for submitting absences and special statuses:
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-                <div>
-                  <h4 className="font-bold text-zinc-900 dark:text-zinc-200">1. Izin Sakit (SICK)</h4>
-                  <p className="mt-0.5">Wajib diajukan pada hari-H paling lambat pukul <b>07:00 pagi</b> (1 jam sebelum jam kerja). Jika sakit mendadak di tengah hari, silakan ikuti ketentuan sakit di tengah kerja.</p>
+              {rulesContent ? (
+                <div
+                  className="rules-rich-editor space-y-3 text-xs leading-relaxed text-zinc-650 dark:text-zinc-450"
+                  dangerouslySetInnerHTML={{ __html: rulesContent }}
+                />
+              ) : (
+                <div className="rules-rich-editor space-y-3 text-xs leading-relaxed text-zinc-650 dark:text-zinc-450">
+                  <div>
+                    <h4 className="font-bold text-zinc-900 dark:text-zinc-200">1. Sick Leave (SICK)</h4>
+                    <p className="mt-0.5">Must be submitted on the day of the absence no later than <b>07:00 AM</b> (1 hour before work hours). If you fall ill mid-work, refer to the early leave rules below.</p>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-zinc-900 dark:text-zinc-200">2. Annual Leave (LEAVE) & Others</h4>
+                    <p className="mt-0.5">Must be submitted at least <b>1 day in advance (H-1)</b>. Interns are not eligible for annual leave balance.</p>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-zinc-900 dark:text-zinc-200">3. Work From Home (WFH)</h4>
+                    <p className="mt-0.5">Only applicable to Team members (Interns are not allowed to WFH) and requires Super Admin approval.</p>
+                  </div>
+                  <div className="rounded-lg bg-zinc-50 dark:bg-zinc-950/50 p-2.5 border border-zinc-100 dark:border-zinc-800/80">
+                    <h4 className="font-bold text-blue-700 dark:text-blue-400">Sick Mid-Work (Early Leave)</h4>
+                    <p className="mt-0.5 text-zinc-600 dark:text-zinc-400">If you check in and subsequently fall ill during the workday, you may go home without needing to compensate for the remaining hours (considered a full work day). If you remain unwell the next day, you must submit a formal sick request with a doctor's certificate via this form.</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-bold text-zinc-900 dark:text-zinc-200">2. Cuti Tahunan (LEAVE) & Izin Lainnya</h4>
-                  <p className="mt-0.5">Wajib diajukan minimal <b>H-1</b> sebelum hari pelaksanaan. Karyawan magang (Intern) tidak memiliki jatah cuti tahunan.</p>
-                </div>
-                <div>
-                  <h4 className="font-bold text-zinc-900 dark:text-zinc-200">3. Work From Home (WFH)</h4>
-                  <p className="mt-0.5">Hanya berlaku untuk status Team (karyawan magang/Intern dilarang WFH) dan memerlukan persetujuan Super Admin.</p>
-                </div>
-                <div className="rounded-lg bg-zinc-50 dark:bg-zinc-900/50 p-2.5 border border-zinc-100 dark:border-zinc-800/80">
-                  <h4 className="font-bold text-blue-700 dark:text-blue-400">Sakit di Tengah Kerja (Pulang Cepat)</h4>
-                  <p className="mt-0.5 text-zinc-600 dark:text-zinc-400">Jika Anda sudah masuk pagi lalu sakit dan tidak kuat melanjutkan kerja, Anda diperbolehkan pulang tanpa utang jam kerja (dianggap masuk penuh). Jika keesokan harinya Anda masih sakit, Anda wajib mengajukan izin sakit resmi dengan melampirkan surat dokter di form ini.</p>
-                </div>
-              </div>
+              )}
             </DialogContent>
           </Dialog>
         </label>

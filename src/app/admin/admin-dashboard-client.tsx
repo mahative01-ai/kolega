@@ -154,6 +154,8 @@ type Props = {
   todayKey: string;
   scheduleByDateMap: Record<string, { workMode: string; note: string | null }>;
   attendanceByDateMap: Record<string, { status: string; isManualCorrection: boolean; workMode: string }>;
+  rulesPlanContent?: string;
+  rulesReportContent?: string;
 };
 
 const statusLabel: Record<string, string> = {
@@ -212,6 +214,8 @@ export function AdminDashboardClient({
   todayKey,
   scheduleByDateMap,
   attendanceByDateMap,
+  rulesPlanContent,
+  rulesReportContent,
 }: Props) {
   const [activeTab, setActiveTab] = useState<"personal" | "studio">(() => defaultTab ?? "personal");
   const prevDate = new Date(data.selectedMonth.year, data.selectedMonth.monthIndex - 1, 1);
@@ -606,6 +610,8 @@ export function AdminDashboardClient({
                           hasCheckedIn={!!data.todayRecord?.checkInAt}
                           hasCheckedOut={!!data.todayRecord?.checkOutAt}
                           checkInPlan={data.todayRecord?.wfhPlan}
+                          rulesPlanContent={rulesPlanContent}
+                          rulesReportContent={rulesReportContent}
                         />
                       </div>
                     </CardContent>

@@ -237,8 +237,12 @@ export async function submitWfoAttendanceAction(formData: FormData) {
 
   const distance = calculateDistance(userLat, userLng, studio.latitude, studio.longitude);
   const maxRadius = studio.radiusMeters ?? 100;
-  const locationValidationStatus =
-    distance > maxRadius ? "OUTSIDE_RADIUS" : "INSIDE_RADIUS";
+  
+  if (distance > maxRadius) {
+    redirect("/member/presensi?error=outside-radius");
+  }
+
+  const locationValidationStatus = "INSIDE_RADIUS";
 
   const isHardHoliday = holiday?.type === "NATIONAL_HOLIDAY" || holiday?.type === "COMPANY_LEAVE";
   const isOptionalMondayWfo = dayOfWeek === 1 && !isHardHoliday && personalSchedule?.workMode !== "WFH";

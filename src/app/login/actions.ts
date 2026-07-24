@@ -283,8 +283,15 @@ export async function loginAndAttendWithQrAction(
 
   const distance = calculateDistance(userLat, userLng, studio.latitude, studio.longitude);
   const radiusMeters = studio.radiusMeters ?? 100;
-  const locationValidationStatus =
-    distance > radiusMeters ? "OUTSIDE_RADIUS" : "INSIDE_RADIUS";
+  
+  if (distance > radiusMeters) {
+    return {
+      success: false,
+      error: "Tidak bisa presensi karena berada di luar radius studio.",
+    };
+  }
+
+  const locationValidationStatus = "INSIDE_RADIUS";
 
   // A. Jika sudah melakukan check-in WFH hari ini, blok WFO scan
   if (existingRecord?.workMode === "WFH" && existingRecord.checkInAt) {

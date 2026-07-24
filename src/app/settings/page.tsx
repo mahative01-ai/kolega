@@ -1,4 +1,4 @@
-import { Clock, User as UserIcon } from "lucide-react";
+import { Clock, User as UserIcon, BookOpen } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -17,6 +17,8 @@ import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { WorkdaySettingsClient } from "./workday-settings-client";
 import { ProfileSettingsClient } from "./profile-settings-client";
+import { HelpDialogsSettingsClient } from "./help-dialogs-settings-client";
+import { getHelpRules } from "@/lib/default-help-rules";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -69,6 +71,8 @@ export default async function SettingsPage({
       })
     : [];
 
+  const helpRules = isSuperAdmin ? await getHelpRules() : null;
+
   return (
     <DashboardShell
       user={user}
@@ -77,7 +81,7 @@ export default async function SettingsPage({
       title="Settings"
       description={
         isSuperAdmin
-          ? "Manage profile password and studio workdays."
+          ? "Manage profile password, studio workdays, and help rules."
           : "Manage your personal profile and Kolega account password."
       }
     >
@@ -102,6 +106,15 @@ export default async function SettingsPage({
                 </Link>
               }
             />
+            <TabsTrigger
+              value="help-dialogs"
+              render={
+                <Link href="/settings?tab=help-dialogs">
+                  <BookOpen className="size-4 mr-1.5" />
+                  Help Rules
+                </Link>
+              }
+            />
           </TabsList>
         ) : null}
 
@@ -109,7 +122,7 @@ export default async function SettingsPage({
           <ProfileSettingsClient initialUser={user} />
         </TabsContent>
 
-        {isSuperAdmin ? (
+        {isSuperAdmin && helpRules ? (
           <>
             <TabsContent value="workday" className="mt-0">
               <Card className="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-none">
@@ -124,6 +137,23 @@ export default async function SettingsPage({
                 </CardHeader>
                 <CardContent>
                   <WorkdaySettingsClient studios={studios} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="help-dialogs" className="mt-0">
+              <Card className="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-none">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-50">
+                    <BookOpen className="size-5 text-blue-700" />
+                    Help Rules Popups
+                  </CardTitle>
+                  <CardDescription>
+                    Configure content (with HTML formatting) shown in the question mark help icons.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <HelpDialogsSettingsClient initialRules={helpRules} />
                 </CardContent>
               </Card>
             </TabsContent>
